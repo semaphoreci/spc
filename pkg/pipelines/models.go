@@ -3,10 +3,10 @@
 package pipelines
 
 import (
+    "bytes"
     "errors"
     "encoding/json"
     "fmt"
-    "bytes"
 )
 
 // Agent 
@@ -179,6 +179,20 @@ type Parameters struct {
   EnvVars []*ParameterEnvVar `json:"env_vars"`
 }
 
+// Pipeline 
+type Pipeline struct {
+  Agent *Agent `json:"agent"`
+  AutoCancel *AutoCancel `json:"auto_cancel,omitempty"`
+  Blocks []*Block `json:"blocks"`
+  ExecutionTimeLimit *ExecutionTimeLimit `json:"execution_time_limit,omitempty"`
+  FailFast *FailFast `json:"fail_fast,omitempty"`
+  GlobalJobConfig *GlobalJobConfig `json:"global_job_config,omitempty"`
+  Name string `json:"name,omitempty"`
+  Promotions []*PromotionsItems `json:"promotions,omitempty"`
+  Queue interface{} `json:"queue,omitempty"`
+  Version string `json:"version"`
+}
+
 // PriorityItems 
 type PriorityItems struct {
   Value int `json:"value"`
@@ -211,20 +225,6 @@ type Secret struct {
 
 // SecretsItems 
 type SecretsItems struct {
-}
-
-// SemaphorePipelineDefinitionFileSpecification 
-type SemaphorePipelineDefinitionFileSpecification struct {
-  Agent *Agent `json:"agent"`
-  AutoCancel *AutoCancel `json:"auto_cancel,omitempty"`
-  Blocks []*Block `json:"blocks"`
-  ExecutionTimeLimit *ExecutionTimeLimit `json:"execution_time_limit,omitempty"`
-  FailFast *FailFast `json:"fail_fast,omitempty"`
-  GlobalJobConfig *GlobalJobConfig `json:"global_job_config,omitempty"`
-  Name string `json:"name,omitempty"`
-  Promotions []*PromotionsItems `json:"promotions,omitempty"`
-  Queue interface{} `json:"queue,omitempty"`
-  Version string `json:"version"`
 }
 
 // Task 
@@ -1807,6 +1807,207 @@ func (strct *Parameters) UnmarshalJSON(b []byte) error {
     return nil
 }
 
+func (strct *Pipeline) MarshalJSON() ([]byte, error) {
+	buf := bytes.NewBuffer(make([]byte, 0))
+	buf.WriteString("{")
+    comma := false
+    // "Agent" field is required
+    if strct.Agent == nil {
+        return nil, errors.New("agent is a required field")
+    }
+    // Marshal the "agent" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"agent\": ")
+	if tmp, err := json.Marshal(strct.Agent); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+    // Marshal the "auto_cancel" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"auto_cancel\": ")
+	if tmp, err := json.Marshal(strct.AutoCancel); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+    // "Blocks" field is required
+    // only required object types supported for marshal checking (for now)
+    // Marshal the "blocks" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"blocks\": ")
+	if tmp, err := json.Marshal(strct.Blocks); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+    // Marshal the "execution_time_limit" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"execution_time_limit\": ")
+	if tmp, err := json.Marshal(strct.ExecutionTimeLimit); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+    // Marshal the "fail_fast" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"fail_fast\": ")
+	if tmp, err := json.Marshal(strct.FailFast); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+    // Marshal the "global_job_config" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"global_job_config\": ")
+	if tmp, err := json.Marshal(strct.GlobalJobConfig); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+    // Marshal the "name" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"name\": ")
+	if tmp, err := json.Marshal(strct.Name); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+    // Marshal the "promotions" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"promotions\": ")
+	if tmp, err := json.Marshal(strct.Promotions); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+    // Marshal the "queue" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"queue\": ")
+	if tmp, err := json.Marshal(strct.Queue); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+    // "Version" field is required
+    // only required object types supported for marshal checking (for now)
+    // Marshal the "version" field
+    if comma { 
+        buf.WriteString(",") 
+    }
+    buf.WriteString("\"version\": ")
+	if tmp, err := json.Marshal(strct.Version); err != nil {
+		return nil, err
+ 	} else {
+ 		buf.Write(tmp)
+	}
+	comma = true
+
+	buf.WriteString("}")
+	rv := buf.Bytes()
+	return rv, nil
+}
+
+func (strct *Pipeline) UnmarshalJSON(b []byte) error {
+    agentReceived := false
+    blocksReceived := false
+    versionReceived := false
+    var jsonMap map[string]json.RawMessage
+    if err := json.Unmarshal(b, &jsonMap); err != nil {
+        return err
+    }
+    // parse all the defined properties
+    for k, v := range jsonMap {
+        switch k {
+        case "agent":
+            if err := json.Unmarshal([]byte(v), &strct.Agent); err != nil {
+                return err
+             }
+            agentReceived = true
+        case "auto_cancel":
+            if err := json.Unmarshal([]byte(v), &strct.AutoCancel); err != nil {
+                return err
+             }
+        case "blocks":
+            if err := json.Unmarshal([]byte(v), &strct.Blocks); err != nil {
+                return err
+             }
+            blocksReceived = true
+        case "execution_time_limit":
+            if err := json.Unmarshal([]byte(v), &strct.ExecutionTimeLimit); err != nil {
+                return err
+             }
+        case "fail_fast":
+            if err := json.Unmarshal([]byte(v), &strct.FailFast); err != nil {
+                return err
+             }
+        case "global_job_config":
+            if err := json.Unmarshal([]byte(v), &strct.GlobalJobConfig); err != nil {
+                return err
+             }
+        case "name":
+            if err := json.Unmarshal([]byte(v), &strct.Name); err != nil {
+                return err
+             }
+        case "promotions":
+            if err := json.Unmarshal([]byte(v), &strct.Promotions); err != nil {
+                return err
+             }
+        case "queue":
+            if err := json.Unmarshal([]byte(v), &strct.Queue); err != nil {
+                return err
+             }
+        case "version":
+            if err := json.Unmarshal([]byte(v), &strct.Version); err != nil {
+                return err
+             }
+            versionReceived = true
+        default:
+            return fmt.Errorf("additional property not allowed: \"" + k + "\"")
+        }
+    }
+    // check if agent (a required property) was received
+    if !agentReceived {
+        return errors.New("\"agent\" is required but was not present")
+    }
+    // check if blocks (a required property) was received
+    if !blocksReceived {
+        return errors.New("\"blocks\" is required but was not present")
+    }
+    // check if version (a required property) was received
+    if !versionReceived {
+        return errors.New("\"version\" is required but was not present")
+    }
+    return nil
+}
+
 func (strct *PriorityItems) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBuffer(make([]byte, 0))
 	buf.WriteString("{")
@@ -2153,207 +2354,6 @@ func (strct *Secret) UnmarshalJSON(b []byte) error {
     // check if name (a required property) was received
     if !nameReceived {
         return errors.New("\"name\" is required but was not present")
-    }
-    return nil
-}
-
-func (strct *SemaphorePipelineDefinitionFileSpecification) MarshalJSON() ([]byte, error) {
-	buf := bytes.NewBuffer(make([]byte, 0))
-	buf.WriteString("{")
-    comma := false
-    // "Agent" field is required
-    if strct.Agent == nil {
-        return nil, errors.New("agent is a required field")
-    }
-    // Marshal the "agent" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"agent\": ")
-	if tmp, err := json.Marshal(strct.Agent); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-    // Marshal the "auto_cancel" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"auto_cancel\": ")
-	if tmp, err := json.Marshal(strct.AutoCancel); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-    // "Blocks" field is required
-    // only required object types supported for marshal checking (for now)
-    // Marshal the "blocks" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"blocks\": ")
-	if tmp, err := json.Marshal(strct.Blocks); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-    // Marshal the "execution_time_limit" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"execution_time_limit\": ")
-	if tmp, err := json.Marshal(strct.ExecutionTimeLimit); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-    // Marshal the "fail_fast" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"fail_fast\": ")
-	if tmp, err := json.Marshal(strct.FailFast); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-    // Marshal the "global_job_config" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"global_job_config\": ")
-	if tmp, err := json.Marshal(strct.GlobalJobConfig); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-    // Marshal the "name" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"name\": ")
-	if tmp, err := json.Marshal(strct.Name); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-    // Marshal the "promotions" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"promotions\": ")
-	if tmp, err := json.Marshal(strct.Promotions); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-    // Marshal the "queue" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"queue\": ")
-	if tmp, err := json.Marshal(strct.Queue); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-    // "Version" field is required
-    // only required object types supported for marshal checking (for now)
-    // Marshal the "version" field
-    if comma { 
-        buf.WriteString(",") 
-    }
-    buf.WriteString("\"version\": ")
-	if tmp, err := json.Marshal(strct.Version); err != nil {
-		return nil, err
- 	} else {
- 		buf.Write(tmp)
-	}
-	comma = true
-
-	buf.WriteString("}")
-	rv := buf.Bytes()
-	return rv, nil
-}
-
-func (strct *SemaphorePipelineDefinitionFileSpecification) UnmarshalJSON(b []byte) error {
-    agentReceived := false
-    blocksReceived := false
-    versionReceived := false
-    var jsonMap map[string]json.RawMessage
-    if err := json.Unmarshal(b, &jsonMap); err != nil {
-        return err
-    }
-    // parse all the defined properties
-    for k, v := range jsonMap {
-        switch k {
-        case "agent":
-            if err := json.Unmarshal([]byte(v), &strct.Agent); err != nil {
-                return err
-             }
-            agentReceived = true
-        case "auto_cancel":
-            if err := json.Unmarshal([]byte(v), &strct.AutoCancel); err != nil {
-                return err
-             }
-        case "blocks":
-            if err := json.Unmarshal([]byte(v), &strct.Blocks); err != nil {
-                return err
-             }
-            blocksReceived = true
-        case "execution_time_limit":
-            if err := json.Unmarshal([]byte(v), &strct.ExecutionTimeLimit); err != nil {
-                return err
-             }
-        case "fail_fast":
-            if err := json.Unmarshal([]byte(v), &strct.FailFast); err != nil {
-                return err
-             }
-        case "global_job_config":
-            if err := json.Unmarshal([]byte(v), &strct.GlobalJobConfig); err != nil {
-                return err
-             }
-        case "name":
-            if err := json.Unmarshal([]byte(v), &strct.Name); err != nil {
-                return err
-             }
-        case "promotions":
-            if err := json.Unmarshal([]byte(v), &strct.Promotions); err != nil {
-                return err
-             }
-        case "queue":
-            if err := json.Unmarshal([]byte(v), &strct.Queue); err != nil {
-                return err
-             }
-        case "version":
-            if err := json.Unmarshal([]byte(v), &strct.Version); err != nil {
-                return err
-             }
-            versionReceived = true
-        default:
-            return fmt.Errorf("additional property not allowed: \"" + k + "\"")
-        }
-    }
-    // check if agent (a required property) was received
-    if !agentReceived {
-        return errors.New("\"agent\" is required but was not present")
-    }
-    // check if blocks (a required property) was received
-    if !blocksReceived {
-        return errors.New("\"blocks\" is required but was not present")
-    }
-    // check if version (a required property) was received
-    if !versionReceived {
-        return errors.New("\"version\" is required but was not present")
     }
     return nil
 }

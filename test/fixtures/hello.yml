@@ -1,0 +1,14 @@
+version: v1.0
+name: Hello
+
+agent:
+  machine:
+    type: "e1-standard-2"
+
+blocks:
+  - name: Hello
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "hello"

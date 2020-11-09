@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-04/schema#
 version: v1.0
-title: Semaphore pipeline definition file specification
+title: Pipeline
 type: object
 properties:
   version:
