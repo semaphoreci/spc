@@ -1,10 +1,27 @@
 package pipelines
 
-import "fmt"
+import (
+	"io/ioutil"
 
-type Pipeline struct {
-}
+	"github.com/ghodss/yaml"
+)
 
 func LoadFromYaml(path string) (*Pipeline, error) {
-	return nil, fmt.Errorf("not found")
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := yaml.YAMLToJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	pipeline := &Pipeline{}
+	err = pipeline.UnmarshalJSON(jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	return pipeline, nil
 }
