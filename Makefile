@@ -5,4 +5,4 @@ setup:
 
 build:
 	rm -rf build
-	go build -o build/cli cmd/cli/main.go
+	go build -o build/cli cmd/cli/*.go
