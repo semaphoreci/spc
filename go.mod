@@ -1,4 +1,4 @@
-module semaphoreci/spc
+module github.com/semaphoreci/spc
 
 go 1.15
 

@@ -20,12 +20,14 @@ var evaluateChangeInCmd = &cobra.Command{
 		output := fetchRequiredStringFlag(cmd, "output")
 		logs := fetchRequiredStringFlag(cmd, "logs")
 
-		ppl, err := pipelines.LoadFromYaml(input, logs)
+		ppl, err := pipelines.LoadFromYaml(input)
 		if err != nil {
 			fmt.Printf("Writing failure to %s %s", logs, err.Error())
 
 			os.Exit(1)
 		}
+
+		fmt.Printf("Pipeline %+v", ppl)
 
 		fmt.Printf("Writing result to %s", output)
 	},
