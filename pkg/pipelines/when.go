@@ -22,7 +22,7 @@ func (p *Pipeline) ListWhenConditions() *WhenList {
 	for index, _ := range p.Promotions {
 		i := strconv.Itoa(index)
 
-		list.AppendIfExists("promotions", i, "autoPromote", "when")
+		list.AppendIfExists("promotions", i, "auto_promote", "when")
 	}
 
 	return list
