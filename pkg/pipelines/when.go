@@ -29,22 +29,23 @@ func (p *Pipeline) ListWhenConditions() *WhenList {
 }
 
 type WhenListElement struct {
-	expression string
-	path       []string
+	Expression string
+	Path       []string
 }
 
 type WhenList struct {
+	List []WhenListElement
+
 	pipeline *Pipeline
-	list     []WhenListElement
 }
 
 func (w *WhenList) AppendIfExists(path ...string) {
 	value := w.pipeline.Lookup(path)
 
 	if value != nil {
-		w.list = append(w.list, WhenListElement{
-			expression: value.(string),
-			path:       path,
+		w.List = append(w.List, WhenListElement{
+			Expression: value.(string),
+			Path:       path,
 		})
 	}
 }

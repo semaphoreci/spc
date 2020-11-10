@@ -17,3 +17,14 @@ blocks:
             - checkout
             - go get gotest.tools/gotestsum
             - make test
+
+        - name: e2e
+          commands:
+            - sem-version go 1.15
+            - export GO111MODULE=on
+            - export GOPATH=~/go
+            - 'export PATH=/home/semaphore/go/bin:$PATH'
+            - checkout
+            - go get gotest.tools/gotestsum
+            - make build
+            - make e2e
