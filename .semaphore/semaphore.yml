@@ -26,4 +26,5 @@ blocks:
             - 'export PATH=/home/semaphore/go/bin:$PATH'
             - checkout
             - go get gotest.tools/gotestsum
+            - make build
             - make e2e
