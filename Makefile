@@ -26,3 +26,6 @@ dev.run.change-in:
 
 test:
 	gotestsum --format short-verbose
+
+e2e:
+	ruby test/e2e/when/hello.rb

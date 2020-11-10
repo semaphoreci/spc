@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
+	"github.com/ghodss/yaml"
 	"github.com/semaphoreci/spc/pkg/pipelines"
 	"github.com/spf13/cobra"
 )
@@ -23,13 +25,21 @@ var evaluateChangeInCmd = &cobra.Command{
 		ppl, err := pipelines.LoadFromYaml(input)
 		if err != nil {
 			fmt.Printf("Writing failure to %s %s", logs, err.Error())
-
 			os.Exit(1)
 		}
 
-		fmt.Printf("Pipeline %+v", ppl)
+		list := ppl.ListWhenConditions()
+		for _, w := range list.List {
+			fmt.Println(w.Expression)
+		}
 
-		fmt.Printf("Writing result to %s", output)
+		jsonPpl, _ := ppl.MarshalJSON()
+		yamlPpl, _ := yaml.JSONToYAML(jsonPpl)
+
+		err = ioutil.WriteFile(output, yamlPpl, 0644)
+		if err != nil {
+			panic(err)
+		}
 	},
 }
 
