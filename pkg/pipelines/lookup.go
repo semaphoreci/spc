@@ -1,21 +1,24 @@
 package pipelines
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
+
+	"github.com/iancoleman/strcase"
 )
 
 //
 // Looks up a value in the pipeline by following a simple JSON path.
 //
-func (p *Pipeline) Lookup(path []string) (res interface{}) {
-	defer func() {
-		if r := recover(); r != nil {
-			res = nil
-		}
-	}()
+func (p *Pipeline) Lookup(path []string) interface{} {
+	snakeCasePath := []string{}
 
-	return getNested(*p, path)
+	for _, p := range path {
+		snakeCasePath = append(snakeCasePath, strcase.ToCamel(p))
+	}
+
+	return getNested(p, snakeCasePath)
 }
 
 func getNested(obj interface{}, path []string) interface{} {
@@ -23,6 +26,9 @@ func getNested(obj interface{}, path []string) interface{} {
 
 	for _, p := range path {
 		res = get(res, p)
+		if res == nil {
+			return res
+		}
 	}
 
 	return res
@@ -31,9 +37,27 @@ func getNested(obj interface{}, path []string) interface{} {
 func get(obj interface{}, name string) interface{} {
 	v := reflect.ValueOf(obj)
 
-	if index, err := strconv.Atoi(name); err == nil {
-		return v.Index(index)
+	switch v.Kind() {
+	case reflect.Ptr:
+		if v.IsNil() {
+			return nil
+		}
+
+		return get(v.Elem().Interface(), name)
+
+	case reflect.Struct:
+		return reflect.Indirect(v).FieldByName(name).Interface()
+
+	case reflect.Slice:
+		index, err := strconv.Atoi(name)
+
+		if err != nil {
+			return nil
+		}
+
+		return reflect.Indirect(v).Index(index).Interface()
 	}
 
-	return reflect.Indirect(v).FieldByName(name)
+	fmt.Println(v.Kind())
+	panic("can't get path from object")
 }

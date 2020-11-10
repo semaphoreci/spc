@@ -16,5 +16,8 @@ func Test__ListWhenConditions(t *testing.T) {
 	assert.Equal(t, len(result), 2)
 
 	assert.Equal(t, result[0].expression, "branch = 'master'")
+	assert.Equal(t, result[0].path, []string{"auto_cancel", "queued", "when"})
+
 	assert.Equal(t, result[1].expression, "change_in('lib')")
+	assert.Equal(t, result[1].path, []string{"blocks", "0", "skip", "when"})
 }

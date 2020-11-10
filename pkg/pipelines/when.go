@@ -1,26 +1,28 @@
 package pipelines
 
-import "strconv"
+import (
+	"strconv"
+)
 
 func (p *Pipeline) ListWhenConditions() *WhenList {
-	list := &WhenList{}
+	list := &WhenList{pipeline: p}
 
-	list.AppendIfExists(p, []string{"AutoCancel", "Queued", "When"})
-	list.AppendIfExists(p, []string{"AutoCancel", "Running", "When"})
-	list.AppendIfExists(p, []string{"FailFast", "Cancel", "When"})
-	list.AppendIfExists(p, []string{"FailFast", "Stop", "When"})
+	list.AppendIfExists("auto_cancel", "queued", "when")
+	list.AppendIfExists("auto_cancel", "running", "when")
+	list.AppendIfExists("fail_fast", "cancel", "when")
+	list.AppendIfExists("fail_fast", "stop", "when")
 
 	for index, _ := range p.Blocks {
 		i := strconv.Itoa(index)
 
-		list.AppendIfExists(p, []string{"blocks", i, "Skip", "When"})
-		list.AppendIfExists(p, []string{"blocks", i, "Run", "When"})
+		list.AppendIfExists("blocks", i, "skip", "when")
+		list.AppendIfExists("blocks", i, "run", "when")
 	}
 
 	for index, _ := range p.Promotions {
 		i := strconv.Itoa(index)
 
-		list.AppendIfExists(p, []string{"promotions", i, "AutoPromote", "When"})
+		list.AppendIfExists("promotions", i, "autoPromote", "when")
 	}
 
 	return list
@@ -32,11 +34,12 @@ type WhenListElement struct {
 }
 
 type WhenList struct {
-	list []WhenListElement
+	pipeline *Pipeline
+	list     []WhenListElement
 }
 
-func (w *WhenList) AppendIfExists(pipeline *Pipeline, path []string) {
-	value := pipeline.Lookup(path)
+func (w *WhenList) AppendIfExists(path ...string) {
+	value := w.pipeline.Lookup(path)
 
 	if value != nil {
 		w.list = append(w.list, WhenListElement{
