@@ -1,0 +1,20 @@
+version: v1.0
+name: Hello
+
+agent:
+  machine:
+    type: "e1-standard-2"
+
+auto_cancel:
+  queued:
+    when: "branch = 'master'"
+
+blocks:
+  - name: Hello
+    skip:
+      when: "change_in('lib')"
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "hello"
