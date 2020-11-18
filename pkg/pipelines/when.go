@@ -1,6 +1,8 @@
 package pipelines
 
 import (
+	"fmt"
+	"os/exec"
 	"strconv"
 )
 
@@ -26,6 +28,17 @@ func (p *Pipeline) ListWhenConditions() *WhenList {
 	}
 
 	return list
+}
+
+func (p *Pipeline) EvaluateChangeIns() {
+	whenList := p.ListWhenConditions()
+
+	for _, w := range whenList.List {
+		cmd, _ := exec.Command("when", "list-inputs", w.Expression).Output()
+		output := string(cmd)
+
+		fmt.Println(output)
+	}
 }
 
 type WhenListElement struct {

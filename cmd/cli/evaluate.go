@@ -28,10 +28,7 @@ var evaluateChangeInCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		list := ppl.ListWhenConditions()
-		for _, w := range list.List {
-			fmt.Println(w.Expression)
-		}
+		ppl.EvaluateChangeIns()
 
 		jsonPpl, _ := ppl.MarshalJSON()
 		yamlPpl, _ := yaml.JSONToYAML(jsonPpl)
