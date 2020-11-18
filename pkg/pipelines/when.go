@@ -65,9 +65,7 @@ func (p *Pipeline) EvaluateChangeIns() {
 			}
 
 			fmt.Println("Running git command")
-			gitOpts := []string{
-				"git", "diff", "--name-only", "master..HEAD",
-			}
+			gitOpts := []string{"diff", "--name-only", "master..HEAD"}
 
 			fmt.Printf("git %s\n", strings.Join(gitOpts, " "))
 
