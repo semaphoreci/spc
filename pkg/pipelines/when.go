@@ -36,6 +36,10 @@ func (p *Pipeline) EvaluateChangeIns() {
 	whenList := p.ListWhenConditions()
 
 	for _, w := range whenList.List {
+		fmt.Println("Evaluating start.")
+		fmt.Println(w.Expression)
+		fmt.Println(w.Path)
+
 		cmd, _ := exec.Command("when", "list-inputs", w.Expression).Output()
 		output := string(cmd)
 		inputs := gjson.Parse(output)
@@ -44,8 +48,10 @@ func (p *Pipeline) EvaluateChangeIns() {
 			fmt.Println(key)
 			fmt.Println(value)
 
-			return false
+			return true
 		})
+
+		fmt.Println("Evaluating end.")
 	}
 }
 
