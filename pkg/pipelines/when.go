@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	gjson "github.com/tidwall/gjson"
 )
@@ -40,16 +41,31 @@ func (p *Pipeline) EvaluateChangeIns() {
 		fmt.Println(w.Expression)
 		fmt.Println(w.Path)
 
-		cmd, _ := exec.Command("when", "list-inputs", w.Expression).Output()
-		output := string(cmd)
-		inputs := gjson.Parse(output)
+		bytes, _ := exec.Command("when", "list-inputs", w.Expression).Output()
+		output := string(bytes)
+		neededInputs := gjson.Parse(output).Array()
 
-		inputs.ForEach(func(key, value gjson.Result) bool {
-			fmt.Println(key)
-			fmt.Println(value)
+		for _, input := range neededInputs {
+			elType := input.Get("type").String()
+			if elType != "fun" {
+				continue
+			}
 
-			return true
-		})
+			elName := input.Get("name").String()
+			if elName != "change_in" {
+				continue
+			}
+
+			bytes, _ := exec.Command("git", "diff", "--name-only", "master..HEAD").Output()
+			diffList := string(bytes)
+			diffs := strings.Split(diffList, "\n")
+
+			for _, filePath := range diffs {
+				if filePath == input.Get("params").Array()[0].String() {
+					fmt.Println("has changes !!!")
+				}
+			}
+		}
 
 		fmt.Println("Evaluating end.")
 	}
