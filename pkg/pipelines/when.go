@@ -1,7 +1,9 @@
 package pipelines
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -53,6 +55,8 @@ func (p *Pipeline) EvaluateChangeIns() {
 
 		neededInputs := gjson.Parse(output).Array()
 
+		inputs := WhenInputs{}
+
 		for _, input := range neededInputs {
 			elType := input.Get("type").String()
 			if elType != "fun" {
@@ -77,15 +81,46 @@ func (p *Pipeline) EvaluateChangeIns() {
 
 			diffs := strings.Split(diffList, "\n")
 
+			changes := false
 			for _, filePath := range diffs {
 				if filePath == input.Get("params").Array()[0].String() {
-					fmt.Println("has changes !!!")
+					changes = true
+					break
 				}
 			}
+
+			funInput := WhenFunctionInput{
+				Name:   "change_in",
+				Params: input.Get("params"),
+				Result: changes,
+			}
+
+			inputs.Functions = append(inputs.Functions, funInput)
 		}
+
+		fmt.Println(inputs)
+		inputBytes, _ := json.Marshal(inputs)
+		fmt.Println(inputBytes)
+
+		ioutil.WriteFile("/tmp/inputs.json", inputBytes, 0644)
+
+		bytes, _ = exec.Command("when", "reduce", w.Expression, "--input", "/tmp/inputs.json").Output()
+		fmt.Println("Result:")
+		fmt.Println(bytes)
 	}
 
 	fmt.Println("Evaluating end.")
+}
+
+type WhenFunctionInput struct {
+	Name   string       `json:"name"`
+	Params gjson.Result `json:"params"`
+	Result bool         `json:"result`
+}
+
+type WhenInputs struct {
+	Keywords  map[string]string   `json:"keywords"`
+	Functions []WhenFunctionInput `json:"functions"`
 }
 
 type WhenListElement struct {
