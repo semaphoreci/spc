@@ -99,14 +99,24 @@ func (p *Pipeline) EvaluateChangeIns() {
 		}
 
 		fmt.Println(inputs)
-		inputBytes, _ := json.Marshal(inputs)
-		fmt.Println(inputBytes)
+		inputBytes, err := json.Marshal(inputs)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(inputBytes))
 
-		ioutil.WriteFile("/tmp/inputs.json", inputBytes, 0644)
+		err = ioutil.WriteFile("/tmp/inputs.json", inputBytes, 0644)
+		if err != nil {
+			panic(err)
+		}
 
-		bytes, _ = exec.Command("when", "reduce", w.Expression, "--input", "/tmp/inputs.json").Output()
+		bytes, err = exec.Command("when", "reduce", w.Expression, "--input", "/tmp/inputs.json").Output()
+		if err != nil {
+			panic(err)
+		}
+
 		fmt.Println("Result:")
-		fmt.Println(bytes)
+		fmt.Println(string(bytes))
 	}
 
 	fmt.Println("Evaluating end.")
