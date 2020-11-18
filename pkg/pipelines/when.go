@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
+
+	gjson "github.com/tidwall/gjson"
 )
 
 func (p *Pipeline) ListWhenConditions() *WhenList {
@@ -36,8 +38,14 @@ func (p *Pipeline) EvaluateChangeIns() {
 	for _, w := range whenList.List {
 		cmd, _ := exec.Command("when", "list-inputs", w.Expression).Output()
 		output := string(cmd)
+		inputs := gjson.Parse(output)
 
-		fmt.Println(output)
+		inputs.ForEach(func(key, value gjson.Result) bool {
+			fmt.Println(key)
+			fmt.Println(value)
+
+			return false
+		})
 	}
 }
 
