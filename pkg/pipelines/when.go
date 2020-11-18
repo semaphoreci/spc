@@ -71,7 +71,7 @@ func (p *Pipeline) EvaluateChangeIns() {
 
 			fmt.Printf("git %s\n", strings.Join(gitOpts, " "))
 
-			bytes, _ := exec.Command("git", gitOpts...).Output()
+			bytes, _ := exec.Command("git", gitOpts...).CombinedOutput()
 			diffList := string(bytes)
 
 			fmt.Println("Diff list:")
