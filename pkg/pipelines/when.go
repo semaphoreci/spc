@@ -46,21 +46,27 @@ func (p *Pipeline) EvaluateChangeIns() {
 		neededInputs := gjson.Parse(output).Array()
 
 		for _, input := range neededInputs {
+			fmt.Println("step1")
 			elType := input.Get("type").String()
 			if elType != "fun" {
 				continue
 			}
 
+			fmt.Println("step2")
 			elName := input.Get("name").String()
 			if elName != "change_in" {
 				continue
 			}
 
+			fmt.Println("step3")
 			bytes, _ := exec.Command("git", "diff", "--name-only", "master..HEAD").Output()
 			diffList := string(bytes)
 			diffs := strings.Split(diffList, "\n")
 
+			fmt.Println(diffs)
+
 			for _, filePath := range diffs {
+				fmt.Println("step4")
 				if filePath == input.Get("params").Array()[0].String() {
 					fmt.Println("has changes !!!")
 				}
