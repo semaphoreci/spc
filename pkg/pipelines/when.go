@@ -11,34 +11,34 @@ import (
 	gabs "github.com/Jeffail/gabs/v2"
 )
 
-func (p *Pipeline) ListWhenConditions() *WhenList {
-	list := &WhenList{pipeline: p}
+func ListWhenConditions(p *gabs.Container) *WhenList {
+	list := &WhenList{}
 
-	list.AppendIfExists("auto_cancel", "queued", "when")
-	list.AppendIfExists("auto_cancel", "running", "when")
-	list.AppendIfExists("fail_fast", "cancel", "when")
-	list.AppendIfExists("fail_fast", "stop", "when")
+	list.AppendIfExists(p, "auto_cancel", "queued", "when")
+	list.AppendIfExists(p, "auto_cancel", "running", "when")
+	list.AppendIfExists(p, "fail_fast", "cancel", "when")
+	list.AppendIfExists(p, "fail_fast", "stop", "when")
 
-	for index, _ := range p.Blocks {
+	for index, _ := range p.Search("blocks").Children() {
 		i := strconv.Itoa(index)
 
-		list.AppendIfExists("blocks", i, "skip", "when")
-		list.AppendIfExists("blocks", i, "run", "when")
+		list.AppendIfExists(p, "blocks", i, "skip", "when")
+		list.AppendIfExists(p, "blocks", i, "run", "when")
 	}
 
-	for index, _ := range p.Promotions {
+	for index, _ := range p.Search("promotions").Children() {
 		i := strconv.Itoa(index)
 
-		list.AppendIfExists("promotions", i, "auto_promote", "when")
+		list.AppendIfExists(p, "promotions", i, "auto_promote", "when")
 	}
 
 	return list
 }
 
-func (p *Pipeline) EvaluateChangeIns() {
+func EvaluateChangeIns(p *gabs.Container) {
 	fmt.Println("Evaluating start.")
 
-	whenList := p.ListWhenConditions()
+	whenList := ListWhenConditions(p)
 
 	for _, w := range whenList.List {
 		fmt.Println("Processing when expression:")
@@ -121,7 +121,9 @@ func (p *Pipeline) EvaluateChangeIns() {
 		fmt.Println("Result:")
 		fmt.Println(string(bytes))
 
-		p.ChangeWhenExpression(w.Path, strings.TrimSpace(string(bytes)))
+		expr := strings.TrimSpace(string(bytes))
+
+		p.Set(expr, w.Path...)
 	}
 
 	fmt.Println("Evaluating end.")
@@ -145,16 +147,14 @@ type WhenListElement struct {
 
 type WhenList struct {
 	List []WhenListElement
-
-	pipeline *Pipeline
 }
 
-func (w *WhenList) AppendIfExists(path ...string) {
-	value := w.pipeline.Lookup(path)
+func (w *WhenList) AppendIfExists(p *gabs.Container, path ...string) {
+	value := p.Search(path...)
 
 	if value != nil {
 		w.List = append(w.List, WhenListElement{
-			Expression: value.(string),
+			Expression: value.Data().(string),
 			Path:       path,
 		})
 	}

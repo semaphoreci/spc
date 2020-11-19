@@ -29,7 +29,7 @@ var evaluateChangeInCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		ppl.EvaluateChangeIns()
+		pipelines.EvaluateChangeIns(ppl)
 
 		jsonPpl, err := json.Marshal(ppl)
 		if err != nil {

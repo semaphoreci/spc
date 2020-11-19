@@ -3,10 +3,11 @@ package pipelines
 import (
 	"io/ioutil"
 
+	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
 )
 
-func LoadFromYaml(path string) (*Pipeline, error) {
+func LoadFromYaml(path string) (*gabs.Container, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -17,8 +18,7 @@ func LoadFromYaml(path string) (*Pipeline, error) {
 		return nil, err
 	}
 
-	pipeline := &Pipeline{}
-	err = pipeline.UnmarshalJSON(jsonData)
+	pipeline, err := gabs.ParseJSON(jsonData)
 	if err != nil {
 		return nil, err
 	}
