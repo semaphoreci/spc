@@ -55,7 +55,8 @@ func (p *Pipeline) EvaluateChangeIns() {
 
 		neededInputs := gjson.Parse(output).Array()
 
-		inputs := WhenInputs{}
+		m := map[string]string{}
+		inputs := WhenInputs{Keywords: m}
 
 		for _, input := range neededInputs {
 			elType := input.Get("type").String()
@@ -91,7 +92,7 @@ func (p *Pipeline) EvaluateChangeIns() {
 
 			funInput := WhenFunctionInput{
 				Name:   "change_in",
-				Params: input.Get("params"),
+				Params: input.Get("params").Array(),
 				Result: changes,
 			}
 
@@ -123,9 +124,9 @@ func (p *Pipeline) EvaluateChangeIns() {
 }
 
 type WhenFunctionInput struct {
-	Name   string       `json:"name"`
-	Params gjson.Result `json:"params"`
-	Result bool         `json:"result`
+	Name   string      `json:"name"`
+	Params interface{} `json:"params"`
+	Result bool        `json:"result`
 }
 
 type WhenInputs struct {
