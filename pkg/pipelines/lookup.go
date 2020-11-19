@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
+	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/iancoleman/strcase"
 )
 
@@ -69,17 +70,5 @@ func (p *Pipeline) ChangeWhenExpression(path []string, value string) {
 		snakeCasePath = append(snakeCasePath, strcase.ToCamel(p))
 	}
 
-	v := reflect.ValueOf(p)
-
-	for _, p := range snakeCasePath {
-		index, err := strconv.Atoi(p)
-
-		if err == nil {
-			v = v.Index(index)
-		} else {
-			v = v.FieldByName(p)
-		}
-	}
-
-	v.SetString(value)
+	gabs.Wrap(p).Set(value, snakeCasePath...)
 }
