@@ -128,7 +128,7 @@ func (p *Pipeline) EvaluateChangeIns() {
 type WhenFunctionInput struct {
 	Name   string      `json:"name"`
 	Params interface{} `json:"params"`
-	Result bool        `json:"result`
+	Result bool        `json:"result"`
 }
 
 type WhenInputs struct {
