@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -30,8 +31,15 @@ var evaluateChangeInCmd = &cobra.Command{
 
 		ppl.EvaluateChangeIns()
 
-		jsonPpl, _ := ppl.MarshalJSON()
-		yamlPpl, _ := yaml.JSONToYAML(jsonPpl)
+		jsonPpl, err := json.Marshal(ppl)
+		if err != nil {
+			panic(err)
+		}
+
+		yamlPpl, err := yaml.JSONToYAML(jsonPpl)
+		if err != nil {
+			panic(err)
+		}
 
 		err = ioutil.WriteFile(output, yamlPpl, 0644)
 		if err != nil {
