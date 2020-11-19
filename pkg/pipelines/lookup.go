@@ -61,3 +61,25 @@ func get(obj interface{}, name string) interface{} {
 	fmt.Println(v.Kind())
 	panic("can't get path from object")
 }
+
+func (p *Pipeline) ChangeWhenExpression(path []string, value string) {
+	snakeCasePath := []string{}
+
+	for _, p := range path {
+		snakeCasePath = append(snakeCasePath, strcase.ToCamel(p))
+	}
+
+	v := reflect.ValueOf(p)
+
+	for _, p := range snakeCasePath {
+		index, err := strconv.Atoi(p)
+
+		if err == nil {
+			v = v.Index(index)
+		} else {
+			v = v.FieldByName(p)
+		}
+	}
+
+	v.SetString(value)
+}

@@ -120,6 +120,8 @@ func (p *Pipeline) EvaluateChangeIns() {
 
 		fmt.Println("Result:")
 		fmt.Println(string(bytes))
+
+		p.ChangeWhenExpression(w.Path, string(bytes))
 	}
 
 	fmt.Println("Evaluating end.")
