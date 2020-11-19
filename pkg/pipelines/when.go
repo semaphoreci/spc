@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	gjson "github.com/tidwall/gjson"
+	gabs "github.com/Jeffail/gabs/v2"
 )
 
 func (p *Pipeline) ListWhenConditions() *WhenList {
@@ -48,23 +48,25 @@ func (p *Pipeline) EvaluateChangeIns() {
 		fmt.Println(w.Path)
 
 		bytes, _ := exec.Command("when", "list-inputs", w.Expression).Output()
-		output := string(bytes)
 
 		fmt.Println("Inputs needed for this expression:")
-		fmt.Println(output)
+		fmt.Println(string(bytes))
 
-		neededInputs := gjson.Parse(output).Array()
+		neededInputs, err := gabs.ParseJSON(bytes)
+		if err != nil {
+			panic(err)
+		}
 
 		m := map[string]string{}
 		inputs := WhenInputs{Keywords: m}
 
-		for _, input := range neededInputs {
-			elType := input.Get("type").String()
+		for _, input := range neededInputs.Children() {
+			elType := input.Search("type").Data().(string)
 			if elType != "fun" {
 				continue
 			}
 
-			elName := input.Get("name").String()
+			elName := input.Search("name").Data().(string)
 			if elName != "change_in" {
 				continue
 			}
@@ -84,7 +86,7 @@ func (p *Pipeline) EvaluateChangeIns() {
 
 			changes := false
 			for _, filePath := range diffs {
-				if filePath == input.Get("params").Array()[0].String() {
+				if filePath == input.Search("params").Data().([]string)[0] {
 					changes = true
 					break
 				}
@@ -92,7 +94,7 @@ func (p *Pipeline) EvaluateChangeIns() {
 
 			funInput := WhenFunctionInput{
 				Name:   "change_in",
-				Params: input.Get("params").Array(),
+				Params: input.Search("params"),
 				Result: changes,
 			}
 
