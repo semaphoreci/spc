@@ -91,13 +91,25 @@ func EvaluateChangeIns(p *gabs.Container) {
 			fmt.Println("Diff list:")
 			fmt.Println(diffList)
 
-			diffs := strings.Split(diffList, "\n")
+			diffs := strings.Split(strings.TrimSpace(diffList), "\n")
+
+			paths := []string{}
+			if _, ok := input.Search("params", "0").Data().([]interface{}); ok {
+				for _, p := range input.Search("params", "0").Children() {
+					paths = append(paths, p.Data().(string))
+				}
+			} else {
+				paths = append(paths, input.Search("params", "0").Data().(string))
+			}
 
 			changes := false
-			for _, filePath := range diffs {
-				if filePath == input.Search("params").Data().([]interface{})[0].(string) {
-					changes = true
-					break
+			for _, diffPath := range diffs {
+				for _, checkPath := range paths {
+					fmt.Printf("Comparing %s = %s\n", diffPath, checkPath)
+					if diffPath == checkPath {
+						changes = true
+						break
+					}
 				}
 			}
 
