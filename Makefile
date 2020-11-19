@@ -28,4 +28,5 @@ test:
 	gotestsum --format short-verbose
 
 e2e: build
-	ruby test/e2e/evaluate_change_in_expressions.rb
+	ruby test/e2e/change_in_simple.rb
+	ruby test/e2e/change_in_with_default_branch.rb

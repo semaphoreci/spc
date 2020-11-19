@@ -11,7 +11,7 @@ func Test__ListWhenConditions(t *testing.T) {
 	pipeline, err := LoadFromYaml("../../test/fixtures/when.yml")
 	require.Nil(t, err)
 
-	result := pipeline.ListWhenConditions().List
+	result := ListWhenConditions(pipeline).List
 
 	assert.Equal(t, len(result), 2)
 

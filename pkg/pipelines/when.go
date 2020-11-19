@@ -47,7 +47,11 @@ func EvaluateChangeIns(p *gabs.Container) {
 		fmt.Println("From:")
 		fmt.Println(w.Path)
 
-		bytes, _ := exec.Command("when", "list-inputs", w.Expression).Output()
+		bytes, err := exec.Command("when", "list-inputs", w.Expression).Output()
+		if err != nil {
+			fmt.Println(string(bytes))
+			panic(err)
+		}
 
 		fmt.Println("Inputs needed for this expression:")
 		fmt.Println(string(bytes))
@@ -71,8 +75,13 @@ func EvaluateChangeIns(p *gabs.Container) {
 				continue
 			}
 
+			defaultBranch := "master"
+			if input.Exists("params", "1", "default_branch") {
+				defaultBranch = input.Search("params", "1", "default_branch").Data().(string)
+			}
+
 			fmt.Println("Running git command")
-			gitOpts := []string{"diff", "--name-only", "origin/master..HEAD"}
+			gitOpts := []string{"diff", "--name-only", fmt.Sprintf("origin/%s..HEAD", defaultBranch)}
 
 			fmt.Printf("git %s\n", strings.Join(gitOpts, " "))
 

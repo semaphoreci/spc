@@ -3,6 +3,9 @@
 require_relative "../e2e"
 require 'yaml'
 
+system "rm -f /tmp/input.yml"
+system "rm -f /tmp/output.yml"
+
 File.write('/tmp/input.yml', %{
 version: v1.0
 name: Test
@@ -13,7 +16,7 @@ agent:
 blocks:
   - name: Test
     skip:
-      when: "branch = 'master' and change_in('lib')"
+      when: "branch = 'master' and change_in('lib', {default_branch: 'pipeline-models'})"
     task:
       jobs:
         - name: Hello
@@ -26,7 +29,6 @@ system('build/cli evaluate change-in --input /tmp/input.yml --output /tmp/output
 input = YAML.load_file('/tmp/input.yml')
 output = YAML.load_file('/tmp/output.yml')
 
-assert_eq(output["blocks"][0]["skip"]["when"], "(branch = 'master') and false")
-
 input["blocks"][0]["skip"]["when"] = "(branch = 'master') and false"
+
 assert_eq(input, output)

@@ -16,6 +16,11 @@ def green(msg)
   "\e[32m#{msg}\e[0m"
 end
 
+puts blue ""
+puts blue "Running: #{$PROGRAM_NAME}"
+puts blue "="*120
+puts blue ""
+
 def assert_eq(a, b)
   puts ""
   puts blue("Assert Equal in #{$PROGRAM_NAME}")
