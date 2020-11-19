@@ -81,7 +81,7 @@ func EvaluateChangeIns(p *gabs.Container) {
 			}
 
 			fmt.Println("Running git command")
-			gitOpts := []string{"diff", "--name-only", fmt.Sprintf("origin/%s..HEAD", defaultBranch)}
+			gitOpts := []string{"diff", "--name-only", fmt.Sprintf("%s..HEAD", defaultBranch)}
 
 			fmt.Printf("git %s\n", strings.Join(gitOpts, " "))
 
@@ -106,7 +106,7 @@ func EvaluateChangeIns(p *gabs.Container) {
 			for _, diffPath := range diffs {
 				for _, checkPath := range paths {
 					fmt.Printf("Comparing %s = %s\n", diffPath, checkPath)
-					if diffPath == checkPath {
+					if strings.HasPrefix(diffPath, checkPath) {
 						changes = true
 						break
 					}

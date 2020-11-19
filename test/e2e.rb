@@ -152,3 +152,7 @@ class HashDiff
   module TAKEN; end
 
 end
+
+def spc
+  `echo "$(pwd)/build/cli"`.strip
+end
