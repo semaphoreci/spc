@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strconv"
 
-	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/iancoleman/strcase"
 )
 
@@ -64,11 +63,9 @@ func get(obj interface{}, name string) interface{} {
 }
 
 func (p *Pipeline) ChangeWhenExpression(path []string, value string) {
-	snakeCasePath := []string{}
+	if path[0] == "blocks" && path[2] == "skip" && path[3] == "when" {
+		index, _ := strconv.Atoi(path[1])
 
-	for _, p := range path {
-		snakeCasePath = append(snakeCasePath, strcase.ToCamel(p))
+		p.Blocks[index].Skip.When = value
 	}
-
-	gabs.Wrap(p).Set(value, snakeCasePath...)
 }
