@@ -86,11 +86,7 @@ func (p *Pipeline) EvaluateChangeIns() {
 
 			changes := false
 			for _, filePath := range diffs {
-				fmt.Println(input.Search("params").Data())
-				fmt.Println(input.Search("params").Data().([]string))
-				fmt.Println(input.Search("params").Data().([]string)[0])
-
-				if filePath == input.Search("params").Data().([]string)[0] {
+				if filePath == input.Search("params").Data().([]interface{})[0].(string) {
 					changes = true
 					break
 				}
