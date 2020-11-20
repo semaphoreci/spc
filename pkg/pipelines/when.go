@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	gabs "github.com/Jeffail/gabs/v2"
+	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
 func ListWhenConditions(p *gabs.Container) *WhenList {
@@ -35,7 +36,7 @@ func ListWhenConditions(p *gabs.Container) *WhenList {
 	return list
 }
 
-func EvaluateChangeIns(p *gabs.Container) {
+func EvaluateChangeIns(p *gabs.Container) error {
 	fmt.Println("Evaluating start.")
 
 	whenList := ListWhenConditions(p)
@@ -78,6 +79,19 @@ func EvaluateChangeIns(p *gabs.Container) {
 			defaultBranch := "master"
 			if input.Exists("params", "1", "default_branch") {
 				defaultBranch = input.Search("params", "1", "default_branch").Data().(string)
+			}
+
+			fmt.Println("Checking if branch exists.")
+			err := exec.Command("git", "rev-parse", "--verify", defaultBranch).Run()
+			if err != nil {
+				logs.Log(logs.ErrorChangeInMissingBranch{
+					Message: "Unknown git reference 'random'.",
+					Location: logs.Location{
+						Path: w.Path,
+					},
+				})
+
+				return err
 			}
 
 			fmt.Println("Running git command")
@@ -148,6 +162,7 @@ func EvaluateChangeIns(p *gabs.Container) {
 	}
 
 	fmt.Println("Evaluating end.")
+	return nil
 }
 
 type WhenFunctionInput struct {
