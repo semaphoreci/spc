@@ -2,13 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 
 	"github.com/ghodss/yaml"
 	"github.com/semaphoreci/spc/pkg/pipelines"
 	"github.com/spf13/cobra"
+
+	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
 var evaluateCmd = &cobra.Command{
@@ -21,15 +22,20 @@ var evaluateChangeInCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		input := fetchRequiredStringFlag(cmd, "input")
 		output := fetchRequiredStringFlag(cmd, "output")
-		logs := fetchRequiredStringFlag(cmd, "logs")
+		logsPath := fetchRequiredStringFlag(cmd, "logs")
+
+		logs.Open(logsPath)
+		logs.SetCurrentPipelineFilePath(input)
 
 		ppl, err := pipelines.LoadFromYaml(input)
 		if err != nil {
-			fmt.Printf("Writing failure to %s %s", logs, err.Error())
-			os.Exit(1)
+			panic(err)
 		}
 
-		pipelines.EvaluateChangeIns(ppl)
+		err = pipelines.EvaluateChangeIns(ppl)
+		if err != nil {
+			os.Exit(1)
+		}
 
 		jsonPpl, err := json.Marshal(ppl)
 		if err != nil {

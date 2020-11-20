@@ -31,3 +31,4 @@ e2e: build
 	ruby test/e2e/change_in_simple.rb
 	ruby test/e2e/change_in_with_default_branch.rb
 	ruby test/e2e/change_in_multiple_paths.rb
+	ruby test/e2e/change_in_missing_branch.rb
