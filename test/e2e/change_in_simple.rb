@@ -42,6 +42,15 @@ blocks:
         - name: Hello
           commands:
             - echo "Hello World"
+
+  - name: Test2
+    skip:
+      when: "branch = 'master' and change_in('app')"
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "Hello World"
 })
 
 #
@@ -72,6 +81,15 @@ blocks:
   - name: Test
     skip:
       when: "(branch = 'master') and true"
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "Hello World"
+
+  - name: Test2
+    skip:
+      when: "(branch = 'master') and false"
     task:
       jobs:
         - name: Hello
