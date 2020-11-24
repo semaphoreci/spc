@@ -7,11 +7,15 @@ Tooling for compiling and evaluating pipelines on Semaphore 2.0.
 - [ ] Green tests on CI
 - [ ] Compile and make release on Github
 
-Change In Evaluation:
+### Change In Evaluation
+
+##### Path types
 
 - [ ] Evaluate Change In for absolute paths
 - [ ] Evaluate Change In for relative paths
 - [ ] Evaluate Change In for glob expressions
+
+##### Location
 
 - [ ] Evaluate Change In blocks/when/skip
 - [ ] Evaluate Change In blocks/when/run
@@ -22,6 +26,8 @@ Change In Evaluation:
 - [ ] Evaluate Change In auto_cancel/running/when/skip
 - [ ] Evaluate Change In queue/when
 - [ ] Evaluate Change In priority/when
+
+##### Parameters
 
 - [ ] Default branch for change_in
 - [ ] Toggle pipeline file tracking for change_in

@@ -6,15 +6,18 @@ agent:
     os_image: ubuntu1804
 blocks:
   - name: Test
-    prologue:
-      commands:
-        - git clone https://github.com/renderedtext/when ~/when
-        - cd ~/when
-        - git checkout reduce
-        - make setup
-        - make escript.build
-        - export PATH="/home/semaphore/when:$PATH"
     task:
+      prologue:
+        commands:
+          - git clone https://github.com/renderedtext/when ~/when
+          - cd ~/when
+          - git checkout reduce
+          - make setup
+          - make escript.build
+          - export PATH="/home/semaphore/when:$PATH"
+          - git config --global user.email "you@example.com"
+          - git config --global user.name "Your Name"
+
       jobs:
         - name: go test
           commands:
