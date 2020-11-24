@@ -6,6 +6,14 @@ agent:
     os_image: ubuntu1804
 blocks:
   - name: Test
+    prologue:
+      commands:
+        - git clone https://github.com/renderedtext/when ~/when
+        - cd ~/when
+        - git checkout reduce
+        - make setup
+        - make escript.build
+        - export PATH="/home/semaphore/when:$PATH"
     task:
       jobs:
         - name: go test

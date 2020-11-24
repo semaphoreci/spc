@@ -41,7 +41,7 @@ agent:
 blocks:
   - name: Test
     skip:
-      when: "branch = 'master' and change_in('lib', {default_branch: 'master'})"
+      when: "branch = 'master' and change_in('/lib', {default_branch: 'master'})"
     task:
       jobs:
         - name: Hello
@@ -50,7 +50,7 @@ blocks:
 
   - name: Test2
     skip:
-      when: "branch = 'master' and change_in('lib', {default_branch: 'main'})"
+      when: "branch = 'master' and change_in('/lib', {default_branch: 'main'})"
     task:
       jobs:
         - name: Hello
@@ -59,7 +59,7 @@ blocks:
 
   - name: Test3
     skip:
-      when: "branch = 'master' and change_in('lib', {default_branch: 'dev'})"
+      when: "branch = 'master' and change_in('/lib', {default_branch: 'dev'})"
     task:
       jobs:
         - name: Hello

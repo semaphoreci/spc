@@ -38,7 +38,7 @@ agent:
 blocks:
   - name: Test
     skip:
-      when: "branch = 'master' and change_in('lib', {default_branch: 'random'})"
+      when: "branch = 'master' and change_in('/lib', {default_branch: 'random'})"
     task:
       jobs:
         - name: Hello
@@ -75,4 +75,3 @@ assert_eq(errors[0], {
     "path" => ["blocks", "0", "skip", "when"]
   }
 })
-

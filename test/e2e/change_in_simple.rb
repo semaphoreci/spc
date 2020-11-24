@@ -36,7 +36,7 @@ agent:
 blocks:
   - name: Test
     skip:
-      when: "branch = 'master' and change_in('lib')"
+      when: "branch = 'master' and change_in('/lib')"
     task:
       jobs:
         - name: Hello
@@ -45,7 +45,7 @@ blocks:
 
   - name: Test2
     skip:
-      when: "branch = 'master' and change_in('app')"
+      when: "branch = 'master' and change_in('/app')"
     task:
       jobs:
         - name: Hello
