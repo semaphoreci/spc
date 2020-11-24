@@ -106,6 +106,9 @@ func EvaluateChangeIns(p *gabs.Container) error {
 			fmt.Println(diffList)
 
 			diffs := strings.Split(strings.TrimSpace(diffList), "\n")
+			for i, _ := range diffs {
+				diffs[i] = "/" + diffs[i]
+			}
 
 			paths := []string{}
 			if _, ok := input.Search("params", "0").Data().([]interface{}); ok {
@@ -120,6 +123,7 @@ func EvaluateChangeIns(p *gabs.Container) error {
 			for _, diffPath := range diffs {
 				for _, checkPath := range paths {
 					fmt.Printf("Comparing %s = %s\n", diffPath, checkPath)
+
 					if strings.HasPrefix(diffPath, checkPath) {
 						changes = true
 						break

@@ -11,13 +11,13 @@ Tooling for compiling and evaluating pipelines on Semaphore 2.0.
 
 ##### Path types
 
-- [ ] Evaluate Change In for absolute paths
+- [x] Evaluate Change In for absolute paths
 - [ ] Evaluate Change In for relative paths
 - [ ] Evaluate Change In for glob expressions
 
 ##### Location
 
-- [ ] Evaluate Change In blocks/when/skip
+- [x] Evaluate Change In blocks/when/skip
 - [ ] Evaluate Change In blocks/when/run
 - [ ] Evaluate Change In promotions/auto_promote/when
 - [ ] Evaluate Change In fail_fast/cancel/when/skip
@@ -29,8 +29,12 @@ Tooling for compiling and evaluating pipelines on Semaphore 2.0.
 
 ##### Parameters
 
-- [ ] Default branch for change_in
+- [x] Default branch for change_in
 - [ ] Toggle pipeline file tracking for change_in
 - [ ] Change branch range for change_in
 - [ ] Change default range for change_in
 - [ ] Toggle on_tags toggle for change_in
+
+##### Errors
+
+- [ ] Default branch does not exists
