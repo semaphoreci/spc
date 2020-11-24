@@ -32,7 +32,7 @@ var evaluateChangeInCmd = &cobra.Command{
 			panic(err)
 		}
 
-		err = pipelines.EvaluateChangeIns(ppl)
+		err = pipelines.EvaluateChangeIns(ppl, input)
 		if err != nil {
 			os.Exit(1)
 		}

@@ -6,6 +6,7 @@ require (
 	github.com/Jeffail/gabs v1.4.0
 	github.com/Jeffail/gabs/v2 v2.6.0
 	github.com/a-h/generate v0.0.0-20190312091541-e59c34d33fb3 // indirect
+	github.com/bmatcuk/doublestar/v2 v2.0.4
 	github.com/ghodss/yaml v1.0.0
 	github.com/iancoleman/strcase v0.1.2
 	github.com/spf13/cobra v1.1.1

@@ -12,7 +12,7 @@ Tooling for compiling and evaluating pipelines on Semaphore 2.0.
 ##### Path types
 
 - [x] Evaluate Change In for absolute paths
-- [ ] Evaluate Change In for relative paths
+- [x] Evaluate Change In for relative paths
 - [ ] Evaluate Change In for glob expressions
 
 ##### Location

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 
@@ -48,7 +49,7 @@ func ListWhenConditions(p *gabs.Container) *WhenList {
 	return list
 }
 
-func EvaluateChangeIns(p *gabs.Container) error {
+func EvaluateChangeIns(p *gabs.Container, yamlPath string) error {
 	fmt.Println("Evaluating start.")
 
 	whenList := ListWhenConditions(p)
@@ -88,14 +89,28 @@ func EvaluateChangeIns(p *gabs.Container) error {
 				continue
 			}
 
-			defaultBranch := "master"
+			fun := ChangeInFunction{
+				Workdir: path.Dir(yamlPath),
+				Params: ChangeInFunctionParams{
+					PathPatterns:  []string{},
+					DefaultBranch: "master",
+				},
+			}
+
 			if input.Exists("params", "1", "default_branch") {
-				defaultBranch = input.Search("params", "1", "default_branch").Data().(string)
+				fun.Params.DefaultBranch = input.Search("params", "1", "default_branch").Data().(string)
+			}
+
+			if _, ok := input.Search("params", "0").Data().([]interface{}); ok {
+				for _, p := range input.Search("params", "0").Children() {
+					fun.Params.PathPatterns = append(fun.Params.PathPatterns, p.Data().(string))
+				}
+			} else {
+				fun.Params.PathPatterns = append(fun.Params.PathPatterns, input.Search("params", "0").Data().(string))
 			}
 
 			fmt.Println("Checking if branch exists.")
-			err := exec.Command("git", "rev-parse", "--verify", defaultBranch).Run()
-			if err != nil {
+			if !fun.DefaultBranchExists() {
 				logs.Log(logs.ErrorChangeInMissingBranch{
 					Message: "Unknown git reference 'random'.",
 					Location: logs.Location{
@@ -103,50 +118,15 @@ func EvaluateChangeIns(p *gabs.Container) error {
 					},
 				})
 
-				return err
+				return fmt.Errorf("Branch '%s' does not exists.", fun.Params.DefaultBranch)
 			}
 
-			fmt.Println("Running git command")
-			gitOpts := []string{"diff", "--name-only", fmt.Sprintf("%s..HEAD", defaultBranch)}
-
-			fmt.Printf("git %s\n", strings.Join(gitOpts, " "))
-
-			bytes, _ := exec.Command("git", gitOpts...).CombinedOutput()
-			diffList := string(bytes)
-
-			fmt.Println("Diff list:")
-			fmt.Println(diffList)
-
-			diffs := strings.Split(strings.TrimSpace(diffList), "\n")
-			for i, _ := range diffs {
-				diffs[i] = "/" + diffs[i]
-			}
-
-			paths := []string{}
-			if _, ok := input.Search("params", "0").Data().([]interface{}); ok {
-				for _, p := range input.Search("params", "0").Children() {
-					paths = append(paths, p.Data().(string))
-				}
-			} else {
-				paths = append(paths, input.Search("params", "0").Data().(string))
-			}
-
-			changes := false
-			for _, diffPath := range diffs {
-				for _, checkPath := range paths {
-					fmt.Printf("Comparing %s = %s\n", diffPath, checkPath)
-
-					if strings.HasPrefix(diffPath, checkPath) {
-						changes = true
-						break
-					}
-				}
-			}
+			hasChanges := fun.Eval()
 
 			funInput := WhenFunctionInput{
 				Name:   "change_in",
 				Params: input.Search("params"),
-				Result: changes,
+				Result: hasChanges,
 			}
 
 			inputs.Functions = append(inputs.Functions, funInput)
