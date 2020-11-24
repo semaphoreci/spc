@@ -18,14 +18,14 @@ Tooling for compiling and evaluating pipelines on Semaphore 2.0.
 ##### Location
 
 - [x] Evaluate Change In blocks/when/skip
-- [ ] Evaluate Change In blocks/when/run
-- [ ] Evaluate Change In promotions/auto_promote/when
-- [ ] Evaluate Change In fail_fast/cancel/when/skip
-- [ ] Evaluate Change In fail_fast/stop/when/skip
-- [ ] Evaluate Change In auto_cancel/queued/when/skip
-- [ ] Evaluate Change In auto_cancel/running/when/skip
-- [ ] Evaluate Change In queue/when
-- [ ] Evaluate Change In priority/when
+- [x] Evaluate Change In blocks/when/run
+- [x] Evaluate Change In promotions/auto_promote/when
+- [x] Evaluate Change In fail_fast/cancel/when/skip
+- [x] Evaluate Change In fail_fast/stop/when/skip
+- [x] Evaluate Change In auto_cancel/queued/when/skip
+- [x] Evaluate Change In auto_cancel/running/when/skip
+- [x] Evaluate Change In queue/when
+- [x] Evaluate Change In priority/when
 
 ##### Parameters
 

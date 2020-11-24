@@ -33,6 +33,18 @@ func ListWhenConditions(p *gabs.Container) *WhenList {
 		list.AppendIfExists(p, "promotions", i, "auto_promote", "when")
 	}
 
+	for index, _ := range p.Search("queue").Children() {
+		i := strconv.Itoa(index)
+
+		list.AppendIfExists(p, "queue", i, "when")
+	}
+
+	for index, _ := range p.Search("priority").Children() {
+		i := strconv.Itoa(index)
+
+		list.AppendIfExists(p, "priority", i, "when")
+	}
+
 	return list
 }
 
