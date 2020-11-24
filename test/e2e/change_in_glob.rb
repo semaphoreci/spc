@@ -36,7 +36,7 @@ agent:
 blocks:
   - name: Test
     skip:
-	  when: "branch = 'master' and change_in('/lib/**/*.txt')"
+      when: "branch = 'master' and change_in('/lib/**/*.txt')"
     task:
       jobs:
         - name: Hello
@@ -45,7 +45,7 @@ blocks:
 
   - name: Test2
     skip:
-	  when: "branch = 'master' and change_in('/lib/**/.rb')"
+      when: "branch = 'master' and change_in('/lib/**/*.rb')"
     task:
       jobs:
         - name: Hello
@@ -54,7 +54,16 @@ blocks:
 
   - name: Test3
     skip:
-	  when: "branch = 'master' and change_in('lib/**/*.txt')"
+      when: "branch = 'master' and change_in('../lib/**/*.txt')"
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "Hello World"
+
+  - name: Test4
+    skip:
+      when: "branch = 'master' and change_in('lib/**/*.txt')"
     task:
       jobs:
         - name: Hello
@@ -106,6 +115,15 @@ blocks:
             - echo "Hello World"
 
   - name: Test3
+    skip:
+      when: "(branch = 'master') and true"
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "Hello World"
+
+  - name: Test4
     skip:
       when: "(branch = 'master') and false"
     task:

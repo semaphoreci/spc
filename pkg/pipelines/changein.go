@@ -53,25 +53,21 @@ func (f *ChangeInFunction) Eval() bool {
 }
 
 func changeInPatternMatch(diffLine string, pattern string, workDir string) bool {
-	if strings.Contains(pattern, "*") {
-		if pattern[0] != '/' {
-			pattern = "/" + workDir + "/" + pattern
-		}
+	if pattern[0] != '/' {
+		pattern = path.Join("/", workDir, pattern)
+	}
 
-		ok, err := doublestar.Match("/"+diffLine, pattern)
+	diffLine = path.Clean("/" + diffLine)
+	pattern = path.Clean(pattern)
+
+	if strings.Contains(pattern, "*") {
+		ok, err := doublestar.Match(pattern, diffLine)
 		if err != nil {
 			panic(err)
 		}
 
 		return ok
 	} else {
-		if pattern[0] != '/' {
-			pattern = path.Join("/", workDir, pattern)
-		}
-
-		diffLine = path.Clean("/" + diffLine)
-		pattern = path.Clean(pattern)
-
 		return strings.HasPrefix(diffLine, pattern)
 	}
 
