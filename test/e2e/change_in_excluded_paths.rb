@@ -166,6 +166,7 @@ system %{
   git checkout master
   git checkout -b changes-in-both-places
 
+  echo "hello hello" > client/app.js
   echo "hello hello" > config.txt
 
   git add . && git commit -m "Change things in the backend"
