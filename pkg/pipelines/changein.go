@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	gabs "github.com/Jeffail/gabs/v2"
 	doublestar "github.com/bmatcuk/doublestar/v2"
 )
 
@@ -13,13 +14,66 @@ type ChangeInFunctionParams struct {
 	PathPatterns         []string
 	ExcludedPathPatterns []string
 	DefaultBranch        string
+	TrackPipelineFile    bool
 }
 
 type ChangeInFunction struct {
-	Params  ChangeInFunctionParams
-	Workdir string
+	Params   ChangeInFunctionParams
+	Workdir  string
+	YamlPath string
 
 	diffList []string
+}
+
+func NewChangeInFunctionFromWhenInputList(input *gabs.Container, yamlPath string) (*ChangeInFunction, error) {
+	params := ChangeInFunctionParams{
+		PathPatterns:         []string{},
+		ExcludedPathPatterns: []string{},
+		DefaultBranch:        "master",
+		TrackPipelineFile:    true,
+	}
+
+	if input.Exists("params", "1", "default_branch") {
+		params.DefaultBranch = input.Search("params", "1", "default_branch").Data().(string)
+	}
+
+	if _, ok := input.Search("params", "0").Data().([]interface{}); ok {
+		for _, p := range input.Search("params", "0").Children() {
+			params.PathPatterns = append(params.PathPatterns, p.Data().(string))
+		}
+	} else {
+		params.PathPatterns = append(params.PathPatterns, input.Search("params", "0").Data().(string))
+	}
+
+	if _, ok := input.Search("params", "1", "exclude").Data().([]interface{}); ok {
+		for _, p := range input.Search("params", "1", "exclude").Children() {
+			params.ExcludedPathPatterns = append(params.ExcludedPathPatterns, p.Data().(string))
+		}
+	}
+
+	if input.Exists("params", "1", "pipeline_file") {
+		value, ok := input.Search("params", "1", "pipeline_file").Data().(string)
+		if !ok {
+			return nil, fmt.Errorf("Unknown value type pipeline_file in change_in expression.")
+		}
+
+		switch value {
+		case "track":
+			params.TrackPipelineFile = true
+		case "ignore":
+			params.TrackPipelineFile = false
+		default:
+			return nil, fmt.Errorf("Unknown value type pipeline_file in change_in expression.")
+		}
+	}
+
+	fun := &ChangeInFunction{
+		Workdir:  path.Dir(yamlPath),
+		YamlPath: yamlPath,
+		Params:   params,
+	}
+
+	return fun, nil
 }
 
 func (f *ChangeInFunction) DefaultBranchExists() bool {
@@ -36,6 +90,10 @@ func (f *ChangeInFunction) DefaultBranchExists() bool {
 func (f *ChangeInFunction) Eval() bool {
 	f.LoadDiffList()
 
+	fmt.Printf("  File Patterns: '%v'\n", f.Params.PathPatterns)
+	fmt.Printf("  Exclude Patterns: '%v'\n", f.Params.ExcludedPathPatterns)
+	fmt.Printf("  TrackPipelineFile: '%v'\n", f.Params.TrackPipelineFile)
+
 	for _, diffLine := range f.diffList {
 		fmt.Printf("  Checking diff line '%s'\n", diffLine)
 
@@ -48,6 +106,11 @@ func (f *ChangeInFunction) Eval() bool {
 }
 
 func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
+	if f.Params.TrackPipelineFile && changeInPatternMatch(diffLine, "/"+f.YamlPath, f.Workdir) {
+		fmt.Printf("    Matched tracked pipeline file %s\n", f.YamlPath)
+		return true
+	}
+
 	for _, pathPattern := range f.Params.PathPatterns {
 		if changeInPatternMatch(diffLine, pathPattern, f.Workdir) {
 			fmt.Printf("    Matched pattern %s\n", pathPattern)
