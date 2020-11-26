@@ -63,11 +63,11 @@ agent:
 
 blocks:
   - name: Client
-    skip:
+    run:
       when: "change_in('/client')"
 
   - name: Backend
-    skip:
+    run:
       when: "change_in('/', {exclude: ['/client']})"
 }
 
@@ -111,11 +111,11 @@ agent:
 
 blocks:
   - name: Client
-    skip:
+    run:
       when: "true"
 
   - name: Backend
-    skip:
+    run:
       when: "false"
 }))
 
@@ -150,11 +150,11 @@ agent:
 
 blocks:
   - name: Client
-    skip:
+    run:
       when: "false"
 
   - name: Backend
-    skip:
+    run:
       when: "true"
 }))
 
@@ -190,10 +190,10 @@ agent:
 
 blocks:
   - name: Client
-    skip:
+    run:
       when: "true"
 
   - name: Backend
-    skip:
+    run:
       when: "true"
 }))
