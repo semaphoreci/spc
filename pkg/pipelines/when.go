@@ -109,6 +109,12 @@ func EvaluateChangeIns(p *gabs.Container, yamlPath string) error {
 				fun.Params.PathPatterns = append(fun.Params.PathPatterns, input.Search("params", "0").Data().(string))
 			}
 
+			if _, ok := input.Search("params", "1", "exclude").Data().([]interface{}); ok {
+				for _, p := range input.Search("params", "1", "exclude").Children() {
+					fun.Params.ExcludedPathPatterns = append(fun.Params.ExcludedPathPatterns, p.Data().(string))
+				}
+			}
+
 			fmt.Println("Checking if branch exists.")
 			if !fun.DefaultBranchExists() {
 				logs.Log(logs.ErrorChangeInMissingBranch{
