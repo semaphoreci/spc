@@ -26,7 +26,7 @@ agent:
     type: e1-standard-2
 
 blocks:
-  - name: Test
+  - name: Implicit track
     run:
       when: "branch = 'master' and change_in('/lib')"
     task:
@@ -35,9 +35,18 @@ blocks:
           commands:
             - echo "Hello World"
 
-  - name: Test2
+  - name: Explicit ignore
     run:
       when: "branch = 'master' and change_in('/lib', {pipeline_file: 'ignore'})"
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "Hello World"
+
+  - name: Explicit track
+    run:
+      when: "branch = 'master' and change_in('/lib', {pipeline_file: 'track'})"
     task:
       jobs:
         - name: Hello
@@ -82,7 +91,7 @@ agent:
     type: e1-standard-2
 
 blocks:
-  - name: Test
+  - name: Implicit track
     run:
       when: "(branch = 'master') and true"
     task:
@@ -91,9 +100,18 @@ blocks:
           commands:
             - echo "Hello World"
 
-  - name: Test2
+  - name: Explicit ignore
     run:
       when: "(branch = 'master') and false"
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "Hello World"
+
+  - name: Explicit track
+    run:
+      when: "(branch = 'master') and true"
     task:
       jobs:
         - name: Hello
