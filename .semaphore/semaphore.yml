@@ -27,6 +27,19 @@ blocks:
             - make test
 
         - name: e2e
+          matrix:
+            - env_var: TEST_FILE
+              values:
+                - test/e2e/change_in_simple.rb
+                - test/e2e/change_in_with_default_branch.rb
+                - test/e2e/change_in_multiple_paths.rb
+                - test/e2e/change_in_missing_branch.rb
+                - test/e2e/change_in_all_possible_locations.rb
+                - test/e2e/change_in_relative_paths.rb
+                - test/e2e/change_in_glob.rb
+                - test/e2e/change_in_excluded_paths.rb
+                - test/e2e/change_in_pipeline_file_tracking.rb
+
           commands:
             - sem-version go 1.15
             - export GO111MODULE=on
@@ -35,4 +48,4 @@ blocks:
             - checkout
             - go get gotest.tools/gotestsum
             - make build
-            - make e2e
+            - make e2e TEST=$TEST_FILE
