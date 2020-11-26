@@ -9,12 +9,9 @@ blocks:
     task:
       prologue:
         commands:
-          - git clone https://github.com/renderedtext/when ~/when
-          - cd ~/when
-          - git checkout reduce
-          - make setup
-          - make escript.build
-          - export PATH="/home/semaphore/when:$PATH"
+          - curl -LO https://github.com/renderedtext/when/releases/download/v0.0.1-alpha/when
+          - sudo chmod +x when
+          - sudo mv when /usr/bin/when
           - git config --global user.email "you@example.com"
           - git config --global user.name "Your Name"
 
