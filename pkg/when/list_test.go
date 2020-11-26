@@ -3,12 +3,13 @@ package pipelines
 import (
 	"testing"
 
+	pipelines "github.com/semaphoreci/spc/pkg/pipelines"
 	assert "github.com/stretchr/testify/assert"
 	require "github.com/stretchr/testify/assert"
 )
 
 func Test__ListWhenConditions(t *testing.T) {
-	pipeline, err := LoadFromYaml("../../test/fixtures/when.yml")
+	pipeline, err := pipelines.LoadFromYaml("../../test/fixtures/when.yml")
 	require.Nil(t, err)
 
 	result := ListWhenConditions(pipeline).List
