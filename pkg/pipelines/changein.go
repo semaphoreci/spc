@@ -10,8 +10,9 @@ import (
 )
 
 type ChangeInFunctionParams struct {
-	PathPatterns  []string
-	DefaultBranch string
+	PathPatterns         []string
+	ExcludedPathPatterns []string
+	DefaultBranch        string
 }
 
 type ChangeInFunction struct {
@@ -35,21 +36,33 @@ func (f *ChangeInFunction) DefaultBranchExists() bool {
 func (f *ChangeInFunction) Eval() bool {
 	f.LoadDiffList()
 
-	for _, pathPattern := range f.Params.PathPatterns {
-		if len(pathPattern) == 0 {
-			continue
-		}
-
-		for _, diffLine := range f.diffList {
-			if changeInPatternMatch(diffLine, pathPattern, f.Workdir) {
-				fmt.Printf("Change In: Matched '%s' with '%s' in the git diff list\n", pathPattern, diffLine)
-
-				return true
-			}
+	for _, diffLine := range f.diffList {
+		if f.MatchesPattern(diffLine) && !f.Excluded(diffLine) {
+			return true
 		}
 	}
 
 	return false
+}
+
+func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
+	for _, pathPattern := range f.Params.PathPatterns {
+		if changeInPatternMatch(diffLine, pathPattern, f.Workdir) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (f *ChangeInFunction) Excluded(diffLine string) bool {
+	for _, pathPattern := range f.Params.ExcludedPathPatterns {
+		if changeInPatternMatch(diffLine, pathPattern, f.Workdir) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func changeInPatternMatch(diffLine string, pattern string, workDir string) bool {
