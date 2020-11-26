@@ -9,7 +9,9 @@ require 'yaml'
 system %{
   rm -f /tmp/output.yml
   rm -rf /tmp/test-repo
-  mkdir /tmp/test-repo && cd /tmp/test-repo && git init
+  mkdir /tmp/test-repo
+  cd /tmp/test-repo
+  git init
 
   # master branch
   mkdir lib .semaphore
@@ -44,11 +46,12 @@ blocks:
 })
 
 system %{
+  cd /tmp/test-repo
+
   git add . && git commit -m 'Bootstrap'
 
   git checkout -b dev
 
-  echo B > lib/B.txt
   echo "\n" >> .semaphore/semaphore.yml
 
   git add . && git commit -m 'Changes in dev'
