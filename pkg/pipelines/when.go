@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os/exec"
-	"path"
 	"strconv"
 	"strings"
 
@@ -75,40 +74,13 @@ func EvaluateChangeIns(p *gabs.Container, yamlPath string) error {
 		inputs := WhenInputs{Keywords: m}
 
 		for _, input := range neededInputs.Children() {
-			elType := input.Search("type").Data().(string)
-			if elType != "fun" {
+			if !IsChangeInFunction(input) {
 				continue
 			}
 
-			elName := input.Search("name").Data().(string)
-			if elName != "change_in" {
-				continue
-			}
-
-			fun := ChangeInFunction{
-				Workdir: path.Dir(yamlPath),
-				Params: ChangeInFunctionParams{
-					PathPatterns:  []string{},
-					DefaultBranch: "master",
-				},
-			}
-
-			if input.Exists("params", "1", "default_branch") {
-				fun.Params.DefaultBranch = input.Search("params", "1", "default_branch").Data().(string)
-			}
-
-			if _, ok := input.Search("params", "0").Data().([]interface{}); ok {
-				for _, p := range input.Search("params", "0").Children() {
-					fun.Params.PathPatterns = append(fun.Params.PathPatterns, p.Data().(string))
-				}
-			} else {
-				fun.Params.PathPatterns = append(fun.Params.PathPatterns, input.Search("params", "0").Data().(string))
-			}
-
-			if _, ok := input.Search("params", "1", "exclude").Data().([]interface{}); ok {
-				for _, p := range input.Search("params", "1", "exclude").Children() {
-					fun.Params.ExcludedPathPatterns = append(fun.Params.ExcludedPathPatterns, p.Data().(string))
-				}
+			fun, err := NewChangeInFunctionFromWhenInputList(input, yamlPath)
+			if err != nil {
+				panic(err)
 			}
 
 			fmt.Println("  Checking if branch exists.")
@@ -170,6 +142,20 @@ type WhenFunctionInput struct {
 type WhenInputs struct {
 	Keywords  map[string]string   `json:"keywords"`
 	Functions []WhenFunctionInput `json:"functions"`
+}
+
+func IsChangeInFunction(input *gabs.Container) bool {
+	elType := input.Search("type").Data().(string)
+	if elType != "fun" {
+		return false
+	}
+
+	elName := input.Search("name").Data().(string)
+	if elName != "change_in" {
+		return false
+	}
+
+	return true
 }
 
 type WhenListElement struct {
