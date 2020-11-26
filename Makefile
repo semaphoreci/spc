@@ -36,3 +36,4 @@ e2e: build
 	ruby test/e2e/change_in_relative_paths.rb
 	ruby test/e2e/change_in_glob.rb
 	ruby test/e2e/change_in_excluded_paths.rb
+	ruby test/e2e/change_in_pipeline_file_tracking.rb
