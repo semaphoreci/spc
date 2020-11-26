@@ -55,11 +55,8 @@ func EvaluateChangeIns(p *gabs.Container, yamlPath string) error {
 	whenList := ListWhenConditions(p)
 
 	for _, w := range whenList.List {
-		fmt.Println("Processing when expression:")
-		fmt.Println(w.Expression)
-
-		fmt.Println("From:")
-		fmt.Println(w.Path)
+		fmt.Printf("Processing when expression %s\n", w.Expression)
+		fmt.Printf("  From: %v\n", w.Path)
 
 		bytes, err := exec.Command("when", "list-inputs", w.Expression).Output()
 		if err != nil {
@@ -67,8 +64,7 @@ func EvaluateChangeIns(p *gabs.Container, yamlPath string) error {
 			panic(err)
 		}
 
-		fmt.Println("Inputs needed for this expression:")
-		fmt.Println(string(bytes))
+		fmt.Printf("  Inputs needed: %s\n", string(bytes))
 
 		neededInputs, err := gabs.ParseJSON(bytes)
 		if err != nil {
@@ -115,7 +111,7 @@ func EvaluateChangeIns(p *gabs.Container, yamlPath string) error {
 				}
 			}
 
-			fmt.Println("Checking if branch exists.")
+			fmt.Println("  Checking if branch exists.")
 			if !fun.DefaultBranchExists() {
 				logs.Log(logs.ErrorChangeInMissingBranch{
 					Message: "Unknown git reference 'random'.",
@@ -124,7 +120,7 @@ func EvaluateChangeIns(p *gabs.Container, yamlPath string) error {
 					},
 				})
 
-				return fmt.Errorf("Branch '%s' does not exists.", fun.Params.DefaultBranch)
+				return fmt.Errorf("  Branch '%s' does not exists.", fun.Params.DefaultBranch)
 			}
 
 			hasChanges := fun.Eval()
@@ -138,12 +134,11 @@ func EvaluateChangeIns(p *gabs.Container, yamlPath string) error {
 			inputs.Functions = append(inputs.Functions, funInput)
 		}
 
-		fmt.Println(inputs)
 		inputBytes, err := json.Marshal(inputs)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(string(inputBytes))
+		fmt.Printf("  Providing inputs: %s\n", string(inputBytes))
 
 		err = ioutil.WriteFile("/tmp/inputs.json", inputBytes, 0644)
 		if err != nil {
@@ -155,8 +150,7 @@ func EvaluateChangeIns(p *gabs.Container, yamlPath string) error {
 			panic(err)
 		}
 
-		fmt.Println("Result:")
-		fmt.Println(string(bytes))
+		fmt.Printf("  Reduced When Expression: %s\n", string(bytes))
 
 		expr := strings.TrimSpace(string(bytes))
 

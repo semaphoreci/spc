@@ -119,80 +119,80 @@ blocks:
       when: "false"
 }))
 
-##
-## Testing out the scenario where only the backend changed.
-##
-#system %{
-#  cd /tmp/test-repo
-#  git checkout master
-#  git checkout -b backend-changes
+#
+# Testing out the scenario where only the backend changed.
+#
+system %{
+  cd /tmp/test-repo
+  git checkout master
+  git checkout -b backend-changes
 
-#  echo "hello hello" > config.txt
+  echo "hello hello" > config.txt
 
-#  git add . && git commit -m "Change things in the backend"
-#}
+  git add . && git commit -m "Change things in the backend"
+}
 
-#system(%{
-#  rm -f /tmp/output.yml
-#  cd /tmp/test-repo
+system(%{
+  rm -f /tmp/output.yml
+  cd /tmp/test-repo
 
-#  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
-#})
+  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
+})
 
-#output = YAML.load_file('/tmp/output.yml')
+output = YAML.load_file('/tmp/output.yml')
 
-#assert_eq(output, YAML.load(%{
-#version: v1.0
-#name: Test
-#agent:
-#  machine:
-#    type: e1-standard-2
+assert_eq(output, YAML.load(%{
+version: v1.0
+name: Test
+agent:
+  machine:
+    type: e1-standard-2
 
-#blocks:
-#  - name: Client
-#    skip:
-#      when: "false"
+blocks:
+  - name: Client
+    skip:
+      when: "false"
 
-#  - name: Backend
-#    skip:
-#      when: "true"
-#}))
+  - name: Backend
+    skip:
+      when: "true"
+}))
 
-##
-## Testing out the scenario where both and client have changes.
-##
-#system %{
-#  cd /tmp/test-repo
-#  git checkout master
-#  git checkout -b changes-in-both-places
+#
+# Testing out the scenario where both and client have changes.
+#
+system %{
+  cd /tmp/test-repo
+  git checkout master
+  git checkout -b changes-in-both-places
 
-#  echo "hello hello" > config.txt
+  echo "hello hello" > config.txt
 
-#  git add . && git commit -m "Change things in the backend"
-#}
+  git add . && git commit -m "Change things in the backend"
+}
 
-#system(%{
-#  rm -f /tmp/output.yml
-#  cd /tmp/test-repo
+system(%{
+  rm -f /tmp/output.yml
+  cd /tmp/test-repo
 
-#  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
-#})
+  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
+})
 
-#output = YAML.load_file('/tmp/output.yml')
+output = YAML.load_file('/tmp/output.yml')
 
-#assert_eq(output, YAML.load(%{
-#version: v1.0
-#name: Test
-#agent:
-#  machine:
-#    type: e1-standard-2
+assert_eq(output, YAML.load(%{
+version: v1.0
+name: Test
+agent:
+  machine:
+    type: e1-standard-2
 
-#blocks:
-#  - name: Client
-#    skip:
-#      when: "true"
+blocks:
+  - name: Client
+    skip:
+      when: "true"
 
-#  - name: Backend
-#    skip:
-#      when: "true"
-#}))
+  - name: Backend
+    skip:
+      when: "true"
+}))

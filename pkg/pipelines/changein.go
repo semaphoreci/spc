@@ -37,6 +37,8 @@ func (f *ChangeInFunction) Eval() bool {
 	f.LoadDiffList()
 
 	for _, diffLine := range f.diffList {
+		fmt.Printf("  Checking diff line '%s'\n", diffLine)
+
 		if f.MatchesPattern(diffLine) && !f.Excluded(diffLine) {
 			return true
 		}
@@ -48,6 +50,7 @@ func (f *ChangeInFunction) Eval() bool {
 func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
 	for _, pathPattern := range f.Params.PathPatterns {
 		if changeInPatternMatch(diffLine, pathPattern, f.Workdir) {
+			fmt.Printf("    Matched pattern %s\n", pathPattern)
 			return true
 		}
 	}
@@ -58,11 +61,12 @@ func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
 func (f *ChangeInFunction) Excluded(diffLine string) bool {
 	for _, pathPattern := range f.Params.ExcludedPathPatterns {
 		if changeInPatternMatch(diffLine, pathPattern, f.Workdir) {
-			return false
+			fmt.Printf("    Excluded with pattern %s\n", pathPattern)
+			return true
 		}
 	}
 
-	return true
+	return false
 }
 
 func changeInPatternMatch(diffLine string, pattern string, workDir string) bool {
