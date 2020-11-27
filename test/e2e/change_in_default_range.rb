@@ -42,21 +42,21 @@ blocks:
 
   - name: Test2
     run:
-      when: "branch = 'master' and change_in('/app', {default_range: 'HEAD~2...HEAD'})"
+      when: "branch = 'master' and change_in('/app', {default_range: 'HEAD~3..HEAD'})"
 
   - name: Test3
     run:
-      when: "branch = 'master' and change_in('/lib', {default_range: 'HEAD~1...HEAD'})"
+      when: "branch = 'master' and change_in('/lib', {default_range: 'HEAD~2..HEAD'})"
 
   - name: Test4
     run:
-      when: "branch = 'master' and change_in('/app', {default_range: 'HEAD~1...HEAD'})"
+      when: "branch = 'master' and change_in('/app', {default_range: 'HEAD~1..HEAD'})"
 })
 
 system %{
   cd /tmp/test-repo
 
-  mkdir lib app
+  mkdir lib app test
 
   git add . && git commit -m "Bootstrap YAML"
 
@@ -92,19 +92,26 @@ system(%{
 output = YAML.load_file('/tmp/output.yml')
 
 assert_eq(output, YAML.load(%{
+version: v1.0
+name: Test
+agent:
+  machine:
+    type: e1-standard-2
+
+blocks:
   - name: Test
     run:
-      when: "branch = 'master' and true"
+      when: "(branch = 'master') and true"
 
   - name: Test2
     run:
-      when: "branch = 'master' and true"
+      when: "(branch = 'master') and false"
 
   - name: Test3
     run:
-      when: "branch = 'master' and true"
+      when: "(branch = 'master') and true"
 
   - name: Test4
     run:
-      when: "branch = 'master' and false"
+      when: "(branch = 'master') and false"
 }))

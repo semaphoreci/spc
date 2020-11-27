@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	gabs "github.com/Jeffail/gabs/v2"
 	doublestar "github.com/bmatcuk/doublestar/v2"
 	environment "github.com/semaphoreci/spc/pkg/environment"
 )
@@ -25,6 +26,67 @@ type ChangeInFunction struct {
 	YamlPath string
 
 	diffList []string
+}
+
+func NewChangeInFunctionFromWhenInputList(when *WhenExpression, input *gabs.Container, yamlPath string) (*ChangeInFunction, error) {
+
+	if _, ok := input.Search("params", "0").Data().([]interface{}); ok {
+		for _, p := range input.Search("params", "0").Children() {
+			params.PathPatterns = append(params.PathPatterns, p.Data().(string))
+		}
+	} else {
+		params.PathPatterns = append(params.PathPatterns, input.Search("params", "0").Data().(string))
+	}
+
+	if _, ok := input.Search("params", "1", "exclude").Data().([]interface{}); ok {
+		for _, p := range input.Search("params", "1", "exclude").Children() {
+			params.ExcludedPathPatterns = append(params.ExcludedPathPatterns, p.Data().(string))
+		}
+	}
+
+	if input.Exists("params", "1", "pipeline_file") {
+		value, ok := input.Search("params", "1", "pipeline_file").Data().(string)
+		if !ok {
+			return nil, fmt.Errorf("Unknown value type pipeline_file in change_in expression.")
+		}
+
+		switch value {
+		case "track":
+			params.TrackPipelineFile = true
+		case "ignore":
+			params.TrackPipelineFile = false
+		default:
+			return nil, fmt.Errorf("Unknown value type pipeline_file in change_in expression.")
+		}
+	} else {
+		if when.Path[0] == "promotions" {
+			params.TrackPipelineFile = false
+		} else {
+			params.TrackPipelineFile = true
+		}
+	}
+
+	if input.Exists("params", "1", "on_tags") {
+		value, ok := input.Search("params", "1", "on_tags").Data().(bool)
+		if !ok {
+			return nil, fmt.Errorf("Unknown value type on_tags in change_in expression.")
+		}
+
+		params.OnTags = value
+	}
+
+	if input.Exists("params", "1", "default_range") {
+		value, ok := input.Search("params", "1", "default_range").Data().(string)
+		if !ok {
+			return nil, fmt.Errorf("Unknown value type default_range in change_in expression.")
+		}
+
+		params.DefaultRange = value
+	} else {
+		params.DefaultRange = environment.GitCommitRange()
+	}
+
+	return fun, nil
 }
 
 func (f *ChangeInFunction) DefaultBranchExists() bool {
