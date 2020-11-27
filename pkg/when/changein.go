@@ -8,6 +8,7 @@ import (
 
 	gabs "github.com/Jeffail/gabs/v2"
 	doublestar "github.com/bmatcuk/doublestar/v2"
+	environment "github.com/semaphoreci/spc/pkg/environment"
 )
 
 type ChangeInFunctionParams struct {
@@ -15,6 +16,7 @@ type ChangeInFunctionParams struct {
 	ExcludedPathPatterns []string
 	DefaultBranch        string
 	TrackPipelineFile    bool
+	OnTags               bool
 }
 
 type ChangeInFunction struct {
@@ -31,6 +33,7 @@ func NewChangeInFunctionFromWhenInputList(input *gabs.Container, yamlPath string
 		ExcludedPathPatterns: []string{},
 		DefaultBranch:        "master",
 		TrackPipelineFile:    true,
+		OnTags:               true,
 	}
 
 	if input.Exists("params", "1", "default_branch") {
@@ -67,6 +70,15 @@ func NewChangeInFunctionFromWhenInputList(input *gabs.Container, yamlPath string
 		}
 	}
 
+	if input.Exists("params", "1", "on_tags") {
+		value, ok := input.Search("params", "1", "on_tags").Data().(bool)
+		if !ok {
+			return nil, fmt.Errorf("Unknown value type on_tags in change_in expression.")
+		}
+
+		params.OnTags = value
+	}
+
 	fun := &ChangeInFunction{
 		Workdir:  path.Dir(yamlPath),
 		YamlPath: yamlPath,
@@ -89,6 +101,12 @@ func (f *ChangeInFunction) DefaultBranchExists() bool {
 
 func (f *ChangeInFunction) Eval() bool {
 	f.LoadDiffList()
+
+	if environment.GitRefType() == environment.GitRefTypeTag {
+		fmt.Printf("  Running on a tag, skipping evaluation\n")
+
+		return f.Params.OnTags
+	}
 
 	fmt.Printf("  File Patterns: '%v'\n", f.Params.PathPatterns)
 	fmt.Printf("  Exclude Patterns: '%v'\n", f.Params.ExcludedPathPatterns)
