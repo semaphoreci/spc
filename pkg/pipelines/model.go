@@ -30,7 +30,7 @@ func (p *Pipeline) EvaluateChangeIns(yamlPath string) error {
 				continue
 			}
 
-			fun, err := when.NewChangeInFunctionFromWhenInputList(input, yamlPath)
+			fun, err := when.NewChangeInFunctionFromWhenInputList(&w, input, yamlPath)
 			if err != nil {
 				panic(err)
 			}

@@ -27,7 +27,7 @@ type ChangeInFunction struct {
 	diffList []string
 }
 
-func NewChangeInFunctionFromWhenInputList(input *gabs.Container, yamlPath string) (*ChangeInFunction, error) {
+func NewChangeInFunctionFromWhenInputList(when *WhenExpression, input *gabs.Container, yamlPath string) (*ChangeInFunction, error) {
 	params := ChangeInFunctionParams{
 		PathPatterns:         []string{},
 		ExcludedPathPatterns: []string{},
@@ -67,6 +67,12 @@ func NewChangeInFunctionFromWhenInputList(input *gabs.Container, yamlPath string
 			params.TrackPipelineFile = false
 		default:
 			return nil, fmt.Errorf("Unknown value type pipeline_file in change_in expression.")
+		}
+	} else {
+		if when.Path[0] == "promotions" {
+			params.TrackPipelineFile = false
+		} else {
+			params.TrackPipelineFile = true
 		}
 	}
 
