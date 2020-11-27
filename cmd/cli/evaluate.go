@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 
-	"github.com/ghodss/yaml"
 	"github.com/semaphoreci/spc/pkg/pipelines"
 	"github.com/spf13/cobra"
 
@@ -32,17 +30,12 @@ var evaluateChangeInCmd = &cobra.Command{
 			panic(err)
 		}
 
-		err = pipelines.EvaluateChangeIns(ppl, input)
+		err = ppl.EvaluateChangeIns(input)
 		if err != nil {
 			os.Exit(1)
 		}
 
-		jsonPpl, err := json.Marshal(ppl)
-		if err != nil {
-			panic(err)
-		}
-
-		yamlPpl, err := yaml.JSONToYAML(jsonPpl)
+		yamlPpl, err := ppl.ToYAML()
 		if err != nil {
 			panic(err)
 		}

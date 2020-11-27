@@ -7,7 +7,7 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-func LoadFromYaml(path string) (*gabs.Container, error) {
+func LoadFromYaml(path string) (*Pipeline, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -18,10 +18,10 @@ func LoadFromYaml(path string) (*gabs.Container, error) {
 		return nil, err
 	}
 
-	pipeline, err := gabs.ParseJSON(jsonData)
+	raw, err := gabs.ParseJSON(jsonData)
 	if err != nil {
 		return nil, err
 	}
 
-	return pipeline, nil
+	return &Pipeline{raw: raw}, nil
 }
