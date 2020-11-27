@@ -34,8 +34,8 @@ Tooling for compiling and evaluating pipelines on Semaphore 2.0.
 - [x] Toggle pipeline file tracking for change_in
 - [ ] Change branch range for change_in
 - [ ] Change default range for change_in
-- [ ] Toggle on_tags toggle for change_in
+- [x] Change on_tags value for change_in
 
 ##### Errors
 
-- [ ] Default branch does not exists
+- [x] Default branch does not exists
