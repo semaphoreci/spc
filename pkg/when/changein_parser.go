@@ -14,6 +14,16 @@ type ChangeInFunctionParser struct {
 	yamlPath string
 }
 
+func ParseChangeIn(w *WhenExpression, input *gabs.Container, yamlPath string) (*ChangeInFunction, error) {
+	parser := ChangeInFunctionParser{
+		raw:      input,
+		when:     w,
+		yamlPath: yamlPath,
+	}
+
+	return parser.ParseFunction()
+}
+
 func (p *ChangeInFunctionParser) ParseFunction() (*ChangeInFunction, error) {
 	track, err := p.TrackPipelineFile()
 	if err != nil {
