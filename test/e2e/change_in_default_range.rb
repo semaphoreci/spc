@@ -42,7 +42,7 @@ blocks:
 
   - name: Test2
     run:
-      when: "branch = 'master' and change_in('/app', {default_range: 'HEAD~3..HEAD'})"
+      when: "branch = 'master' and change_in('/test', {default_range: 'HEAD~3..HEAD~1'})"
 
   - name: Test3
     run:
@@ -65,6 +65,9 @@ system %{
 
   echo "hello" > lib/b.yml
   git add . && git commit -m "Bootstrap lib"
+
+  echo "hello" > test/b.yml
+  git add . && git commit -m "Bootstrap test"
 }
 
 #
