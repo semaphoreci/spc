@@ -6,7 +6,6 @@ import (
 	"path"
 	"strings"
 
-	gabs "github.com/Jeffail/gabs/v2"
 	doublestar "github.com/bmatcuk/doublestar/v2"
 	environment "github.com/semaphoreci/spc/pkg/environment"
 )
@@ -17,6 +16,7 @@ type ChangeInFunctionParams struct {
 	DefaultBranch        string
 	TrackPipelineFile    bool
 	OnTags               bool
+	DefaultRange         string
 }
 
 type ChangeInFunction struct {
@@ -27,80 +27,8 @@ type ChangeInFunction struct {
 	diffList []string
 }
 
-func NewChangeInFunctionFromWhenInputList(when *WhenExpression, input *gabs.Container, yamlPath string) (*ChangeInFunction, error) {
-	params := ChangeInFunctionParams{
-		PathPatterns:         []string{},
-		ExcludedPathPatterns: []string{},
-		DefaultBranch:        "master",
-		TrackPipelineFile:    true,
-		OnTags:               true,
-	}
-
-	if input.Exists("params", "1", "default_branch") {
-		params.DefaultBranch = input.Search("params", "1", "default_branch").Data().(string)
-	}
-
-	if _, ok := input.Search("params", "0").Data().([]interface{}); ok {
-		for _, p := range input.Search("params", "0").Children() {
-			params.PathPatterns = append(params.PathPatterns, p.Data().(string))
-		}
-	} else {
-		params.PathPatterns = append(params.PathPatterns, input.Search("params", "0").Data().(string))
-	}
-
-	if _, ok := input.Search("params", "1", "exclude").Data().([]interface{}); ok {
-		for _, p := range input.Search("params", "1", "exclude").Children() {
-			params.ExcludedPathPatterns = append(params.ExcludedPathPatterns, p.Data().(string))
-		}
-	}
-
-	if input.Exists("params", "1", "pipeline_file") {
-		value, ok := input.Search("params", "1", "pipeline_file").Data().(string)
-		if !ok {
-			return nil, fmt.Errorf("Unknown value type pipeline_file in change_in expression.")
-		}
-
-		switch value {
-		case "track":
-			params.TrackPipelineFile = true
-		case "ignore":
-			params.TrackPipelineFile = false
-		default:
-			return nil, fmt.Errorf("Unknown value type pipeline_file in change_in expression.")
-		}
-	} else {
-		if when.Path[0] == "promotions" {
-			params.TrackPipelineFile = false
-		} else {
-			params.TrackPipelineFile = true
-		}
-	}
-
-	if input.Exists("params", "1", "on_tags") {
-		value, ok := input.Search("params", "1", "on_tags").Data().(bool)
-		if !ok {
-			return nil, fmt.Errorf("Unknown value type on_tags in change_in expression.")
-		}
-
-		params.OnTags = value
-	}
-
-	fun := &ChangeInFunction{
-		Workdir:  path.Dir(yamlPath),
-		YamlPath: yamlPath,
-		Params:   params,
-	}
-
-	return fun, nil
-}
-
 func (f *ChangeInFunction) DefaultBranchExists() bool {
-	err := exec.Command(
-		"git",
-		"rev-parse",
-		"--verify",
-		f.Params.DefaultBranch,
-	).Run()
+	err := exec.Command("git", "rev-parse", "--verify", f.Params.DefaultBranch).Run()
 
 	return err == nil
 }
@@ -156,6 +84,26 @@ func (f *ChangeInFunction) Excluded(diffLine string) bool {
 	return false
 }
 
+func (f *ChangeInFunction) LoadDiffList() {
+	bytes, err := exec.Command("git", "diff", "--name-only", f.CommitRange()).CombinedOutput()
+	if err != nil {
+		fmt.Println(string(bytes))
+		panic(err)
+	}
+
+	f.diffList = strings.Split(strings.TrimSpace(string(bytes)), "\n")
+}
+
+func (f *ChangeInFunction) CommitRange() string {
+	currentBranch := environment.CurrentBranch()
+
+	if currentBranch == f.Params.DefaultBranch {
+		return f.Params.DefaultRange
+	} else {
+		return fmt.Sprintf("%s..HEAD", f.Params.DefaultBranch)
+	}
+}
+
 func changeInPatternMatch(diffLine string, pattern string, workDir string) bool {
 	if pattern[0] != '/' {
 		pattern = path.Join("/", workDir, pattern)
@@ -176,19 +124,4 @@ func changeInPatternMatch(diffLine string, pattern string, workDir string) bool 
 	}
 
 	return false
-}
-
-func (f *ChangeInFunction) LoadDiffList() {
-	gitOpts := []string{
-		"diff",
-		"--name-only",
-		fmt.Sprintf("%s..HEAD", f.Params.DefaultBranch),
-	}
-
-	bytes, err := exec.Command("git", gitOpts...).CombinedOutput()
-	if err != nil {
-		panic(err)
-	}
-
-	f.diffList = strings.Split(strings.TrimSpace(string(bytes)), "\n")
 }

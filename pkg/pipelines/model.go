@@ -19,6 +19,7 @@ func (p *Pipeline) EvaluateChangeIns(yamlPath string) error {
 	fmt.Println("Evaluating start.")
 
 	for _, w := range p.ListWhenConditions() {
+		fmt.Println("")
 		fmt.Printf("Processing when expression %s\n", w.Expression)
 		fmt.Printf("  From: %v\n", w.Path)
 
@@ -30,7 +31,7 @@ func (p *Pipeline) EvaluateChangeIns(yamlPath string) error {
 				continue
 			}
 
-			fun, err := when.NewChangeInFunctionFromWhenInputList(&w, input, yamlPath)
+			fun, err := when.ParseChangeIn(&w, input, yamlPath)
 			if err != nil {
 				panic(err)
 			}
