@@ -35,7 +35,7 @@ agent:
 
 blocks:
   - name: Test
-    skip:
+    run:
       when: "branch = 'master' and change_in('/lib')"
     task:
       jobs:
@@ -44,7 +44,7 @@ blocks:
             - echo "Hello World"
 
   - name: Test2
-    skip:
+    run:
       when: "branch = 'master' and change_in('/app')"
     task:
       jobs:
@@ -79,7 +79,7 @@ agent:
 
 blocks:
   - name: Test
-    skip:
+    run:
       when: "(branch = 'master') and true"
     task:
       jobs:
@@ -88,7 +88,7 @@ blocks:
             - echo "Hello World"
 
   - name: Test2
-    skip:
+    run:
       when: "(branch = 'master') and false"
     task:
       jobs:

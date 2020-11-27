@@ -179,16 +179,20 @@ func changeInPatternMatch(diffLine string, pattern string, workDir string) bool 
 }
 
 func (f *ChangeInFunction) LoadDiffList() {
-	gitOpts := []string{
-		"diff",
-		"--name-only",
-		fmt.Sprintf("%s..HEAD", f.Params.DefaultBranch),
-	}
-
-	bytes, err := exec.Command("git", gitOpts...).CombinedOutput()
+	bytes, err := exec.Command("git", "diff", "--name-only", f.CommitRange()).CombinedOutput()
 	if err != nil {
 		panic(err)
 	}
 
 	f.diffList = strings.Split(strings.TrimSpace(string(bytes)), "\n")
+}
+
+func (f *ChangeInFunction) CommitRange() string {
+	currentBranch := environment.CurrentBranch()
+
+	if currentBranch == f.Params.DefaultBranch {
+		return environment.GitCommitRange()
+	} else {
+		return fmt.Sprintf("%s..HEAD", f.Params.DefaultBranch)
+	}
 }
