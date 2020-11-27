@@ -1,10 +1,12 @@
 package pipelines
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 
 	gabs "github.com/Jeffail/gabs/v2"
+	"github.com/ghodss/yaml"
 	logs "github.com/semaphoreci/spc/pkg/logs"
 	when "github.com/semaphoreci/spc/pkg/when"
 )
@@ -84,14 +86,9 @@ func (p *Pipeline) ListWhenConditions() []when.WhenExpression {
 	appendIfExists := func(path ...string) {
 		value := p.raw.Search(path...)
 
-		if value == nil {
-			return
+		if value != nil {
+			list = append(list, when.WhenExpression{Expression: value.Data().(string), Path: path})
 		}
-
-		list = append(list, when.WhenExpression{
-			Expression: value.Data().(string),
-			Path:       path,
-		})
 	}
 
 	appendIfExists("auto_cancel", "queued", "when")
@@ -100,29 +97,39 @@ func (p *Pipeline) ListWhenConditions() []when.WhenExpression {
 	appendIfExists("fail_fast", "stop", "when")
 
 	for index, _ := range p.Blocks() {
-		i := strconv.Itoa(index)
-
-		appendIfExists("blocks", i, "skip", "when")
-		appendIfExists("blocks", i, "run", "when")
+		appendIfExists("blocks", strconv.Itoa(index), "skip", "when")
+		appendIfExists("blocks", strconv.Itoa(index), "run", "when")
 	}
 
 	for index, _ := range p.Promotions() {
-		i := strconv.Itoa(index)
-
-		appendIfExists("promotions", i, "auto_promote", "when")
+		appendIfExists("promotions", strconv.Itoa(index), "auto_promote", "when")
 	}
 
 	for index, _ := range p.raw.Search("queue").Children() {
-		i := strconv.Itoa(index)
-
-		appendIfExists("queue", i, "when")
+		appendIfExists("queue", strconv.Itoa(index), "when")
 	}
 
 	for index, _ := range p.raw.Search("priority").Children() {
-		i := strconv.Itoa(index)
-
-		appendIfExists("priority", i, "when")
+		appendIfExists("priority", strconv.Itoa(index), "when")
 	}
 
 	return list
+}
+
+func (p *Pipeline) ToJSON() ([]byte, error) {
+	return json.Marshal(p.raw)
+}
+
+func (p *Pipeline) ToYAML() ([]byte, error) {
+	jsonPpl, err := p.ToJSON()
+	if err != nil {
+		return []byte{}, err
+	}
+
+	yamlPpl, err := yaml.JSONToYAML(jsonPpl)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return yamlPpl, nil
 }
