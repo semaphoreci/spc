@@ -33,12 +33,7 @@ func CurrentBranch() string {
 }
 
 func GitCommitRange() string {
-	value := os.Getenv("SEMAPHORE_GIT_COMMIT_RANGE")
-	if value != "" {
-		return value
-	}
-
-	return "master..HEAD"
+	return os.Getenv("SEMAPHORE_GIT_COMMIT_RANGE")
 }
 
 func CurrentGitSha() string {

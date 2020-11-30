@@ -86,7 +86,10 @@ func (f *ChangeInFunction) Excluded(diffLine string) bool {
 }
 
 func (f *ChangeInFunction) LoadDiffList() {
-	bytes, err := exec.Command("git", "diff", "--name-only", f.CommitRange()).CombinedOutput()
+	flags := []string{"diff", "--name-only", f.CommitRange()}
+	fmt.Printf("  Running git %s\n", strings.Join(flags, " "))
+
+	bytes, err := exec.Command("git", flags...).CombinedOutput()
 	if err != nil {
 		fmt.Println(string(bytes))
 		panic(err)

@@ -22,10 +22,10 @@ func ParseChangeIn(w *WhenExpression, input *gabs.Container, yamlPath string) (*
 		yamlPath: yamlPath,
 	}
 
-	return parser.ParseFunction()
+	return parser.Execute()
 }
 
-func (p *ChangeInFunctionParser) ParseFunction() (*ChangeInFunction, error) {
+func (p *ChangeInFunctionParser) Execute() (*ChangeInFunction, error) {
 	track, err := p.TrackPipelineFile()
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func (p *ChangeInFunctionParser) DefaultRange() (string, error) {
 
 		return value, nil
 	} else {
-		return environment.GitCommitRange(), nil
+		return p.fetchCommitRange(), nil
 	}
 }
 
@@ -161,6 +161,15 @@ func (p *ChangeInFunctionParser) CommitRange() (string, error) {
 
 		return value, nil
 	} else {
-		return environment.GitCommitRange(), nil
+		return p.fetchCommitRange(), nil
 	}
+}
+
+func (p *ChangeInFunctionParser) fetchCommitRange() string {
+	commitRange := environment.GitCommitRange()
+	if commitRange != "" {
+		return commitRange
+	}
+
+	return fmt.Sprintf("%s...%s", p.DefaultBranch(), environment.CurrentGitSha())
 }
