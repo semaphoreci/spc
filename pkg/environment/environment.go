@@ -7,9 +7,15 @@ import (
 )
 
 const GitRefTypeTag = "tag"
+const GitRefTypeBranch = "branch"
 
 func GitRefType() string {
-	return os.Getenv("SEMAPHORE_GIT_REF_TYPE")
+	value := os.Getenv("SEMAPHORE_GIT_REF_TYPE")
+	if value != "" {
+		return value
+	}
+
+	return GitRefTypeBranch
 }
 
 func CurrentBranch() string {
@@ -28,10 +34,9 @@ func CurrentBranch() string {
 
 func GitCommitRange() string {
 	value := os.Getenv("SEMAPHORE_GIT_COMMIT_RANGE")
-
-	if value == "" {
-		panic("SEMAPHORE_GIT_REF_TYPE not set")
+	if value != "" {
+		return value
 	}
 
-	return value
+	return "master..HEAD"
 }
