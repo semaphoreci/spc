@@ -99,9 +99,9 @@ blocks:
 
   - name: Test3
     run:
-      when: "(branch = 'master') and true"
+      when: "(branch = 'master') and false"
 
   - name: Test4
     run:
-      when: "(branch = 'master') and false"
+      when: "(branch = 'master') and true"
 }))
