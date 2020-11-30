@@ -67,6 +67,7 @@ system %{
 system(%{
   cd /tmp/test-repo
 
+  export SEMAPHORE_GIT_SHA=$(git rev-parse HEAD)
   export SEMAPHORE_MERGE_BASE=master
 
   #{spc} evaluate change-in \
