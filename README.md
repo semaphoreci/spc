@@ -32,7 +32,7 @@ Tooling for compiling and evaluating pipelines on Semaphore 2.0.
 - [x] Default branch for change_in
 - [x] Exclude patterns from the match
 - [x] Toggle pipeline file tracking for change_in
-- [ ] Change branch range for change_in
+- [x] Change branch range for change_in
 - [x] Change default range for change_in
 - [x] Change on_tags value for change_in
 
