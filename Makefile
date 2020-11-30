@@ -29,3 +29,20 @@ test:
 
 e2e: build
 	ruby $(TEST)
+
+#
+# Automation of CLI tagging.
+#
+# When a tag is release, a new release will appear on Github.
+#
+tag.major:
+	git fetch --tags
+	latest=$$(git tag | sort --version-sort | tail -n 1); new=$$(echo $$latest | cut -c 2- | awk -F '.' '{ print "v" $$1+1 ".0.0" }');          echo $$new; git tag $$new; git push origin $$new
+
+tag.minor:
+	git fetch --tags
+	latest=$$(git tag | sort --version-sort | tail -n 1); new=$$(echo $$latest | cut -c 2- | awk -F '.' '{ print "v" $$1 "." $$2 + 1 ".0" }');  echo $$new; git tag $$new; git push origin $$new
+
+tag.patch:
+	git fetch --tags
+	latest=$$(git tag | sort --version-sort | tail -n 1); new=$$(echo $$latest | cut -c 2- | awk -F '.' '{ print "v" $$1 "." $$2 "." $$3+1 }'); echo $$new; git tag $$new; git push origin $$new
