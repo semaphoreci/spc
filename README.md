@@ -5,7 +5,7 @@ Tooling for compiling and evaluating pipelines on Semaphore 2.0.
 # TODOs
 
 - [x] Green tests on CI
-- [ ] Compile and make release on Github
+- [x] Compile and make release on Github
 
 ### Change In Evaluation
 
