@@ -14,15 +14,21 @@ blocks:
           - sudo mv when /usr/bin/when
           - git config --global user.email "you@example.com"
           - git config --global user.name "Your Name"
+          - sem-version go 1.15
+          - export GO111MODULE=on
+          - export GOPATH=~/go
+          - 'export PATH=/home/semaphore/go/bin:$PATH'
+          - checkout
+          - unset SEMAPHORE_GIT_REF_TYPE
+          - unset SEMAPHORE_GIT_BRANCH
+          - unset SEMAPHORE_GIT_COMMIT_RANGE
+          - unset SEMAPHORE_GIT_SHA
+          - unset SEMAPHORE_MERGE_BASE
+          - unset SEMAPHORE_MERGE_BASE
 
       jobs:
         - name: go test
           commands:
-            - sem-version go 1.15
-            - export GO111MODULE=on
-            - export GOPATH=~/go
-            - 'export PATH=/home/semaphore/go/bin:$PATH'
-            - checkout
             - go get gotest.tools/gotestsum
             - make test
 
@@ -30,22 +36,19 @@ blocks:
           matrix:
             - env_var: TEST_FILE
               values:
+                - test/e2e/change_in_all_possible_locations.rb
+                - test/e2e/change_in_branch_range.rb
+                - test/e2e/change_in_default_range.rb
+                - test/e2e/change_in_excluded_paths.rb
+                - test/e2e/change_in_glob.rb
+                - test/e2e/change_in_missing_branch.rb
+                - test/e2e/change_in_multiple_paths.rb
+                - test/e2e/change_in_on_tags.rb
+                - test/e2e/change_in_pipeline_file_tracking.rb
+                - test/e2e/change_in_relative_paths.rb
                 - test/e2e/change_in_simple.rb
                 - test/e2e/change_in_with_default_branch.rb
-                - test/e2e/change_in_multiple_paths.rb
-                - test/e2e/change_in_missing_branch.rb
-                - test/e2e/change_in_all_possible_locations.rb
-                - test/e2e/change_in_relative_paths.rb
-                - test/e2e/change_in_glob.rb
-                - test/e2e/change_in_excluded_paths.rb
-                - test/e2e/change_in_pipeline_file_tracking.rb
 
           commands:
-            - sem-version go 1.15
-            - export GO111MODULE=on
-            - export GOPATH=~/go
-            - 'export PATH=/home/semaphore/go/bin:$PATH'
-            - checkout
-            - go get gotest.tools/gotestsum
             - make build
             - make e2e TEST=$TEST_FILE

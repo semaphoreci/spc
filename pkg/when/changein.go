@@ -17,6 +17,7 @@ type ChangeInFunctionParams struct {
 	TrackPipelineFile    bool
 	OnTags               bool
 	DefaultRange         string
+	CommitRange          string
 }
 
 type ChangeInFunction struct {
@@ -85,7 +86,10 @@ func (f *ChangeInFunction) Excluded(diffLine string) bool {
 }
 
 func (f *ChangeInFunction) LoadDiffList() {
-	bytes, err := exec.Command("git", "diff", "--name-only", f.CommitRange()).CombinedOutput()
+	flags := []string{"diff", "--name-only", f.CommitRange()}
+	fmt.Printf("  Running git %s\n", strings.Join(flags, " "))
+
+	bytes, err := exec.Command("git", flags...).CombinedOutput()
 	if err != nil {
 		fmt.Println(string(bytes))
 		panic(err)
@@ -100,7 +104,7 @@ func (f *ChangeInFunction) CommitRange() string {
 	if currentBranch == f.Params.DefaultBranch {
 		return f.Params.DefaultRange
 	} else {
-		return fmt.Sprintf("%s..HEAD", f.Params.DefaultBranch)
+		return f.Params.CommitRange
 	}
 }
 
