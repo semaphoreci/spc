@@ -17,6 +17,7 @@ type ChangeInFunctionParams struct {
 	TrackPipelineFile    bool
 	OnTags               bool
 	DefaultRange         string
+	CommitRange          string
 }
 
 type ChangeInFunction struct {
@@ -100,7 +101,7 @@ func (f *ChangeInFunction) CommitRange() string {
 	if currentBranch == f.Params.DefaultBranch {
 		return f.Params.DefaultRange
 	} else {
-		return fmt.Sprintf("%s..HEAD", f.Params.DefaultBranch)
+		return f.Params.CommitRange
 	}
 }
 

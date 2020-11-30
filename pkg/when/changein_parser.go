@@ -3,6 +3,7 @@ package when
 import (
 	"fmt"
 	"path"
+	"strings"
 
 	gabs "github.com/Jeffail/gabs/v2"
 	environment "github.com/semaphoreci/spc/pkg/environment"
@@ -40,6 +41,11 @@ func (p *ChangeInFunctionParser) ParseFunction() (*ChangeInFunction, error) {
 		return nil, err
 	}
 
+	commitRange, err := p.CommitRange()
+	if err != nil {
+		return nil, err
+	}
+
 	params := ChangeInFunctionParams{
 		PathPatterns:         p.PathPatterns(),
 		ExcludedPathPatterns: p.ExcludedPathPatterns(),
@@ -47,6 +53,7 @@ func (p *ChangeInFunctionParser) ParseFunction() (*ChangeInFunction, error) {
 		TrackPipelineFile:    track,
 		OnTags:               onTags,
 		DefaultRange:         defaultRange,
+		CommitRange:          commitRange,
 	}
 
 	return &ChangeInFunction{
@@ -135,6 +142,22 @@ func (p *ChangeInFunctionParser) DefaultRange() (string, error) {
 		if !ok {
 			return "", fmt.Errorf("Unknown value type default_range in change_in expression.")
 		}
+
+		return value, nil
+	} else {
+		return environment.GitCommitRange(), nil
+	}
+}
+
+func (p *ChangeInFunctionParser) CommitRange() (string, error) {
+	if p.raw.Exists("params", "1", "branch_range") {
+		value, ok := p.raw.Search("params", "1", "branch_range").Data().(string)
+		if !ok {
+			return "", fmt.Errorf("Unknown value type branch_range in change_in expression.")
+		}
+
+		value = strings.ReplaceAll(value, "$SEMAPHORE_MERGE_BASE", environment.MergeBase())
+		value = strings.ReplaceAll(value, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
 
 		return value, nil
 	} else {

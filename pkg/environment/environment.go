@@ -40,3 +40,26 @@ func GitCommitRange() string {
 
 	return "master..HEAD"
 }
+
+func CurrentGitSha() string {
+	value := os.Getenv("SEMAPHORE_GIT_SHA")
+	if value != "" {
+		return value
+	}
+
+	sha, err := exec.Command("git", "rev-parse", "HEAD").CombinedOutput()
+	if err != nil {
+		panic(err)
+	}
+
+	return strings.TrimSpace(string(sha))
+}
+
+func MergeBase() string {
+	value := os.Getenv("SEMAPHORE_MERGE_BASE")
+	if value != "" {
+		return value
+	}
+
+	return "master"
+}
