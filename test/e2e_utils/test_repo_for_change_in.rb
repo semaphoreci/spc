@@ -1,8 +1,34 @@
 # rubocop:disable all
 
+#
+# The TestRepoForChangeIn initializes a repository on your local
+# machine. It creates the equivalent of a GitHub hosted "origin"
+# repository. You will need to "clone" before using it for testing.
+#
+# Usage:
+#
+# 1. Create an 'origin':
+#
+#   origin = TestRepoForChangeIn.setup()
+#
+# 2. Add a file:
+#
+#   origin.add_file("README.md", "hello")
+#
+# 3. Commit:
+#
+#   origin.commit!("Bootstrap")
+#
+# 4. Clone the repository:
+#
+#   local_copy = origin.clone_local_copy(branch: "master")
+#
+#   local_copy.list_branches()
+#
+
 class TestRepoForChangeIn
-  def self.setup(path)
-    path = "/tmp/test-repo-#{origin}"
+  def self.setup
+    path = "/tmp/test-repo-origin"
 
     system "rm -rf #{path}"
     system "mkdir -p #{path}"
@@ -30,12 +56,19 @@ class TestRepoForChangeIn
     }
   end
 
+  def list_branches
+    run "git branch -a"
+  end
+
   def switch_branch(name)
     run("git checkout -b #{name}")
   end
 
   def add_file(file_path, content)
-    File.write(Path.join(@path, file_path), content)
+    full_path = File.join(@path, file_path)
+    system "mkdir -p #{File.dirname(full_path)}"
+
+    File.write(full_path, content)
   end
 
   def commit!(message)
@@ -48,7 +81,7 @@ class TestRepoForChangeIn
     system "rm -rf #{clone_path}"
     system "git clone #{@path} --branch #{options[:branch]} #{clone_path}"
 
-    repo = new(clone_path)
+    repo = TestRepoForChangeIn.new(clone_path)
 
     repo
   end

@@ -1,6 +1,6 @@
 # rubocop:disable all
 
-require_relative "e2e_utils/test_repo_for_change_in"
+require_relative "./e2e_utils/test_repo_for_change_in"
 
 def spc
   `echo "$(pwd)/build/cli"`.strip

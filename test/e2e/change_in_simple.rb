@@ -43,6 +43,7 @@ origin.add_file("lib/B.txt", "hello")
 origin.commit!("Changes in dev")
 
 repo = origin.clone_local_copy(branch: "dev")
+repo.list_branches
 repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
 
 assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{

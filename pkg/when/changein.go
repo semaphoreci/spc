@@ -28,19 +28,18 @@ type ChangeInFunction struct {
 	diffList []string
 }
 
-func (f *ChangeInFunction) DefaultBranchExists() bool {
-	err := exec.Command("git", "rev-parse", "--verify", f.Params.DefaultBranch).Run()
+func (f *ChangeInFunction) Eval() (bool, error) {
+	err := f.FetchBranch()
+	if err != nil {
+		return false, err
+	}
 
-	return err == nil
-}
-
-func (f *ChangeInFunction) Eval() bool {
 	f.LoadDiffList()
 
 	if environment.GitRefType() == environment.GitRefTypeTag {
 		fmt.Printf("  Running on a tag, skipping evaluation\n")
 
-		return f.Params.OnTags
+		return f.Params.OnTags, nil
 	}
 
 	fmt.Printf("  File Patterns: '%v'\n", f.Params.PathPatterns)
@@ -51,11 +50,22 @@ func (f *ChangeInFunction) Eval() bool {
 		fmt.Printf("  Checking diff line '%s'\n", diffLine)
 
 		if f.MatchesPattern(diffLine) && !f.Excluded(diffLine) {
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
+}
+
+func (f *ChangeInFunction) FetchBranch() error {
+	fmt.Printf("  Fetching branch from remote: '%s'\n", f.Params.DefaultBranch)
+
+	flags := []string{"fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", f.Params.DefaultBranch, f.Params.DefaultBranch)}
+	fmt.Printf("  Running git %s\n", strings.Join(flags, " "))
+
+	_, err := exec.Command("git", flags...).CombinedOutput()
+
+	return err
 }
 
 func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {

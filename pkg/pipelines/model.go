@@ -7,7 +7,6 @@ import (
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
-	logs "github.com/semaphoreci/spc/pkg/logs"
 	when "github.com/semaphoreci/spc/pkg/when"
 )
 
@@ -36,19 +35,10 @@ func (p *Pipeline) EvaluateChangeIns(yamlPath string) error {
 				panic(err)
 			}
 
-			fmt.Println("  Checking if branch exists.")
-			if !fun.DefaultBranchExists() {
-				logs.Log(logs.ErrorChangeInMissingBranch{
-					Message: "Unknown git reference 'random'.",
-					Location: logs.Location{
-						Path: w.Path,
-					},
-				})
-
-				return fmt.Errorf("  Branch '%s' does not exists.", fun.Params.DefaultBranch)
+			hasChanges, err := fun.Eval()
+			if err != nil {
+				panic(err)
 			}
-
-			hasChanges := fun.Eval()
 
 			funInput := when.FunctionInput{
 				Name:   "change_in",
