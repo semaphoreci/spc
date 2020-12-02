@@ -7,6 +7,7 @@ import (
 
 	gabs "github.com/Jeffail/gabs/v2"
 	environment "github.com/semaphoreci/spc/pkg/environment"
+	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
 type ChangeInFunctionParser struct {
@@ -59,7 +60,11 @@ func (p *ChangeInFunctionParser) Execute() (*ChangeInFunction, error) {
 	return &ChangeInFunction{
 		Workdir:  path.Dir(p.yamlPath),
 		YamlPath: p.yamlPath,
-		Params:   params,
+		Location: logs.Location{
+			File: p.yamlPath,
+			Path: p.when.Path,
+		},
+		Params: params,
 	}, nil
 }
 

@@ -8,6 +8,8 @@ import (
 
 	doublestar "github.com/bmatcuk/doublestar/v2"
 	environment "github.com/semaphoreci/spc/pkg/environment"
+	git "github.com/semaphoreci/spc/pkg/git"
+	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
 type ChangeInFunctionParams struct {
@@ -21,26 +23,32 @@ type ChangeInFunctionParams struct {
 }
 
 type ChangeInFunction struct {
-	Params   ChangeInFunctionParams
-	Workdir  string
+	Params  ChangeInFunctionParams
+	Workdir string
+
 	YamlPath string
+	Location logs.Location
 
 	diffList []string
 }
 
-func (f *ChangeInFunction) DefaultBranchExists() bool {
-	err := exec.Command("git", "rev-parse", "--verify", f.Params.DefaultBranch).Run()
+func (f *ChangeInFunction) Eval() (bool, error) {
+	var err error
 
-	return err == nil
-}
+	err = f.Fetch()
+	if err != nil {
+		return false, err
+	}
 
-func (f *ChangeInFunction) Eval() bool {
-	f.LoadDiffList()
+	err = f.LoadDiffList()
+	if err != nil {
+		return false, err
+	}
 
 	if environment.GitRefType() == environment.GitRefTypeTag {
 		fmt.Printf("  Running on a tag, skipping evaluation\n")
 
-		return f.Params.OnTags
+		return f.Params.OnTags, nil
 	}
 
 	fmt.Printf("  File Patterns: '%v'\n", f.Params.PathPatterns)
@@ -51,11 +59,44 @@ func (f *ChangeInFunction) Eval() bool {
 		fmt.Printf("  Checking diff line '%s'\n", diffLine)
 
 		if f.MatchesPattern(diffLine) && !f.Excluded(diffLine) {
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
+}
+
+func (f *ChangeInFunction) Fetch() error {
+	if environment.CurrentBranch() != f.Params.DefaultBranch {
+		base, _ := f.ParseCommitRange()
+
+		if base == f.Params.DefaultBranch {
+			output, err := git.Fetch(f.Params.DefaultBranch)
+			if err != nil {
+				return f.ParseFetchError(f.Params.DefaultBranch, string(output), err)
+			}
+		} else {
+			output, err := git.Fetch(base)
+			if err != nil {
+				return f.ParseFetchError(f.Params.DefaultBranch, string(output), err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (f *ChangeInFunction) ParseFetchError(name string, output string, err error) error {
+	if strings.Contains(string(output), "couldn't find remote ref") {
+		msg := fmt.Sprintf("Unknown git reference '%s'.", name)
+		err := logs.ErrorChangeInMissingBranch{Message: msg, Location: f.Location}
+
+		logs.Log(err)
+
+		return &err
+	}
+
+	return err
 }
 
 func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
@@ -85,17 +126,20 @@ func (f *ChangeInFunction) Excluded(diffLine string) bool {
 	return false
 }
 
-func (f *ChangeInFunction) LoadDiffList() {
+func (f *ChangeInFunction) LoadDiffList() error {
 	flags := []string{"diff", "--name-only", f.CommitRange()}
 	fmt.Printf("  Running git %s\n", strings.Join(flags, " "))
 
 	bytes, err := exec.Command("git", flags...).CombinedOutput()
 	if err != nil {
 		fmt.Println(string(bytes))
-		panic(err)
+
+		return err
 	}
 
 	f.diffList = strings.Split(strings.TrimSpace(string(bytes)), "\n")
+
+	return nil
 }
 
 func (f *ChangeInFunction) CommitRange() string {
@@ -106,6 +150,20 @@ func (f *ChangeInFunction) CommitRange() string {
 	} else {
 		return f.Params.CommitRange
 	}
+}
+
+func (f *ChangeInFunction) ParseCommitRange() (string, string) {
+	var splitAt string
+
+	if strings.Contains(f.CommitRange(), "...") {
+		splitAt = "..."
+	} else {
+		splitAt = ".."
+	}
+
+	parts := strings.Split(f.CommitRange(), splitAt)
+
+	return parts[0], parts[1]
 }
 
 func changeInPatternMatch(diffLine string, pattern string, workDir string) bool {

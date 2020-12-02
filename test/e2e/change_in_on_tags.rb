@@ -27,32 +27,7 @@ require 'yaml'
 # In which case the value will always be 'false' on tags.
 #
 
-#
-# Prepare a repository with two branches, master and dev.
-#
-system %{
-  rm -f /tmp/output.yml
-  rm -rf /tmp/test-repo
-  mkdir -p /tmp/test-repo
-  cd /tmp/test-repo
-  git init
-
-  # master branch
-  mkdir lib .semaphore
-  echo A > lib/A.txt
-  git add . && git commit -m 'Bootstrap'
-
-  # dev branch
-  git checkout -b dev
-  echo B > lib/B.txt
-  git add . && git commit -m 'Changes in dev'
-}
-
-#
-# Create a .semaphore/semaphore.yml file.
-#
-
-File.write('/tmp/test-repo/.semaphore/semaphore.yml', %{
+pipeline = %{
 version: v1.0
 name: Test
 agent:
@@ -86,26 +61,26 @@ blocks:
         - name: Hello
           commands:
             - echo "Hello World"
-})
+}
 
-#
-# Case 1: When the current git reference is a tag:
-#
+origin = TestRepoForChangeIn.setup()
 
-system(%{
-  cd /tmp/test-repo
+origin.add_file('.semaphore/semaphore.yml', pipeline)
+origin.commit!("Bootstrap")
 
+origin.create_branch("dev")
+origin.add_file("lib/B.txt", "hello")
+origin.commit!("Changes in dev")
+
+repo = origin.clone_local_copy(branch: "dev")
+
+repo.run(%{
   export SEMAPHORE_GIT_REF_TYPE=tag
 
-  #{spc} evaluate change-in \
-     --input .semaphore/semaphore.yml \
-     --output /tmp/output.yml \
-     --logs /tmp/logs.yml
+  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
 })
 
-output = YAML.load_file('/tmp/output.yml')
-
-assert_eq(output, YAML.load(%{
+assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
 name: Test
 agent:
@@ -141,24 +116,13 @@ blocks:
             - echo "Hello World"
 }))
 
-#
-# Case 2: When the current git reference is not a tag:
-#
-
-system(%{
-  cd /tmp/test-repo
-
+repo.run(%{
   export SEMAPHORE_GIT_REF_TYPE=branch
 
-  #{spc} evaluate change-in \
-     --input .semaphore/semaphore.yml \
-     --output /tmp/output.yml \
-     --logs /tmp/logs.yml
+  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
 })
 
-output = YAML.load_file('/tmp/output.yml')
-
-assert_eq(output, YAML.load(%{
+assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
 name: Test
 agent:

@@ -40,20 +40,7 @@ require 'yaml'
 #
 # The dev branch will have change only
 #
-system %{
-  rm -f /tmp/output.yml
-  rm -rf /tmp/test-repo
-  mkdir -p /tmp/test-repo
-  cd /tmp/test-repo
-  git init
-
-  # master branch
-  mkdir client .semaphore
-
-  echo "hello" > client/app.js
-  echo "hello" > config.txt
-}
-
+#
 pipeline = %{
 version: v1.0
 name: Test
@@ -71,38 +58,28 @@ blocks:
       when: "change_in('/', {exclude: ['/client']})"
 }
 
-File.write('/tmp/test-repo/.semaphore/semaphore.yml', pipeline)
+origin = TestRepoForChangeIn.setup()
 
-system %{
-  cd /tmp/test-repo
-  git add .
-  git commit -m "Add semaphore pipeline"
-}
+origin.add_file('.semaphore/semaphore.yml', pipeline)
+origin.commit!("Bootstrap")
+
+origin.add_file("client/app.js", "hello")
+origin.add_file("config.txt", "hello")
+origin.commit!("Changes on master")
+
+repo = origin.clone_local_copy(branch: "master")
 
 #
 # Testing out the scenario where only the client changed.
 #
-system %{
-  cd /tmp/test-repo
-  git checkout master
-  git checkout -b client-changes
 
-  echo "hello hello" > client/app.js
+repo.create_branch("client-changes")
+repo.add_file("client/app.js", "hello hello")
+repo.commit!("Change things in the client")
 
-  git add . && git commit -m "Change things in the client"
-}
+repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
 
-
-system(%{
-  rm -f /tmp/output.yml
-  cd /tmp/test-repo
-
-  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
-})
-
-output = YAML.load_file('/tmp/output.yml')
-
-assert_eq(output, YAML.load(%{
+assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
 name: Test
 agent:
@@ -122,26 +99,15 @@ blocks:
 #
 # Testing out the scenario where only the backend changed.
 #
-system %{
-  cd /tmp/test-repo
-  git checkout master
-  git checkout -b backend-changes
+repo.switch_branch("master")
+repo.create_branch("backend-changes")
 
-  echo "hello hello" > config.txt
+repo.add_file("config.txt", "hello hello")
+repo.commit!("Change things in the backend")
 
-  git add . && git commit -m "Change things in the backend"
-}
+repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
 
-system(%{
-  rm -f /tmp/output.yml
-  cd /tmp/test-repo
-
-  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
-})
-
-output = YAML.load_file('/tmp/output.yml')
-
-assert_eq(output, YAML.load(%{
+assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
 name: Test
 agent:
@@ -161,27 +127,16 @@ blocks:
 #
 # Testing out the scenario where both and client have changes.
 #
-system %{
-  cd /tmp/test-repo
-  git checkout master
-  git checkout -b changes-in-both-places
+repo.switch_branch("master")
+repo.create_branch("changes-in-both-places")
 
-  echo "hello hello" > client/app.js
-  echo "hello hello" > config.txt
+repo.add_file("client/app.txt", "hello hello")
+repo.add_file("config.txt", "hello hello")
+repo.commit!("Change things in both places")
 
-  git add . && git commit -m "Change things in the backend"
-}
+repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
 
-system(%{
-  rm -f /tmp/output.yml
-  cd /tmp/test-repo
-
-  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
-})
-
-output = YAML.load_file('/tmp/output.yml')
-
-assert_eq(output, YAML.load(%{
+assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
 name: Test
 agent:

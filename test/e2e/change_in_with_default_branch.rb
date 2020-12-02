@@ -1,37 +1,8 @@
 # rubocop:disable all
 
 require_relative "../e2e"
-require 'yaml'
 
-#
-# Prepare a repository with three branches, master, main, and dev.
-#
-system %{
-  rm -f /tmp/output.yml
-  rm -rf /tmp/test-repo
-  mkdir /tmp/test-repo && cd /tmp/test-repo && git init
-
-  # master branch
-  mkdir app lib .semaphore
-  echo A > app/A.txt
-  git add . && git commit -m 'Bootstrap'
-
-  # main branch
-  git checkout -b main
-  echo B > lib/B.txt
-  git add . && git commit -m 'Changes in main branch'
-
-  # dev branch
-  git checkout -b dev
-  echo C > app/C.txt
-  git add . && git commit -m 'Changes in dev'
-}
-
-#
-# Create a .semaphore/semaphore.yml file.
-#
-
-File.write('/tmp/test-repo/.semaphore/semaphore.yml', %{
+pipeline = %{
 version: v1.0
 name: Test
 agent:
@@ -65,26 +36,28 @@ blocks:
         - name: Hello
           commands:
             - echo "Hello World"
-})
+}
 
-#
-# Evaluate the change-ins
-#
-system(%{
-  cd /tmp/test-repo
+origin = TestRepoForChangeIn.setup()
 
-  #{spc} evaluate change-in \
-     --input .semaphore/semaphore.yml \
-     --output /tmp/output.yml \
-     --logs /tmp/logs.yml
-})
+origin.add_file('.semaphore/semaphore.yml', pipeline)
+origin.commit!("Bootstrap")
 
-#
-# Verify that the results are OK.
-#
-output = YAML.load_file('/tmp/output.yml')
+origin.add_file("app/A.txt", "hello")
+origin.commit!("Changes on master")
 
-assert_eq(output, YAML.load(%{
+origin.create_branch("main")
+origin.add_file("lib/B.txt", "hello")
+origin.commit!("Changes in main")
+
+origin.create_branch("dev")
+origin.add_file("app/C.txt", "hello")
+origin.commit!("Changes in dev")
+
+repo = origin.clone_local_copy(branch: "dev")
+repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
+
+assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
 name: Test
 agent:
