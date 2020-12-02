@@ -36,25 +36,31 @@ var evaluateChangeInCmd = &cobra.Command{
 		logs.SetCurrentPipelineFilePath(input)
 
 		ppl, err := pipelines.LoadFromYaml(input)
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 
 		err = ppl.EvaluateChangeIns(input)
-		if err != nil {
-			os.Exit(1)
-		}
+		check(err)
 
 		yamlPpl, err := ppl.ToYAML()
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 
 		err = ioutil.WriteFile(output, yamlPpl, 0644)
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 	},
+}
+
+func check(err error) {
+	if err == nil {
+		return
+	}
+
+	fmt.Println(err)
+
+	if _, ok := err.(*logs.ErrorChangeInMissingBranch); ok {
+		os.Exit(1)
+	}
+
+	panic(err)
 }
 
 func init() {

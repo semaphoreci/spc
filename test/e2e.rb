@@ -1,6 +1,8 @@
 # rubocop:disable all
 
 require_relative "./e2e_utils/test_repo_for_change_in"
+require 'yaml'
+require 'json'
 
 def spc
   `echo "$(pwd)/build/cli"`.strip

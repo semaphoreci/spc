@@ -8,6 +8,7 @@ import (
 
 	doublestar "github.com/bmatcuk/doublestar/v2"
 	environment "github.com/semaphoreci/spc/pkg/environment"
+	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
 type ChangeInFunctionParams struct {
@@ -21,9 +22,11 @@ type ChangeInFunctionParams struct {
 }
 
 type ChangeInFunction struct {
-	Params   ChangeInFunctionParams
-	Workdir  string
+	Params  ChangeInFunctionParams
+	Workdir string
+
 	YamlPath string
+	Location logs.Location
 
 	diffList []string
 }
@@ -67,11 +70,24 @@ func (f *ChangeInFunction) FetchBranch() error {
 
 	bytes, err := exec.Command("git", flags...).CombinedOutput()
 
-	if err != nil {
-		return fmt.Errorf("Failed to fetch branch %w. Output: %s", err, string(bytes))
+	return f.ParseGitFetchError(string(bytes), err)
+}
+
+func (f *ChangeInFunction) ParseGitFetchError(output string, err error) error {
+	if err == nil {
+		return nil
 	}
 
-	return nil
+	if strings.Contains(output, "couldn't find remote ref") {
+		msg := fmt.Sprintf("Unknown git reference '%s'.", f.Params.DefaultBranch)
+		err := logs.ErrorChangeInMissingBranch{Message: msg, Location: f.Location}
+
+		logs.Log(err)
+
+		return &err
+	}
+
+	return err
 }
 
 func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {

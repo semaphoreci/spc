@@ -48,14 +48,16 @@ class TestRepoForChangeIn
   end
 
   # Run a command in the context or the repository
-  def run(commands)
+  def run(commands, options = {})
     system %{
       cd #{@path}
 
       #{commands}
     }
 
-    raise "Failed to execute command" if $?.exitstatus != 0
+    if options[:fail] != false
+      raise "Failed to execute command" if $?.exitstatus != 0
+    end
   end
 
   def list_branches

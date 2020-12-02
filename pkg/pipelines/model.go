@@ -32,12 +32,12 @@ func (p *Pipeline) EvaluateChangeIns(yamlPath string) error {
 
 			fun, err := when.ParseChangeIn(&w, input, yamlPath)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			hasChanges, err := fun.Eval()
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			funInput := when.FunctionInput{
@@ -51,7 +51,7 @@ func (p *Pipeline) EvaluateChangeIns(yamlPath string) error {
 
 		err = w.Reduce(inputs)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		fmt.Printf("  Reduced When Expression: %s\n", w.Expression)
