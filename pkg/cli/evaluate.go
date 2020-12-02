@@ -20,17 +20,11 @@ var evaluateChangeInCmd = &cobra.Command{
 	Use: "change-in",
 
 	Run: func(cmd *cobra.Command, args []string) {
+		checkWhenInstalled()
+
 		input := fetchRequiredStringFlag(cmd, "input")
 		output := fetchRequiredStringFlag(cmd, "output")
 		logsPath := fetchRequiredStringFlag(cmd, "logs")
-
-		if !when.IsInstalled() {
-			fmt.Println("Error: Con't find the 'when' expression parser binary")
-			fmt.Println()
-			fmt.Println("Is it installed and available in $PATH?")
-
-			os.Exit(1)
-		}
 
 		logs.Open(logsPath)
 		logs.SetCurrentPipelineFilePath(input)
@@ -49,6 +43,18 @@ var evaluateChangeInCmd = &cobra.Command{
 	},
 }
 
+// revive:disable:deep-exit
+
+func checkWhenInstalled() {
+	if !when.IsInstalled() {
+		fmt.Println("Error: Con't find the 'when' expression parser binary")
+		fmt.Println()
+		fmt.Println("Is it installed and available in $PATH?")
+
+		os.Exit(1)
+	}
+}
+
 func check(err error) {
 	if err == nil {
 		return
@@ -62,6 +68,8 @@ func check(err error) {
 
 	panic(err)
 }
+
+// revive:disable:deep-exit
 
 func init() {
 	rootCmd.AddCommand(evaluateCmd)
