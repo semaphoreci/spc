@@ -38,7 +38,7 @@ origin.commit!("Bootstrap")
 origin.add_file("lib/A.txt", "hello")
 origin.commit!("Changes on master")
 
-origin.switch_branch("dev")
+origin.create_branch("dev")
 origin.add_file("lib/B.txt", "hello")
 origin.commit!("Changes in dev")
 

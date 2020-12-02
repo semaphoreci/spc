@@ -68,7 +68,7 @@ origin = TestRepoForChangeIn.setup()
 origin.add_file('.semaphore/semaphore.yml', pipeline)
 origin.commit!("Bootstrap")
 
-origin.switch_branch("dev")
+origin.create_branch("dev")
 origin.add_file("lib/B.txt", "hello")
 origin.commit!("Changes in dev")
 

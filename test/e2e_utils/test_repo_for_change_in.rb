@@ -54,6 +54,8 @@ class TestRepoForChangeIn
 
       #{commands}
     }
+
+    raise "Failed to execute command" if $?.exitstatus != 0
   end
 
   def list_branches
@@ -61,6 +63,10 @@ class TestRepoForChangeIn
   end
 
   def switch_branch(name)
+    run("git checkout #{name}")
+  end
+
+  def create_branch(name)
     run("git checkout -b #{name}")
   end
 
