@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/assert"
-	require "github.com/stretchr/testify/assert"
+	require "github.com/stretchr/testify/require"
 )
 
 func Test__ListWhenConditions(t *testing.T) {
