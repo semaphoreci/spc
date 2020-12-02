@@ -5,6 +5,15 @@ agent:
     type: e1-standard-2
     os_image: ubuntu1804
 blocks:
+  - name: Lint
+    task:
+      jobs:
+        - name: Lint
+          commands:
+            - go get -u github.com/mgechev/revive
+            - checkout
+            - make lint
+
   - name: Test
     task:
       prologue:
