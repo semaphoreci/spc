@@ -8,7 +8,7 @@ import (
 	gabs "github.com/Jeffail/gabs/v2"
 )
 
-var loggerInstance *os.File = nil
+var loggerInstance *os.File
 var currentPipelineFilePath string
 
 func Open(path string) {
