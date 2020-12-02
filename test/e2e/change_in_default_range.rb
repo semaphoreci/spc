@@ -13,22 +13,7 @@ require 'yaml'
 # The default value of this parameter is $SEMAPHORE_GIT_COMMIT_RANGE.
 #
 
-#
-# Prepare a repository with two branches, master and dev.
-#
-system %{
-  rm -f /tmp/output.yml
-  rm -rf /tmp/test-repo
-  mkdir -p /tmp/test-repo/.semaphore
-  cd /tmp/test-repo
-  git init
-}
-
-#
-# Create a .semaphore/semaphore.yml file.
-#
-
-File.write('/tmp/test-repo/.semaphore/semaphore.yml', %{
+pipeline = %{
 version: v1.0
 name: Test
 agent:
@@ -51,31 +36,26 @@ blocks:
   - name: Test4
     run:
       when: "branch = 'master' and change_in('/app', {default_range: 'HEAD~1..HEAD'})"
-})
-
-system %{
-  cd /tmp/test-repo
-
-  mkdir lib app test
-
-  git add . && git commit -m "Bootstrap YAML"
-
-  echo "hello" > app/a.yml
-  git add . && git commit -m "Bootstrap app"
-
-  echo "hello" > lib/b.yml
-  git add . && git commit -m "Bootstrap lib"
-
-  echo "hello" > test/b.yml
-  git add . && git commit -m "Bootstrap test"
 }
 
-#
-# Evaluate the change-ins
-#
-system(%{
-  cd /tmp/test-repo
+origin = TestRepoForChangeIn.setup()
 
+origin.add_file('.semaphore/semaphore.yml', pipeline)
+origin.commit!("Bootstrap")
+
+origin.add_file("app/a.yml", "hello")
+origin.commit!("Changes in app")
+
+origin.add_file("lib/b.yml", "hello")
+origin.commit!("Changes in lib")
+
+origin.add_file("test/c.yml", "hello")
+origin.commit!("Changes in test")
+
+repo = origin.clone_local_copy(branch: "master")
+repo.list_branches
+
+repo.run(%{
   echo "Displaying git log til now"
   git log
 
@@ -83,18 +63,10 @@ system(%{
   echo "Passing $SEMAPHORE_GIT_COMMIT_RANGE to the compiler"
   echo ""
 
-  #{spc} evaluate change-in \
-     --input .semaphore/semaphore.yml \
-     --output /tmp/output.yml \
-     --logs /tmp/logs.yml
+  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
 })
 
-#
-# Verify that the results are OK.
-#
-output = YAML.load_file('/tmp/output.yml')
-
-assert_eq(output, YAML.load(%{
+assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
 name: Test
 agent:

@@ -29,9 +29,11 @@ type ChangeInFunction struct {
 }
 
 func (f *ChangeInFunction) Eval() (bool, error) {
-	err := f.FetchBranch()
-	if err != nil {
-		return false, err
+	if environment.CurrentBranch() != f.Params.DefaultBranch {
+		err := f.FetchBranch()
+		if err != nil {
+			return false, err
+		}
 	}
 
 	f.LoadDiffList()
@@ -63,9 +65,9 @@ func (f *ChangeInFunction) FetchBranch() error {
 	flags := []string{"fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", f.Params.DefaultBranch, f.Params.DefaultBranch)}
 	fmt.Printf("  Running git %s\n", strings.Join(flags, " "))
 
-	_, err := exec.Command("git", flags...).CombinedOutput()
+	bytes, err := exec.Command("git", flags...).CombinedOutput()
 
-	return err
+	return fmt.Errorf("Failed to fetch branch %w. Output: %s", err, string(bytes))
 }
 
 func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
