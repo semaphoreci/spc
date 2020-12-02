@@ -14,22 +14,7 @@ require 'yaml'
 # However, for promotions, the default value is 'ignore'.
 #
 
-#
-# Prepare a repository with two branches, master and dev.
-#
-system %{
-  rm -f /tmp/output.yml
-  rm -rf /tmp/test-repo
-  mkdir /tmp/test-repo
-  cd /tmp/test-repo
-  git init
-
-  # master branch
-  mkdir lib .semaphore
-  echo A > lib/A.txt
-}
-
-File.write('/tmp/test-repo/.semaphore/semaphore.yml', %{
+pipeline = %{
 version: v1.0
 name: Test
 agent:
@@ -76,38 +61,21 @@ promotions:
   - name: P3
     auto_promote:
       when: "change_in('/lib', {pipeline_file: 'track'})"
-})
-
-system %{
-  cd /tmp/test-repo
-
-  git add . && git commit -m 'Bootstrap'
-
-  git checkout -b dev
-
-  echo "\n" >> .semaphore/semaphore.yml
-
-  git add . && git commit -m 'Changes in dev'
 }
 
-#
-# Evaluate the change-ins
-#
-system(%{
-  cd /tmp/test-repo
+origin = TestRepoForChangeIn.setup()
 
-  #{spc} evaluate change-in \
-     --input .semaphore/semaphore.yml \
-     --output /tmp/output.yml \
-     --logs /tmp/logs.yml
-})
+origin.add_file('.semaphore/semaphore.yml', pipeline)
+origin.commit!("Bootstrap")
 
-#
-# Verify that the results are OK.
-#
-output = YAML.load_file('/tmp/output.yml')
+origin.create_branch("dev")
+origin.run(%{echo "\n" >> .semaphore/semaphore.yml})
+origin.commit!("Changes in dev")
 
-assert_eq(output, YAML.load(%{
+repo = origin.clone_local_copy(branch: "dev")
+repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
+
+assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
 name: Test
 agent:
