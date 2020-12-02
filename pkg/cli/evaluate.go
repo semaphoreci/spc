@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	logs "github.com/semaphoreci/spc/pkg/logs"
+	when "github.com/semaphoreci/spc/pkg/when"
 )
 
 var evaluateCmd = &cobra.Command{
@@ -21,6 +23,14 @@ var evaluateChangeInCmd = &cobra.Command{
 		input := fetchRequiredStringFlag(cmd, "input")
 		output := fetchRequiredStringFlag(cmd, "output")
 		logsPath := fetchRequiredStringFlag(cmd, "logs")
+
+		if !when.IsInstalled() {
+			fmt.Println("Error: Con't find the 'when' expression parser binary")
+			fmt.Println()
+			fmt.Println("Is it installed and available in $PATH?")
+
+			os.Exit(1)
+		}
 
 		logs.Open(logsPath)
 		logs.SetCurrentPipelineFilePath(input)
