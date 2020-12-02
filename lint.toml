@@ -1,17 +1,12 @@
 ignoreGeneratedHeader = false
 severity = "warning"
 confidence = 0.8
-errorCode = 1
-warningCode = 1
+errorCode = 0
+warningCode = 0
 
-[rule.blank-imports]
-[rule.context-as-argument]
-[rule.context-keys-type]
 [rule.dot-imports]
 [rule.error-return]
 [rule.error-strings]
-[rule.error-naming]
-# [rule.exported]
 [rule.if-return]
 [rule.increment-decrement]
 [rule.var-naming]
@@ -23,3 +18,42 @@ warningCode = 1
 [rule.unexported-return]
 [rule.indent-error-flow]
 [rule.errorf]
+[rule.superfluous-else]
+[rule.unused-parameter]
+[rule.unreachable-code]
+[rule.redefines-builtin-id]
+
+[rule.line-length-limit]
+  arguments = [120]
+
+[rule.max-public-structs]
+  arguments = [3]
+
+[rule.add-constant]
+  arguments = [{maxLitCount = "3",allowStrs ="\"\"",allowInts="0,1,2",allowFloats="0.0,0.,1.0,1.,2.0,2."}]
+
+[rule.argument-limit]
+  arguments = [4]
+
+[rule.atomic]
+[rule.blank-imports]
+[rule.bool-literal-in-expr]
+[rule.call-to-gc]
+
+[rule.cognitive-complexity]
+  arguments = [7]
+
+[rule.constant-logical-expr]
+[rule.context-as-argument]
+[rule.context-keys-type]
+[rule.cyclomatic]
+  arguments = [3]
+
+[rule.deep-exit]
+[rule.empty-block]
+[rule.duplicated-imports]
+[rule.error-naming]
+[rule.flag-parameter]
+
+[rule.function-result-limit]
+  arguments = [3]
