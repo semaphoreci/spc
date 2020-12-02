@@ -87,20 +87,20 @@ func (p *Pipeline) ListWhenConditions() []when.WhenExpression {
 	appendIfExists("fail_fast", "cancel", "when")
 	appendIfExists("fail_fast", "stop", "when")
 
-	for index, _ := range p.Blocks() {
+	for index := range p.Blocks() {
 		appendIfExists("blocks", strconv.Itoa(index), "skip", "when")
 		appendIfExists("blocks", strconv.Itoa(index), "run", "when")
 	}
 
-	for index, _ := range p.Promotions() {
+	for index := range p.Promotions() {
 		appendIfExists("promotions", strconv.Itoa(index), "auto_promote", "when")
 	}
 
-	for index, _ := range p.raw.Search("queue").Children() {
+	for index := range p.raw.Search("queue").Children() {
 		appendIfExists("queue", strconv.Itoa(index), "when")
 	}
 
-	for index, _ := range p.raw.Search("priority").Children() {
+	for index := range p.raw.Search("priority").Children() {
 		appendIfExists("priority", strconv.Itoa(index), "when")
 	}
 
