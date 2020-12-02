@@ -138,13 +138,11 @@ func (f *ChangeInFunction) LoadDiffList() error {
 }
 
 func (f *ChangeInFunction) CommitRange() string {
-	currentBranch := environment.CurrentBranch()
-
-	if currentBranch == f.Params.DefaultBranch {
+	if environment.CurrentBranch() == f.Params.DefaultBranch {
 		return f.Params.DefaultRange
-	} else {
-		return f.Params.CommitRange
 	}
+
+	return f.Params.CommitRange
 }
 
 func (f *ChangeInFunction) ParseCommitRange() (string, string) {
@@ -176,9 +174,7 @@ func changeInPatternMatch(diffLine string, pattern string, workDir string) bool 
 		}
 
 		return ok
-	} else {
-		return strings.HasPrefix(diffLine, pattern)
 	}
 
-	return false
+	return strings.HasPrefix(diffLine, pattern)
 }

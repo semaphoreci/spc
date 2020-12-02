@@ -71,9 +71,9 @@ func (p *ChangeInFunctionParser) Execute() (*ChangeInFunction, error) {
 func (p *ChangeInFunctionParser) DefaultBranch() string {
 	if p.functionParams().Exists("default_branch") {
 		return p.functionParams().Search("default_branch").Data().(string)
-	} else {
-		return "master"
 	}
+
+	return "master"
 }
 
 func (p *ChangeInFunctionParser) PathPatterns() []string {
@@ -121,13 +121,9 @@ func (p *ChangeInFunctionParser) TrackPipelineFile() (bool, error) {
 		default:
 			return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
 		}
-	} else {
-		if p.when.Path[0] == "promotions" {
-			return false, nil
-		} else {
-			return true, nil
-		}
 	}
+
+	return p.when.Path[0] == "promotions", nil
 }
 
 func (p *ChangeInFunctionParser) functionParams() *gabs.Container {
@@ -142,9 +138,9 @@ func (p *ChangeInFunctionParser) OnTags() (bool, error) {
 		}
 
 		return value, nil
-	} else {
-		return true, nil
 	}
+
+	return true, nil
 }
 
 func (p *ChangeInFunctionParser) DefaultRange() (string, error) {
@@ -155,9 +151,9 @@ func (p *ChangeInFunctionParser) DefaultRange() (string, error) {
 		}
 
 		return value, nil
-	} else {
-		return p.fetchCommitRange(), nil
 	}
+
+	return p.fetchCommitRange(), nil
 }
 
 func (p *ChangeInFunctionParser) CommitRange() (string, error) {
@@ -171,9 +167,9 @@ func (p *ChangeInFunctionParser) CommitRange() (string, error) {
 		value = strings.ReplaceAll(value, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
 
 		return value, nil
-	} else {
-		return p.fetchCommitRange(), nil
 	}
+
+	return p.fetchCommitRange(), nil
 }
 
 func (p *ChangeInFunctionParser) fetchCommitRange() string {
