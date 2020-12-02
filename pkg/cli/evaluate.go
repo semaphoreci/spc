@@ -32,7 +32,7 @@ var evaluateChangeInCmd = &cobra.Command{
 		ppl, err := pipelines.LoadFromYaml(input)
 		check(err)
 
-		err = ppl.EvaluateChangeIns(input)
+		err = ppl.EvaluateChangeIns()
 		check(err)
 
 		yamlPpl, err := ppl.ToYAML()

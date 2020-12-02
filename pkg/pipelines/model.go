@@ -11,55 +11,26 @@ import (
 )
 
 type Pipeline struct {
-	raw *gabs.Container
+	raw      *gabs.Container
+	yamlPath string
 }
 
-func (p *Pipeline) EvaluateChangeIns(yamlPath string) error {
+func (p *Pipeline) EvaluateChangeIns() error {
 	fmt.Println("Evaluating start.")
 
 	for _, w := range p.ListWhenConditions() {
-		fmt.Println("")
-		fmt.Printf("Processing when expression %s\n", w.Expression)
-		fmt.Printf("  From: %v\n", w.Path)
-
-		inputs, err := w.ListNeededInputs()
-		fmt.Printf("  Inputs needed: %v\n", inputs.Requirments.String())
-
-		for _, input := range inputs.Requirments.Children() {
-			if !when.IsChangeInFunction(input) {
-				continue
-			}
-
-			fun, err := when.ParseChangeIn(&w, input, yamlPath)
-			if err != nil {
-				return err
-			}
-
-			hasChanges, err := fun.Eval()
-			if err != nil {
-				return err
-			}
-
-			funInput := when.FunctionInput{
-				Name:   "change_in",
-				Params: input.Search("params"),
-				Result: hasChanges,
-			}
-
-			inputs.Functions = append(inputs.Functions, funInput)
-		}
-
-		err = w.Reduce(inputs)
+		err := w.Eval()
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("  Reduced When Expression: %s\n", w.Expression)
+		fmt.Printf("Reduced When Expression: %s\n", w.Expression)
 
 		p.raw.Set(w.Expression, w.Path...)
 	}
 
 	fmt.Println("Evaluating end.")
+
 	return nil
 }
 
@@ -80,7 +51,11 @@ func (p *Pipeline) ListWhenConditions() []when.WhenExpression {
 		value := p.raw.Search(path...)
 
 		if value != nil {
-			list = append(list, when.WhenExpression{Expression: value.Data().(string), Path: path})
+			list = append(list, when.WhenExpression{
+				Expression: value.Data().(string),
+				Path:       path,
+				YamlPath:   p.yamlPath,
+			})
 		}
 	}
 

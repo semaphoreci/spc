@@ -14,6 +14,7 @@ import (
 type WhenExpression struct {
 	Expression string
 	Path       []string
+	YamlPath   string
 }
 
 type Inputs struct {
@@ -21,6 +22,54 @@ type Inputs struct {
 
 	Keywords  map[string]string `json:"keywords"`
 	Functions []FunctionInput   `json:"functions"`
+}
+
+func (w *WhenExpression) Eval() error {
+	fmt.Println("")
+	fmt.Printf("Processing when expression %s\n", w.Expression)
+	fmt.Printf("  From: %v\n", w.Path)
+
+	inputs, err := w.ListNeededInputs()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("  Inputs needed: %v\n", inputs.Requirments.String())
+
+	err = w.EvalFunctions(inputs)
+	if err != nil {
+		return err
+	}
+
+	return w.Reduce(inputs)
+}
+
+func (w *WhenExpression) EvalFunctions(inputs *Inputs) error {
+	for _, input := range inputs.Requirments.Children() {
+		if !IsChangeInFunction(input) {
+			continue
+		}
+
+		fun, err := ParseChangeIn(w, input, w.YamlPath)
+		if err != nil {
+			return err
+		}
+
+		hasChanges, err := fun.Eval()
+		if err != nil {
+			return err
+		}
+
+		funInput := FunctionInput{
+			Name:   "change_in",
+			Params: input.Search("params"),
+			Result: hasChanges,
+		}
+
+		inputs.Functions = append(inputs.Functions, funInput)
+	}
+
+	return nil
 }
 
 func (w *WhenExpression) ListNeededInputs() (*Inputs, error) {

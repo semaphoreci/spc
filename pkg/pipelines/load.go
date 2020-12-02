@@ -23,5 +23,8 @@ func LoadFromYaml(path string) (*Pipeline, error) {
 		return nil, err
 	}
 
-	return &Pipeline{raw: raw}, nil
+	return &Pipeline{
+		raw:      raw,
+		yamlPath: path,
+	}, nil
 }

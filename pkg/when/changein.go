@@ -70,23 +70,18 @@ func (f *ChangeInFunction) Fetch() error {
 	if environment.CurrentBranch() != f.Params.DefaultBranch {
 		base, _ := f.ParseCommitRange()
 
-		if base == f.Params.DefaultBranch {
-			output, err := git.Fetch(f.Params.DefaultBranch)
-			if err != nil {
-				return f.ParseFetchError(f.Params.DefaultBranch, string(output), err)
-			}
-		} else {
-			output, err := git.Fetch(base)
-			if err != nil {
-				return f.ParseFetchError(f.Params.DefaultBranch, string(output), err)
-			}
-		}
+		output, err := git.Fetch(base)
+		return f.ParseFetchError(base, string(output), err)
 	}
 
 	return nil
 }
 
 func (f *ChangeInFunction) ParseFetchError(name string, output string, err error) error {
+	if err != nil {
+		return nil
+	}
+
 	if strings.Contains(string(output), "couldn't find remote ref") {
 		msg := fmt.Sprintf("Unknown git reference '%s'.", name)
 		err := logs.ErrorChangeInMissingBranch{Message: msg, Location: f.Location}
