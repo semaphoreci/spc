@@ -67,7 +67,11 @@ func (f *ChangeInFunction) FetchBranch() error {
 
 	bytes, err := exec.Command("git", flags...).CombinedOutput()
 
-	return fmt.Errorf("Failed to fetch branch %w. Output: %s", err, string(bytes))
+	if err != nil {
+		return fmt.Errorf("Failed to fetch branch %w. Output: %s", err, string(bytes))
+	}
+
+	return nil
 }
 
 func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
