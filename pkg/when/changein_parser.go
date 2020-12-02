@@ -106,7 +106,7 @@ func (p *ChangeInFunctionParser) TrackPipelineFile() (bool, error) {
 	if p.raw.Exists("params", "1", "pipeline_file") {
 		value, ok := p.raw.Search("params", "1", "pipeline_file").Data().(string)
 		if !ok {
-			return false, fmt.Errorf("Unknown value type pipeline_file in change_in expression.")
+			return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
 		}
 
 		switch value {
@@ -117,7 +117,7 @@ func (p *ChangeInFunctionParser) TrackPipelineFile() (bool, error) {
 			return false, nil
 
 		default:
-			return false, fmt.Errorf("Unknown value type pipeline_file in change_in expression.")
+			return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
 		}
 	} else {
 		if p.when.Path[0] == "promotions" {
@@ -132,7 +132,7 @@ func (p *ChangeInFunctionParser) OnTags() (bool, error) {
 	if p.raw.Exists("params", "1", "on_tags") {
 		value, ok := p.raw.Search("params", "1", "on_tags").Data().(bool)
 		if !ok {
-			return true, fmt.Errorf("Unknown value type on_tags in change_in expression.")
+			return true, fmt.Errorf("unknown value type on_tags in change_in expression")
 		}
 
 		return value, nil
@@ -145,7 +145,7 @@ func (p *ChangeInFunctionParser) DefaultRange() (string, error) {
 	if p.raw.Exists("params", "1", "default_range") {
 		value, ok := p.raw.Search("params", "1", "default_range").Data().(string)
 		if !ok {
-			return "", fmt.Errorf("Unknown value type default_range in change_in expression.")
+			return "", fmt.Errorf("unknown value type default_range in change_in expression")
 		}
 
 		return value, nil
@@ -158,7 +158,7 @@ func (p *ChangeInFunctionParser) CommitRange() (string, error) {
 	if p.raw.Exists("params", "1", "branch_range") {
 		value, ok := p.raw.Search("params", "1", "branch_range").Data().(string)
 		if !ok {
-			return "", fmt.Errorf("Unknown value type branch_range in change_in expression.")
+			return "", fmt.Errorf("unknown value type branch_range in change_in expression")
 		}
 
 		value = strings.ReplaceAll(value, "$SEMAPHORE_MERGE_BASE", environment.MergeBase())
