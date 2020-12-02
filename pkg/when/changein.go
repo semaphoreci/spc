@@ -45,6 +45,10 @@ func (f *ChangeInFunction) Eval() (bool, error) {
 		return false, err
 	}
 
+	return f.Process()
+}
+
+func (f *ChangeInFunction) Process() (bool, error) {
 	if environment.GitRefType() == environment.GitRefTypeTag {
 		fmt.Printf("  Running on a tag, skipping evaluation\n")
 
@@ -57,6 +61,11 @@ func (f *ChangeInFunction) Eval() (bool, error) {
 
 	for _, diffLine := range f.diffList {
 		fmt.Printf("  Checking diff line '%s'\n", diffLine)
+
+		if f.Params.TrackPipelineFile && changeInPatternMatch(diffLine, "/"+f.YamlPath, f.Workdir) {
+			fmt.Printf("    Matched tracked pipeline file %s\n", f.YamlPath)
+			return true, nil
+		}
 
 		if f.MatchesPattern(diffLine) && !f.Excluded(diffLine) {
 			return true, nil
@@ -95,11 +104,6 @@ func (f *ChangeInFunction) ParseFetchError(name string, output string, err error
 }
 
 func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
-	if f.Params.TrackPipelineFile && changeInPatternMatch(diffLine, "/"+f.YamlPath, f.Workdir) {
-		fmt.Printf("    Matched tracked pipeline file %s\n", f.YamlPath)
-		return true
-	}
-
 	for _, pathPattern := range f.Params.PathPatterns {
 		if changeInPatternMatch(diffLine, pathPattern, f.Workdir) {
 			fmt.Printf("    Matched pattern %s\n", pathPattern)
@@ -160,10 +164,7 @@ func (f *ChangeInFunction) ParseCommitRange() (string, string) {
 }
 
 func changeInPatternMatch(diffLine string, pattern string, workDir string) bool {
-	if pattern[0] != '/' {
-		pattern = path.Join("/", workDir, pattern)
-	}
-
+	pattern = preparePattern(pattern, workDir)
 	diffLine = path.Clean("/" + diffLine)
 	pattern = path.Clean(pattern)
 
@@ -177,4 +178,12 @@ func changeInPatternMatch(diffLine string, pattern string, workDir string) bool 
 	}
 
 	return strings.HasPrefix(diffLine, pattern)
+}
+
+func preparePattern(pattern, workDir string) string {
+	if pattern[0] != '/' {
+		return path.Join("/", workDir, pattern)
+	}
+
+	return pattern
 }

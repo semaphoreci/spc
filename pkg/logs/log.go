@@ -25,6 +25,15 @@ func SetCurrentPipelineFilePath(path string) {
 }
 
 func Log(e interface{}) {
+	msg := toJSON(e)
+
+	_, err := loggerInstance.WriteString(msg + "\n")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func toJSON(e interface{}) string {
 	msg, err := json.Marshal(e)
 	if err != nil {
 		panic(err)
@@ -38,10 +47,5 @@ func Log(e interface{}) {
 	jsonEvent.Set(reflect.TypeOf(e).Name(), "type")
 	jsonEvent.Set(currentPipelineFilePath, "location", "file")
 
-	bytes := jsonEvent.String()
-
-	_, err = loggerInstance.WriteString(bytes + "\n")
-	if err != nil {
-		panic(err)
-	}
+	return jsonEvent.String()
 }

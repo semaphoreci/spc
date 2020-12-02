@@ -111,19 +111,22 @@ func (p *ChangeInFunctionParser) TrackPipelineFile() (bool, error) {
 			return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
 		}
 
-		switch value {
-		case "track":
-			return true, nil
-
-		case "ignore":
-			return false, nil
-
-		default:
-			return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
-		}
+		return f.ParseTrackPipelineFile(value)
 	}
 
 	return p.when.Path[0] == "promotions", nil
+}
+
+func (p *ChangeInFunctionParser) ParseTrackPipelineFile(val string) (bool, error) {
+	switch val {
+	case "track":
+		return true, nil
+
+	case "ignore":
+		return false, nil
+	}
+
+	return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
 }
 
 func (p *ChangeInFunctionParser) functionParams() *gabs.Container {
