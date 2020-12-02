@@ -72,6 +72,8 @@ func (p *Pipeline) Promotions() []*gabs.Container {
 }
 
 func (p *Pipeline) ListWhenConditions() []when.WhenExpression {
+	// revive:disable:add-constant
+
 	list := []when.WhenExpression{}
 
 	appendIfExists := func(path ...string) {

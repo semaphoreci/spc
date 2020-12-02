@@ -69,8 +69,8 @@ func (p *ChangeInFunctionParser) Execute() (*ChangeInFunction, error) {
 }
 
 func (p *ChangeInFunctionParser) DefaultBranch() string {
-	if p.raw.Exists("params", "1", "default_branch") {
-		return p.raw.Search("params", "1", "default_branch").Data().(string)
+	if p.functionParams().Exists("default_branch") {
+		return p.functionParams().Search("default_branch").Data().(string)
 	} else {
 		return "master"
 	}
@@ -79,12 +79,14 @@ func (p *ChangeInFunctionParser) DefaultBranch() string {
 func (p *ChangeInFunctionParser) PathPatterns() []string {
 	result := []string{}
 
-	if _, ok := p.raw.Search("params", "0").Data().([]interface{}); ok {
-		for _, p := range p.raw.Search("params", "0").Children() {
+	firstArg := p.raw.Search("params", "0")
+
+	if _, ok := firstArg.Data().([]interface{}); ok {
+		for _, p := range firstArg.Children() {
 			result = append(result, p.Data().(string))
 		}
 	} else {
-		result = append(result, p.raw.Search("params", "0").Data().(string))
+		result = append(result, firstArg.Data().(string))
 	}
 
 	return result
@@ -93,8 +95,8 @@ func (p *ChangeInFunctionParser) PathPatterns() []string {
 func (p *ChangeInFunctionParser) ExcludedPathPatterns() []string {
 	result := []string{}
 
-	if _, ok := p.raw.Search("params", "1", "exclude").Data().([]interface{}); ok {
-		for _, p := range p.raw.Search("params", "1", "exclude").Children() {
+	if _, ok := p.functionParams().Search("exclude").Data().([]interface{}); ok {
+		for _, p := range p.functionParams().Search("exclude").Children() {
 			result = append(result, p.Data().(string))
 		}
 	}
@@ -103,8 +105,8 @@ func (p *ChangeInFunctionParser) ExcludedPathPatterns() []string {
 }
 
 func (p *ChangeInFunctionParser) TrackPipelineFile() (bool, error) {
-	if p.raw.Exists("params", "1", "pipeline_file") {
-		value, ok := p.raw.Search("params", "1", "pipeline_file").Data().(string)
+	if p.functionParams().Exists("pipeline_file") {
+		value, ok := p.functionParams().Search("pipeline_file").Data().(string)
 		if !ok {
 			return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
 		}
@@ -128,9 +130,13 @@ func (p *ChangeInFunctionParser) TrackPipelineFile() (bool, error) {
 	}
 }
 
+func (p *ChangeInFunctionParser) functionParams() *gabs.Container {
+	return p.raw.Search("params", "1")
+}
+
 func (p *ChangeInFunctionParser) OnTags() (bool, error) {
-	if p.raw.Exists("params", "1", "on_tags") {
-		value, ok := p.raw.Search("params", "1", "on_tags").Data().(bool)
+	if p.functionParams().Exists("on_tags") {
+		value, ok := p.functionParams().Search("on_tags").Data().(bool)
 		if !ok {
 			return true, fmt.Errorf("unknown value type on_tags in change_in expression")
 		}
@@ -142,8 +148,8 @@ func (p *ChangeInFunctionParser) OnTags() (bool, error) {
 }
 
 func (p *ChangeInFunctionParser) DefaultRange() (string, error) {
-	if p.raw.Exists("params", "1", "default_range") {
-		value, ok := p.raw.Search("params", "1", "default_range").Data().(string)
+	if p.functionParams().Exists("default_range") {
+		value, ok := p.functionParams().Search("default_range").Data().(string)
 		if !ok {
 			return "", fmt.Errorf("unknown value type default_range in change_in expression")
 		}
@@ -156,7 +162,7 @@ func (p *ChangeInFunctionParser) DefaultRange() (string, error) {
 
 func (p *ChangeInFunctionParser) CommitRange() (string, error) {
 	if p.raw.Exists("params", "1", "branch_range") {
-		value, ok := p.raw.Search("params", "1", "branch_range").Data().(string)
+		value, ok := p.functionParams().Search("branch_range").Data().(string)
 		if !ok {
 			return "", fmt.Errorf("unknown value type branch_range in change_in expression")
 		}

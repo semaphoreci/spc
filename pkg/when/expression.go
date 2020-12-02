@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -50,7 +51,7 @@ func (w *WhenExpression) Reduce(inputs *Inputs) error {
 	}
 	fmt.Printf("  Providing inputs: %s\n", string(inputBytes))
 
-	err = ioutil.WriteFile("/tmp/inputs.json", inputBytes, 0644)
+	err = ioutil.WriteFile("/tmp/inputs.json", inputBytes, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}

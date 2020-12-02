@@ -9,30 +9,32 @@ import (
 func Test__ChangeInPatternMatch(t *testing.T) {
 	var matched bool
 
-	matched = changeInPatternMatch("lib/a.txt", "/lib", ".semaphore")
+	workdir := ".semaphore"
+
+	matched = changeInPatternMatch("lib/a.txt", "/lib", workdir)
 	assert.True(t, matched)
 
-	matched = changeInPatternMatch("lib/package/a.txt", "/lib", ".semaphore")
+	matched = changeInPatternMatch("lib/package/a.txt", "/lib", workdir)
 	assert.True(t, matched)
 
-	matched = changeInPatternMatch("lib/a.txt", "/app", ".semaphore")
+	matched = changeInPatternMatch("lib/b.txt", "/app", workdir)
 	assert.False(t, matched)
 
-	matched = changeInPatternMatch("lib/a.txt", "../lib", ".semaphore")
+	matched = changeInPatternMatch("lib/c.txt", "../lib", workdir)
 	assert.True(t, matched)
 
-	matched = changeInPatternMatch("lib/a.txt", "/lib/*.txt", ".semaphore")
+	matched = changeInPatternMatch("lib/d.txt", "/lib/*.txt", workdir)
 	assert.True(t, matched)
 
-	matched = changeInPatternMatch("lib/a.txt", "/lib/**/*.txt", ".semaphore")
+	matched = changeInPatternMatch("lib/e.txt", "/lib/**/*.txt", workdir)
 	assert.True(t, matched)
 
-	matched = changeInPatternMatch("lib/a.rb", "/lib/**/*.txt", ".semaphore")
+	matched = changeInPatternMatch("lib/f.rb", "/lib/**/*.txt", workdir)
 	assert.False(t, matched)
 
-	matched = changeInPatternMatch("lib/a.txt", "../lib/**/*.txt", ".semaphore")
+	matched = changeInPatternMatch("lib/g.txt", "../lib/**/*.txt", workdir)
 	assert.True(t, matched)
 
-	matched = changeInPatternMatch("lib/a.rb", "../lib/**/*.txt", ".semaphore")
+	matched = changeInPatternMatch("lib/h.rb", "../lib/**/*.txt", workdir)
 	assert.False(t, matched)
 }
