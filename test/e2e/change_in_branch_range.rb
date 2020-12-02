@@ -28,19 +28,6 @@ blocks:
       when: "branch = 'master' and change_in('/lib', {branch_range: 'dev...$SEMAPHORE_GIT_SHA'})"
 }
 
-
-system %{
-  git checkout -b dev
-
-  echo "hello" > app/a.yml
-  git add . && git commit -m "Bootstrap app"
-
-  git checkout -b feature-1
-
-  echo "hello" > lib/b.yml
-  git add . && git commit -m "Bootstrap lib"
-}
-
 origin = TestRepoForChangeIn.setup()
 
 origin.add_file('.semaphore/semaphore.yml', pipeline)

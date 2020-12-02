@@ -8,6 +8,7 @@ import (
 
 	doublestar "github.com/bmatcuk/doublestar/v2"
 	environment "github.com/semaphoreci/spc/pkg/environment"
+	git "github.com/semaphoreci/spc/pkg/git"
 	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
@@ -32,14 +33,17 @@ type ChangeInFunction struct {
 }
 
 func (f *ChangeInFunction) Eval() (bool, error) {
-	if environment.CurrentBranch() != f.Params.DefaultBranch {
-		err := f.FetchBranch()
-		if err != nil {
-			return false, err
-		}
+	var err error
+
+	err = f.Fetch()
+	if err != nil {
+		return false, err
 	}
 
-	f.LoadDiffList()
+	err = f.LoadDiffList()
+	if err != nil {
+		return false, err
+	}
 
 	if environment.GitRefType() == environment.GitRefTypeTag {
 		fmt.Printf("  Running on a tag, skipping evaluation\n")
@@ -62,24 +66,29 @@ func (f *ChangeInFunction) Eval() (bool, error) {
 	return false, nil
 }
 
-func (f *ChangeInFunction) FetchBranch() error {
-	fmt.Printf("  Fetching branch from remote: '%s'\n", f.Params.DefaultBranch)
+func (f *ChangeInFunction) Fetch() error {
+	if environment.CurrentBranch() != f.Params.DefaultBranch {
+		base, _ := f.ParseCommitRange()
 
-	flags := []string{"fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", f.Params.DefaultBranch, f.Params.DefaultBranch)}
-	fmt.Printf("  Running git %s\n", strings.Join(flags, " "))
-
-	bytes, err := exec.Command("git", flags...).CombinedOutput()
-
-	return f.ParseGitFetchError(string(bytes), err)
-}
-
-func (f *ChangeInFunction) ParseGitFetchError(output string, err error) error {
-	if err == nil {
-		return nil
+		if base == f.Params.DefaultBranch {
+			output, err := git.Fetch(f.Params.DefaultBranch)
+			if err != nil {
+				return f.ParseFetchError(f.Params.DefaultBranch, string(output), err)
+			}
+		} else {
+			output, err := git.Fetch(base)
+			if err != nil {
+				return f.ParseFetchError(f.Params.DefaultBranch, string(output), err)
+			}
+		}
 	}
 
-	if strings.Contains(output, "couldn't find remote ref") {
-		msg := fmt.Sprintf("Unknown git reference '%s'.", f.Params.DefaultBranch)
+	return nil
+}
+
+func (f *ChangeInFunction) ParseFetchError(name string, output string, err error) error {
+	if strings.Contains(string(output), "couldn't find remote ref") {
+		msg := fmt.Sprintf("Unknown git reference '%s'.", name)
 		err := logs.ErrorChangeInMissingBranch{Message: msg, Location: f.Location}
 
 		logs.Log(err)
@@ -117,17 +126,20 @@ func (f *ChangeInFunction) Excluded(diffLine string) bool {
 	return false
 }
 
-func (f *ChangeInFunction) LoadDiffList() {
+func (f *ChangeInFunction) LoadDiffList() error {
 	flags := []string{"diff", "--name-only", f.CommitRange()}
 	fmt.Printf("  Running git %s\n", strings.Join(flags, " "))
 
 	bytes, err := exec.Command("git", flags...).CombinedOutput()
 	if err != nil {
 		fmt.Println(string(bytes))
-		panic(err)
+
+		return err
 	}
 
 	f.diffList = strings.Split(strings.TrimSpace(string(bytes)), "\n")
+
+	return nil
 }
 
 func (f *ChangeInFunction) CommitRange() string {
@@ -138,6 +150,20 @@ func (f *ChangeInFunction) CommitRange() string {
 	} else {
 		return f.Params.CommitRange
 	}
+}
+
+func (f *ChangeInFunction) ParseCommitRange() (string, string) {
+	var splitAt string
+
+	if strings.Contains(f.CommitRange(), "...") {
+		splitAt = "..."
+	} else {
+		splitAt = ".."
+	}
+
+	parts := strings.Split(f.CommitRange(), splitAt)
+
+	return parts[0], parts[1]
 }
 
 func changeInPatternMatch(diffLine string, pattern string, workDir string) bool {
