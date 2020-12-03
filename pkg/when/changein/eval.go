@@ -23,9 +23,12 @@ type evaluator struct {
 }
 
 func (e *evaluator) Run() (bool, error) {
-	fmt.Printf("File Patterns: '%v'\n", e.function.PathPatterns)
-	fmt.Printf("Exclude Patterns: '%v'\n", e.function.ExcludedPathPatterns)
-	fmt.Printf("TrackPipelineFile: '%v'\n", e.function.TrackPipelineFile)
+	fmt.Println()
+	fmt.Println("Processing change_in function")
+	fmt.Println("Params:")
+	fmt.Printf("  - File Patterns: '%v'\n", e.function.PathPatterns)
+	fmt.Printf("  - Exclude Patterns: '%v'\n", e.function.ExcludedPathPatterns)
+	fmt.Printf("  - TrackPipelineFile: '%v'\n", e.function.TrackPipelineFile)
 
 	if e.runningOnGitTag() {
 		fmt.Printf("Running on a tag, skipping evaluation")

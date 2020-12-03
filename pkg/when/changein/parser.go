@@ -100,28 +100,21 @@ func (p *parser) PathPatterns() ([]string, error) {
 }
 
 func (p *parser) DefaultBranch() (string, error) {
-	defaultBranch := p.functionParams().Search("default_branch")
-
-	if !defaultBranch.Exists() {
+	defaultBranch, found, err := p.getStringParam("default_branch")
+	if !found {
 		return "master", nil
 	}
 
-	value, ok := defaultBranch.Data().(string)
-	if !ok {
-		return "", fmt.Errorf("uprocessable default branch flag in change in expression")
-	}
-
-	return value, nil
+	return defaultBranch, err
 }
 
 func (p *parser) ExcludedPathPatterns() ([]string, error) {
-	excludedPaths := p.functionParams().Search("exclude")
-
-	if !excludedPaths.Exists() {
+	excludedPaths, found := p.getParam("exclude")
+	if !found {
 		return []string{}, nil
 	}
 
-	result, ok := p.castToStringArray(excludedPaths.Data())
+	result, ok := p.castToStringArray(excludedPaths)
 	if !ok {
 		return []string{}, fmt.Errorf("uprocessable exclude path parameter in change in expression")
 	}
@@ -130,18 +123,16 @@ func (p *parser) ExcludedPathPatterns() ([]string, error) {
 }
 
 func (p *parser) TrackPipelineFile() (bool, error) {
-	pipelineFile := p.functionParams().Search("pipeline_file")
+	pipelineFile, found, err := p.getStringParam("pipeline_file")
+	if err != nil {
+		return false, err
+	}
 
-	if !pipelineFile.Exists() {
+	if !found {
 		return p.whenPath[0] != "promotions", nil
 	}
 
-	value, ok := pipelineFile.Data().(string)
-	if !ok {
-		return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
-	}
-
-	switch value {
+	switch pipelineFile {
 	case "track":
 		return true, nil
 
@@ -153,56 +144,51 @@ func (p *parser) TrackPipelineFile() (bool, error) {
 }
 
 func (p *parser) OnTags() (bool, error) {
-	onTags := p.functionParams().Search("on_tags")
+	onTags, found, err := p.getBoolParam("on_tags")
+	if err != nil {
+		return false, err
+	}
 
-	if !onTags.Exists() {
+	if !found {
 		return true, nil
 	}
 
-	value, ok := onTags.Data().(bool)
-	if !ok {
-		return true, fmt.Errorf("unknown value type on_tags in change_in expression")
-	}
-
-	return value, nil
+	return onTags, err
 }
 
 func (p *parser) DefaultRange(defaultBranch string) (string, error) {
-	defaultRange := p.functionParams().Search("default_range")
+	defaultRange, found, err := p.getStringParam("default_range")
+	if err != nil {
+		return "", err
+	}
 
-	if !defaultRange.Exists() {
+	if !found {
 		return p.fetchCommitRange(defaultBranch), nil
 	}
 
-	value, ok := defaultRange.Data().(string)
-	if !ok {
-		return "", fmt.Errorf("unknown value type default_range in change_in expression")
-	}
-
-	return value, nil
+	return defaultRange, err
 
 }
 
 func (p *parser) CommitRange(defaultBranch string) (string, error) {
-	branchRange := p.functionParams().Search("branch_range")
+	commitRange, found, err := p.getStringParam("branch_range")
+	if err != nil {
+		return "", err
+	}
 
-	if !branchRange.Exists() {
+	if !found {
 		return p.fetchCommitRange(defaultBranch), nil
 	}
 
-	value, ok := branchRange.Data().(string)
-	if !ok {
-		return "", fmt.Errorf("unknown value type branch_range in change_in expression")
-	}
+	commitRange = strings.ReplaceAll(commitRange, "$SEMAPHORE_MERGE_BASE", environment.MergeBase())
+	commitRange = strings.ReplaceAll(commitRange, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
 
-	value = strings.ReplaceAll(value, "$SEMAPHORE_MERGE_BASE", environment.MergeBase())
-	value = strings.ReplaceAll(value, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
-
-	return value, nil
+	return commitRange, nil
 }
 
 func (p *parser) fetchCommitRange(defaultBranch string) string {
 	commitRange := environment.GitCommitRange()
+
 	if commitRange != "" {
 		return commitRange
 	}
@@ -210,8 +196,40 @@ func (p *parser) fetchCommitRange(defaultBranch string) string {
 	return fmt.Sprintf("%s...%s", defaultBranch, environment.CurrentGitSha())
 }
 
-func (p *parser) functionParams() *gabs.Container {
-	return p.ast.Search("params", "1")
+func (p *parser) getParam(path ...string) (interface{}, bool) {
+	if p.ast.Exists(path...) {
+		return p.ast.Search(path...).Data(), true
+	} else {
+		return nil, false
+	}
+}
+
+func (p *parser) getStringParam(key string) (string, bool, error) {
+	val, ok := p.getParam(key)
+	if !ok {
+		return "", false, nil
+	}
+
+	stringVal, ok := val.(string)
+	if !ok {
+		return "", true, fmt.Errorf("unknown value type %s in change_in expression", key)
+	}
+
+	return stringVal, true, nil
+}
+
+func (p *parser) getBoolParam(key string) (bool, bool, error) {
+	val, ok := p.getParam(key)
+	if !ok {
+		return false, false, nil
+	}
+
+	boolVal, ok := val.(bool)
+	if !ok {
+		return false, true, fmt.Errorf("unknown value type %s in change_in expression", key)
+	}
+
+	return boolVal, true, nil
 }
 
 func (p *parser) castToStringArray(obj interface{}) ([]string, bool) {
