@@ -33,28 +33,49 @@ func (f *Function) HasMatchesInDiffList(diffList []string) bool {
 func (f *Function) IsPatternMatchWith(diffLine string) bool {
 	fmt.Printf("* Testing diff line: %s\n", diffLine)
 
-	for _, pathPattern := range f.ExcludedPathPatterns {
-		if patternMatch(diffLine, pathPattern, f.Workdir) {
-			fmt.Printf("* Rejected by: %s\n", pathPattern)
-
-			return false
-		}
+	if pattern, ok := f.IsDiffLineExcluded(diffLine); ok {
+		fmt.Printf("* Rejected by pattern: %s\n", pattern)
+		return false
 	}
 
-	if f.TrackPipelineFile && patternMatch(diffLine, f.absoluteYAMLPath(), f.Workdir) {
-		fmt.Printf("* Matched by pipeline file: %s\n", f.absoluteYAMLPath())
+	if pattern, ok := f.IsPipelineFileMatched(diffLine); ok {
+		fmt.Printf("* Matched by pipeline file: %s\n", pattern)
 		return true
 	}
 
-	for _, pathPattern := range f.PathPatterns {
-		if patternMatch(diffLine, pathPattern, f.Workdir) {
-			fmt.Printf("* Matched by %s\n", pathPattern)
-			return true
-		}
+	if pattern, ok := f.IsPatternMacthed(diffLine); ok {
+		fmt.Printf("* Matched by pattern: %s\n", pattern)
+		return true
 	}
 
 	fmt.Printf("* Not matched\n")
 	return false
+}
+
+func (f *Function) IsDiffLineExcluded(diffLine string) (string, bool) {
+	for _, pathPattern := range f.ExcludedPathPatterns {
+		if patternMatch(diffLine, pathPattern, f.Workdir) {
+			return pathPattern, true
+		}
+	}
+
+	return "", false
+}
+
+func (f *Function) IsPatternMacthed(diffLine string) (string, bool) {
+	for _, pathPattern := range f.PathPatterns {
+		if patternMatch(diffLine, pathPattern, f.Workdir) {
+			return pathPattern, true
+		}
+	}
+
+	return "", false
+}
+
+func (f *Function) IsPipelineFileMatched(diffLine string) (string, bool) {
+	path := f.absoluteYAMLPath()
+
+	return path, (f.TrackPipelineFile && patternMatch(diffLine, path, f.Workdir))
 }
 
 func (f *Function) absoluteYAMLPath() string {

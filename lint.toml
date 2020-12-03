@@ -16,7 +16,7 @@ warningCode = 1
 [rule.receiver-naming]
 [rule.time-naming]
 [rule.unexported-return]
-[rule.indent-error-flow]
+# [rule.indent-error-flow]
 [rule.errorf]
 [rule.superfluous-else]
 [rule.unused-parameter]

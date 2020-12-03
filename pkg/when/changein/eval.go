@@ -110,10 +110,10 @@ func (e *evaluator) LoadDiffList() ([]string, error) {
 	return list, nil
 }
 
-func (f *evaluator) CommitRange() string {
-	if environment.CurrentBranch() == f.function.DefaultBranch {
-		return f.function.DefaultRange
+func (e *evaluator) CommitRange() string {
+	if environment.CurrentBranch() == e.function.DefaultBranch {
+		return e.function.DefaultRange
 	} else {
-		return f.function.CommitRange
+		return e.function.CommitRange
 	}
 }
