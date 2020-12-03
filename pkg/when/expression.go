@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	gabs "github.com/Jeffail/gabs/v2"
-	whencli "github.com/semaphoreci/pkg/when/whencli"
+	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
 
 type WhenExpression struct {
@@ -79,6 +79,10 @@ func (w *WhenExpression) EvalFunctions(inputs *Inputs) error {
 }
 
 func (w *WhenExpression) ListNeededInputs() (*Inputs, error) {
+	neededInputs, err := whencli.ListInputs(w.Expression)
+	if err != nil {
+		return nil, err
+	}
 
 	keywords := map[string]string{}
 	functions := []FunctionInput{}
@@ -96,7 +100,7 @@ func (w *WhenExpression) Reduce(inputs *Inputs) error {
 		return err
 	}
 
-	result, err = whencli.Reduce(w.Expression, inputBytes)
+	result, err := whencli.Reduce(w.Expression, inputBytes)
 	if err != nil {
 		return err
 	}

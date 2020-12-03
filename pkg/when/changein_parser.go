@@ -111,7 +111,7 @@ func (p *ChangeInFunctionParser) TrackPipelineFile() (bool, error) {
 			return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
 		}
 
-		return f.ParseTrackPipelineFile(value)
+		return p.ParseTrackPipelineFile(value)
 	}
 
 	return p.when.Path[0] == "promotions", nil
