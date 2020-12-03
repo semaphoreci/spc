@@ -24,18 +24,22 @@ type Inputs struct {
 
 func (w *WhenExpression) Eval() error {
 	fmt.Println("")
-	fmt.Printf("Processing when expression %s\n", w.Expression)
-	fmt.Printf("  From: %v\n", w.Path)
+	fmt.Println("*** Processing when expression ***")
+	fmt.Printf("Expression: %v\n", w.Expression)
+	fmt.Printf("From: %v\n", w.Path)
 
 	inputs, err := w.ListNeededInputs()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("  Inputs needed: %v\n", inputs.Requirments.String())
+	fmt.Printf("Needs:\n")
+	for _, need := range inputs.Requirments.Children() {
+		fmt.Printf("  - %v\n", need)
+	}
 
 	for _, input := range w.ListChangeInFunctions(inputs) {
-		result, err = w.EvalFunctions(input)
+		result, err := w.EvalFunction(input)
 		if err != nil {
 			return err
 		}
@@ -56,19 +60,32 @@ func (w *WhenExpression) ListChangeInFunctions(inputs *Inputs) []*gabs.Container
 	result := []*gabs.Container{}
 
 	for _, input := range inputs.Requirments.Children() {
-		if IsChangeInFunction(input) {
+		if w.IsChangeInFunction(input) {
 			result = append(result, input)
 		}
-
 	}
 
 	return result
 }
 
-func (w *WhenExpression) EvalFunction(input *Inputs) error {
+func (w *WhenExpression) IsChangeInFunction(input *gabs.Container) bool {
+	elType := input.Search("type").Data().(string)
+	if elType != "fun" {
+		return false
+	}
+
+	elName := input.Search("name").Data().(string)
+	if elName != "change_in" {
+		return false
+	}
+
+	return true
+}
+
+func (w *WhenExpression) EvalFunction(input *gabs.Container) (bool, error) {
 	fun, err := changein.Parse(w.Path, input, w.YamlPath)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	return changein.Eval(fun)
