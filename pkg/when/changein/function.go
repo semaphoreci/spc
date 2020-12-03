@@ -1,13 +1,18 @@
 package changein
 
 import (
-	"strings"
+	"fmt"
+	"path"
 
-	environment "github.com/semaphoreci/spc/pkg/environment"
+	gabs "github.com/Jeffail/gabs/v2"
 	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
-type ChangeInFunctionParams struct {
+type Function struct {
+	Workdir  string
+	YamlPath string
+	Location logs.Location
+
 	PathPatterns         []string
 	ExcludedPathPatterns []string
 	DefaultBranch        string
@@ -17,38 +22,86 @@ type ChangeInFunctionParams struct {
 	CommitRange          string
 }
 
-type Function struct {
-	Params  Params
-	Workdir string
+func Parse(ast *gabs.Container) (*Function, error) {
+	p := parser{ast: ast}
 
-	YamlPath string
-	Location logs.Location
+	return p.parse()
 }
 
-func (f *ChangeInFunction) Eval() (bool, error) {
-	e := evaluator{function: f}
-
-	return e.Run()
+type parser struct {
+	ast    *gabs.Container
+	result Function
 }
 
-func (f *ChangeInFunction) CommitRange() string {
-	if environment.CurrentBranch() == f.Params.DefaultBranch {
-		return f.Params.DefaultRange
+func (p *parser) parse() error {
+	paths, err := p.parsePathParam()
+	if err != nil {
+		return err
 	}
 
-	return f.Params.CommitRange
-}
-
-func (f *ChangeInFunction) ParseCommitRange() (string, string) {
-	var splitAt string
-
-	if strings.Contains(f.CommitRange(), "...") {
-		splitAt = "..."
-	} else {
-		splitAt = ".."
+	track, err := p.TrackPipelineFile()
+	if err != nil {
+		return nil, err
 	}
 
-	parts := strings.Split(f.CommitRange(), splitAt)
+	onTags, err := p.OnTags()
+	if err != nil {
+		return nil, err
+	}
 
-	return parts[0], parts[1]
+	defaultRange, err := p.DefaultRange()
+	if err != nil {
+		return nil, err
+	}
+
+	commitRange, err := p.CommitRange()
+	if err != nil {
+		return nil, err
+	}
+
+	params := ChangeInFunctionParams{
+		PathPatterns:         p.PathPatterns(),
+		ExcludedPathPatterns: p.ExcludedPathPatterns(),
+		DefaultBranch:        p.DefaultBranch(),
+		TrackPipelineFile:    track,
+		OnTags:               onTags,
+		DefaultRange:         defaultRange,
+		CommitRange:          commitRange,
+	}
+
+	return &ChangeInFunction{
+		Workdir:  path.Dir(p.yamlPath),
+		YamlPath: p.yamlPath,
+		Location: logs.Location{
+			File: p.yamlPath,
+			Path: p.when.Path,
+		},
+		Params: params,
+	}, nil
+}
+
+func (p *parser) parsePathParam() ([]string, error) {
+	if !p.ast.Exists("params", "0") {
+		return []string{}, fmt.Errorf("path parameter not found in change in expression")
+	}
+
+	result, ok := p.castToStringArray(p.ast.Search("params", "0").Data())
+	if !ok {
+		return []string{}, fmt.Errorf("uprocessable path parameter in change in expression")
+	}
+
+	return result, nil
+
+}
+
+func (p *parser) castToStringArray(obj interface{}) ([]string, error) {
+	if value, ok := obj.(string); ok {
+		return []string{value}, true
+	}
+
+	if values, ok := obj.([]string); ok {
+		return values, true
+	}
+
+	return []string{}, false
 }

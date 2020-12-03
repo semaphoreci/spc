@@ -1,4 +1,4 @@
-package when
+package changein
 
 import (
 	"fmt"
@@ -12,14 +12,14 @@ import (
 
 type ChangeInFunctionParser struct {
 	raw      *gabs.Container
-	when     *WhenExpression
+	whenPath []string
 	yamlPath string
 }
 
-func ParseChangeIn(w *WhenExpression, input *gabs.Container, yamlPath string) (*ChangeInFunction, error) {
+func Parse(whenPath []string, input *gabs.Container, yamlPath string) (*ChangeInFunction, error) {
 	parser := ChangeInFunctionParser{
 		raw:      input,
-		when:     w,
+		whenPath: whenPath,
 		yamlPath: yamlPath,
 	}
 

@@ -47,7 +47,7 @@ warningCode = 1
 [rule.context-as-argument]
 [rule.context-keys-type]
 [rule.cyclomatic]
-  arguments = [3]
+  arguments = [10]
 
 [rule.deep-exit]
 [rule.empty-block]

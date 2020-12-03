@@ -12,6 +12,12 @@ import (
 	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
+func Eval(fun Function) (bool, error) {
+	e := evaluator{function: fun}
+
+	return e.Run()
+}
+
 type evaluator struct {
 	function Function
 	result   bool
@@ -19,7 +25,7 @@ type evaluator struct {
 	err      error
 }
 
-func (e *evaluator) Run() (bool, erorr) {
+func (e *evaluator) Run() (bool, error) {
 	if e.isGitTag() {
 		return e.evalForTags()
 	}
@@ -44,7 +50,7 @@ func (e *evaluator) evalForBranches() (bool, error) {
 		return false, err
 	}
 
-	diffSet, err = e.LoadDiffList()
+	diffSet, err := e.LoadDiffList()
 	if err != nil {
 		return false, err
 	}
@@ -52,7 +58,7 @@ func (e *evaluator) evalForBranches() (bool, error) {
 	return e.PatternMatchOnDiffList(), nil
 }
 
-func (f *ChangeInFunction) FetchBranches() error {
+func (e *evaluator) FetchBranches() error {
 	if environment.CurrentBranch() != f.Params.DefaultBranch {
 		base, _ := f.ParseCommitRange()
 
@@ -63,7 +69,7 @@ func (f *ChangeInFunction) FetchBranches() error {
 	return nil
 }
 
-func (f *ChangeInFunction) ParseFetchError(name string, output string, err error) error {
+func (e *evaluator) ParseFetchError(name string, output string, err error) error {
 	if err == nil {
 		return nil
 	}
@@ -101,7 +107,7 @@ func (e *evaluator) PatternMatchOnDiffList() bool {
 	return false, nil
 }
 
-func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
+func (e *evaluator) MatchesPattern(diffLine string) bool {
 	for _, pathPattern := range f.Params.PathPatterns {
 		if changeInPatternMatch(diffLine, pathPattern, f.Workdir) {
 			fmt.Printf("    Matched pattern %s\n", pathPattern)
@@ -112,7 +118,7 @@ func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
 	return false
 }
 
-func (f *ChangeInFunction) Excluded(diffLine string) bool {
+func (e *evaluator) Excluded(diffLine string) bool {
 	for _, pathPattern := range f.Params.ExcludedPathPatterns {
 		if changeInPatternMatch(diffLine, pathPattern, f.Workdir) {
 			fmt.Printf("    Excluded with pattern %s\n", pathPattern)
@@ -123,7 +129,7 @@ func (f *ChangeInFunction) Excluded(diffLine string) bool {
 	return false
 }
 
-func (f *ChangeInFunction) LoadDiffList() error {
+func (e *evaluator) LoadDiffList() error {
 	flags := []string{"diff", "--name-only", f.CommitRange()}
 	fmt.Printf("  Running git %s\n", strings.Join(flags, " "))
 
@@ -163,3 +169,25 @@ func preparePattern(pattern, workDir string) string {
 
 	return pattern
 }
+
+// func (f *ChangeInFunction) CommitRange() string {
+// 	if environment.CurrentBranch() == f.Params.DefaultBranch {
+// 		return f.Params.DefaultRange
+// 	}
+
+// 	return f.Params.CommitRange
+// }
+
+// func (f *ChangeInFunction) ParseCommitRange() (string, string) {
+// 	var splitAt string
+
+// 	if strings.Contains(f.CommitRange(), "...") {
+// 		splitAt = "..."
+// 	} else {
+// 		splitAt = ".."
+// 	}
+
+// 	parts := strings.Split(f.CommitRange(), splitAt)
+
+// 	return parts[0], parts[1]
+// }
