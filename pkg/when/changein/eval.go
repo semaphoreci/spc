@@ -1,4 +1,4 @@
-package when
+package changein
 
 import (
 	"fmt"
@@ -12,70 +12,47 @@ import (
 	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
-type ChangeInFunctionParams struct {
-	PathPatterns         []string
-	ExcludedPathPatterns []string
-	DefaultBranch        string
-	TrackPipelineFile    bool
-	OnTags               bool
-	DefaultRange         string
-	CommitRange          string
-}
-
-type ChangeInFunction struct {
-	Params  ChangeInFunctionParams
-	Workdir string
-
-	YamlPath string
-	Location logs.Location
-
+type evaluator struct {
+	function Function
+	result   bool
 	diffList []string
+	err      error
 }
 
-func (f *ChangeInFunction) Eval() (bool, error) {
-	var err error
+func (e *evaluator) Run() (bool, erorr) {
+	if e.isGitTag() {
+		return e.evalForTags()
+	}
 
-	err = f.Fetch()
+	return e.evalForBranches()
+
+}
+
+func (e *evaluator) evalForTags() (bool, error) {
+	fmt.Printf("Running on a tag, skipping evaluation")
+
+	return e.function.ResultForGitTags(), nil
+}
+
+func (e *evaluator) isGitTag() bool {
+	return environment.GitRefType() == environment.GitRefTypeTag
+}
+
+func (e *evaluator) evalForBranches() (bool, error) {
+	err := e.FetchBranches()
 	if err != nil {
 		return false, err
 	}
 
-	err = f.LoadDiffList()
+	diffSet, err = e.LoadDiffList()
 	if err != nil {
 		return false, err
 	}
 
-	return f.Process()
+	return e.PatternMatchOnDiffList(), nil
 }
 
-func (f *ChangeInFunction) Process() (bool, error) {
-	if environment.GitRefType() == environment.GitRefTypeTag {
-		fmt.Printf("  Running on a tag, skipping evaluation\n")
-
-		return f.Params.OnTags, nil
-	}
-
-	fmt.Printf("  File Patterns: '%v'\n", f.Params.PathPatterns)
-	fmt.Printf("  Exclude Patterns: '%v'\n", f.Params.ExcludedPathPatterns)
-	fmt.Printf("  TrackPipelineFile: '%v'\n", f.Params.TrackPipelineFile)
-
-	for _, diffLine := range f.diffList {
-		fmt.Printf("  Checking diff line '%s'\n", diffLine)
-
-		if f.Params.TrackPipelineFile && changeInPatternMatch(diffLine, "/"+f.YamlPath, f.Workdir) {
-			fmt.Printf("    Matched tracked pipeline file %s\n", f.YamlPath)
-			return true, nil
-		}
-
-		if f.MatchesPattern(diffLine) && !f.Excluded(diffLine) {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
-func (f *ChangeInFunction) Fetch() error {
+func (f *ChangeInFunction) FetchBranches() error {
 	if environment.CurrentBranch() != f.Params.DefaultBranch {
 		base, _ := f.ParseCommitRange()
 
@@ -101,6 +78,27 @@ func (f *ChangeInFunction) ParseFetchError(name string, output string, err error
 	}
 
 	return err
+}
+
+func (e *evaluator) PatternMatchOnDiffList() bool {
+	fmt.Printf("File Patterns: '%v'\n", f.Params.PathPatterns)
+	fmt.Printf("Exclude Patterns: '%v'\n", f.Params.ExcludedPathPatterns)
+	fmt.Printf("TrackPipelineFile: '%v'\n", f.Params.TrackPipelineFile)
+
+	for _, diffLine := range f.diffList {
+		fmt.Printf("  Checking diff line '%s'\n", diffLine)
+
+		if f.Params.TrackPipelineFile && changeInPatternMatch(diffLine, "/"+f.YamlPath, f.Workdir) {
+			fmt.Printf("    Matched tracked pipeline file %s\n", f.YamlPath)
+			return true, nil
+		}
+
+		if f.MatchesPattern(diffLine) && !f.Excluded(diffLine) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (f *ChangeInFunction) MatchesPattern(diffLine string) bool {
@@ -139,28 +137,6 @@ func (f *ChangeInFunction) LoadDiffList() error {
 	f.diffList = strings.Split(strings.TrimSpace(string(bytes)), "\n")
 
 	return nil
-}
-
-func (f *ChangeInFunction) CommitRange() string {
-	if environment.CurrentBranch() == f.Params.DefaultBranch {
-		return f.Params.DefaultRange
-	}
-
-	return f.Params.CommitRange
-}
-
-func (f *ChangeInFunction) ParseCommitRange() (string, string) {
-	var splitAt string
-
-	if strings.Contains(f.CommitRange(), "...") {
-		splitAt = "..."
-	} else {
-		splitAt = ".."
-	}
-
-	parts := strings.Split(f.CommitRange(), splitAt)
-
-	return parts[0], parts[1]
 }
 
 func changeInPatternMatch(diffLine string, pattern string, workDir string) bool {
