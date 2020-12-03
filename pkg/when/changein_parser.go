@@ -114,7 +114,7 @@ func (p *ChangeInFunctionParser) TrackPipelineFile() (bool, error) {
 		return p.ParseTrackPipelineFile(value)
 	}
 
-	return p.when.Path[0] == "promotions", nil
+	return p.when.Path[0] != "promotions", nil
 }
 
 func (p *ChangeInFunctionParser) ParseTrackPipelineFile(val string) (bool, error) {
