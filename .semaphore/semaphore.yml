@@ -4,17 +4,29 @@ agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu1804
+
+global_job_config:
+  prologue:
+    commands:
+      - sem-version go 1.15
+      - export GO111MODULE=on
+      - export GOPATH=~/go
+      - 'export PATH=/home/semaphore/go/bin:$PATH'
+      - checkout
+      - go get ./...
+
 blocks:
   - name: Lint
+    dependencies: []
     task:
       jobs:
         - name: Lint
           commands:
             - go get -u github.com/mgechev/revive
-            - checkout
             - make lint
 
-  - name: Test
+  - name: E2E
+    dependencies: []
     task:
       prologue:
         commands:
@@ -23,11 +35,6 @@ blocks:
           - sudo mv when /usr/bin/when
           - git config --global user.email "you@example.com"
           - git config --global user.name "Your Name"
-          - sem-version go 1.15
-          - export GO111MODULE=on
-          - export GOPATH=~/go
-          - 'export PATH=/home/semaphore/go/bin:$PATH'
-          - checkout
           - unset SEMAPHORE_GIT_REF_TYPE
           - unset SEMAPHORE_GIT_BRANCH
           - unset SEMAPHORE_GIT_COMMIT_RANGE
