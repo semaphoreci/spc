@@ -3,7 +3,6 @@ package pipelines
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
@@ -42,46 +41,27 @@ func (p *Pipeline) Promotions() []*gabs.Container {
 	return p.raw.Search("blocks").Children()
 }
 
+func (p *Pipeline) PathExists(path []string) bool {
+	return p.raw.Exists(path...)
+}
+
+func (p *Pipeline) GetStringFromPath(path []string) string {
+	return p.raw.Search(path...).Data().(string)
+}
+
+func (p *Pipeline) PriorityRules() []*gabs.Container {
+	return p.raw.Search("priority").Children()
+}
+
+func (p *Pipeline) QueueRules() []*gabs.Container {
+	return p.raw.Search("queue").Children()
+}
+
 func (p *Pipeline) ListWhenConditions() []when.WhenExpression {
-	// revive:disable:add-constant
+	extractor := whenExtractor{pipeline: p}
+	extractor.ExtractAll()
 
-	list := []when.WhenExpression{}
-
-	appendIfExists := func(path ...string) {
-		value := p.raw.Search(path...)
-
-		if value != nil {
-			list = append(list, when.WhenExpression{
-				Expression: value.Data().(string),
-				Path:       path,
-				YamlPath:   p.yamlPath,
-			})
-		}
-	}
-
-	appendIfExists("auto_cancel", "queued", "when")
-	appendIfExists("auto_cancel", "running", "when")
-	appendIfExists("fail_fast", "cancel", "when")
-	appendIfExists("fail_fast", "stop", "when")
-
-	for index := range p.Blocks() {
-		appendIfExists("blocks", strconv.Itoa(index), "skip", "when")
-		appendIfExists("blocks", strconv.Itoa(index), "run", "when")
-	}
-
-	for index := range p.Promotions() {
-		appendIfExists("promotions", strconv.Itoa(index), "auto_promote", "when")
-	}
-
-	for index := range p.raw.Search("queue").Children() {
-		appendIfExists("queue", strconv.Itoa(index), "when")
-	}
-
-	for index := range p.raw.Search("priority").Children() {
-		appendIfExists("priority", strconv.Itoa(index), "when")
-	}
-
-	return list
+	return extractor.list
 }
 
 func (p *Pipeline) ToJSON() ([]byte, error) {
