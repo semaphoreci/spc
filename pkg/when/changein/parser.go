@@ -235,13 +235,26 @@ func (p *parser) getBoolParam(key string) (bool, bool, error) {
 }
 
 func (p *parser) castToStringArray(obj interface{}) ([]string, bool) {
+	fmt.Println(obj)
+
 	if value, ok := obj.(string); ok {
 		return []string{value}, true
 	}
 
-	if values, ok := obj.([]string); ok {
-		return values, true
+	arrayInterface, ok := obj.([]interface{})
+	if !ok {
+		return []string{}, false
 	}
 
-	return []string{}, false
+	result := []string{}
+
+	for _, el := range arrayInterface {
+		if val, ok := el.(string); !ok {
+			return []string{}, false
+		} else {
+			result = append(result, val)
+		}
+	}
+
+	return result, true
 }
