@@ -1,6 +1,7 @@
 package whencli
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -8,12 +9,28 @@ import (
 	"strings"
 )
 
-func Reduce(expression string, inputs []byte) (string, error) {
+type ReduceInputs struct {
+	Keywords  map[string]interface{} `json:"keywords"`
+	Functions []interface{}          `json:"functions"`
+}
+
+func Reduce(expression string, inputs ReduceInputs) (string, error) {
 	path := "/tmp/input.json"
 
-	fmt.Printf("Providing inputs: %s\n", string(inputs))
+	inputs.Keywords = map[string]interface{}{}
 
-	err := ioutil.WriteFile(path, inputs, os.ModePerm)
+	fmt.Printf("Inputs: \n")
+	for _, f := range inputs.Functions {
+		j, _ := json.Marshal(f)
+		fmt.Printf("  - %s\n", j)
+	}
+
+	inputBytes, err := json.Marshal(inputs)
+	if err != nil {
+		return "", err
+	}
+
+	err = ioutil.WriteFile(path, inputBytes, os.ModePerm)
 	if err != nil {
 		return "", err
 	}

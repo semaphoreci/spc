@@ -23,7 +23,6 @@ type evaluator struct {
 }
 
 func (e *evaluator) Run() (bool, error) {
-	fmt.Println()
 	fmt.Println("Processing change_in function")
 	fmt.Println("Params:")
 	fmt.Printf("  - File Patterns: '%v'\n", e.function.PathPatterns)

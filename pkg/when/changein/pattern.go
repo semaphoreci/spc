@@ -7,7 +7,7 @@ import (
 	doublestar "github.com/bmatcuk/doublestar/v2"
 )
 
-func patternMatch(pattern, diffLine, workDir string) bool {
+func patternMatch(diffLine, pattern, workDir string) bool {
 	if pattern[0] != '/' {
 		pattern = path.Join("/", workDir, pattern)
 	}

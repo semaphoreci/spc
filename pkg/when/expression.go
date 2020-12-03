@@ -1,7 +1,6 @@
 package when
 
 import (
-	"encoding/json"
 	"fmt"
 
 	gabs "github.com/Jeffail/gabs/v2"
@@ -15,51 +14,52 @@ type WhenExpression struct {
 	YamlPath   string
 }
 
-type Inputs struct {
-	Requirments *gabs.Container
-
-	Keywords  map[string]string `json:"keywords"`
-	Functions []FunctionInput   `json:"functions"`
-}
-
 func (w *WhenExpression) Eval() error {
 	fmt.Println("")
 	fmt.Println("*** Processing when expression ***")
 	fmt.Printf("Expression: %v\n", w.Expression)
 	fmt.Printf("From: %v\n", w.Path)
 
-	inputs, err := w.ListNeededInputs()
+	requirments, err := w.ListNeededInputs()
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("Needs:\n")
-	for _, need := range inputs.Requirments.Children() {
+	for _, need := range requirments.Children() {
 		fmt.Printf("  - %v\n", need)
 	}
 
-	for _, input := range w.ListChangeInFunctions(inputs) {
-		result, err := w.EvalFunction(input)
+	reduceInputs := whencli.ReduceInputs{}
+
+	for _, requirment := range w.ListChangeInFunctions(requirments) {
+		result, err := w.EvalFunction(requirment)
 		if err != nil {
 			return err
 		}
 
-		funInput := FunctionInput{
-			Name:   "change_in",
-			Params: input.Search("params"),
-			Result: result,
-		}
+		input := map[string]interface{}{}
+		input["name"] = requirment.Search("name")
+		input["params"] = requirment.Search("params")
+		input["result"] = result
 
-		inputs.Functions = append(inputs.Functions, funInput)
+		reduceInputs.Functions = append(reduceInputs.Functions, input)
 	}
 
-	return w.Reduce(inputs)
+	result, err := whencli.Reduce(w.Expression, reduceInputs)
+	if err != nil {
+		return err
+	}
+
+	w.Expression = result
+
+	return nil
 }
 
-func (w *WhenExpression) ListChangeInFunctions(inputs *Inputs) []*gabs.Container {
+func (w *WhenExpression) ListChangeInFunctions(requirments *gabs.Container) []*gabs.Container {
 	result := []*gabs.Container{}
 
-	for _, input := range inputs.Requirments.Children() {
+	for _, input := range requirments.Children() {
 		if w.IsChangeInFunction(input) {
 			result = append(result, input)
 		}
@@ -91,34 +91,6 @@ func (w *WhenExpression) EvalFunction(input *gabs.Container) (bool, error) {
 	return changein.Eval(fun)
 }
 
-func (w *WhenExpression) ListNeededInputs() (*Inputs, error) {
-	neededInputs, err := whencli.ListInputs(w.Expression)
-	if err != nil {
-		return nil, err
-	}
-
-	keywords := map[string]string{}
-	functions := []FunctionInput{}
-
-	return &Inputs{
-		Requirments: neededInputs,
-		Keywords:    keywords,
-		Functions:   functions,
-	}, nil
-}
-
-func (w *WhenExpression) Reduce(inputs *Inputs) error {
-	inputBytes, err := json.Marshal(inputs)
-	if err != nil {
-		return err
-	}
-
-	result, err := whencli.Reduce(w.Expression, inputBytes)
-	if err != nil {
-		return err
-	}
-
-	w.Expression = result
-
-	return nil
+func (w *WhenExpression) ListNeededInputs() (*gabs.Container, error) {
+	return whencli.ListInputs(w.Expression)
 }

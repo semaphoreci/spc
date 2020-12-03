@@ -1,6 +1,8 @@
 package changein
 
 import (
+	"fmt"
+
 	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
@@ -29,22 +31,29 @@ func (f *Function) HasMatchesInDiffList(diffList []string) bool {
 }
 
 func (f *Function) IsPatternMatchWith(diffLine string) bool {
+	fmt.Printf("* Testing diff line: %s\n", diffLine)
+
 	for _, pathPattern := range f.ExcludedPathPatterns {
 		if patternMatch(diffLine, pathPattern, f.Workdir) {
+			fmt.Printf("* Rejected by: %s\n", pathPattern)
+
 			return false
 		}
 	}
 
 	if f.TrackPipelineFile && patternMatch(diffLine, f.absoluteYAMLPath(), f.Workdir) {
+		fmt.Printf("* Matched by pipeline file: %s\n", f.absoluteYAMLPath())
 		return true
 	}
 
 	for _, pathPattern := range f.PathPatterns {
 		if patternMatch(diffLine, pathPattern, f.Workdir) {
+			fmt.Printf("* Matched by %s\n", pathPattern)
 			return true
 		}
 	}
 
+	fmt.Printf("* Not matched\n")
 	return false
 }
 
