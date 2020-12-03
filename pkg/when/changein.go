@@ -87,7 +87,7 @@ func (f *ChangeInFunction) Fetch() error {
 }
 
 func (f *ChangeInFunction) ParseFetchError(name string, output string, err error) error {
-	if err != nil {
+	if err == nil {
 		return nil
 	}
 
