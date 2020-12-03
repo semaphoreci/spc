@@ -29,7 +29,7 @@ func (e *whenExtractor) ExtractAutoCancel() {
 
 func (e *whenExtractor) ExtractFailFast() {
 	e.tryExtractingFromPath([]string{"fail_fast", "cancel", "when"})
-	e.tryExtractingFromPath([]string{"fail_fast", "queued", "when"})
+	e.tryExtractingFromPath([]string{"fail_fast", "stop", "when"})
 }
 
 func (e *whenExtractor) ExtractFromBlocks() {
@@ -41,7 +41,7 @@ func (e *whenExtractor) ExtractFromBlocks() {
 
 func (e *whenExtractor) ExtractFromPromotions() {
 	for index := range e.pipeline.Promotions() {
-		e.tryExtractingFromPath([]string{"promotions", strconv.Itoa(index), "auto_cancel", "when"})
+		e.tryExtractingFromPath([]string{"promotions", strconv.Itoa(index), "auto_promote", "when"})
 	}
 }
 

@@ -196,7 +196,9 @@ func (p *parser) fetchCommitRange(defaultBranch string) string {
 	return fmt.Sprintf("%s...%s", defaultBranch, environment.CurrentGitSha())
 }
 
-func (p *parser) getParam(path ...string) (interface{}, bool) {
+func (p *parser) getParam(key string) (interface{}, bool) {
+	path := []string{"params", "1", key}
+
 	if p.ast.Exists(path...) {
 		return p.ast.Search(path...).Data(), true
 	} else {
