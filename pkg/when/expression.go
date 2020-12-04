@@ -1,66 +1,96 @@
 package when
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os/exec"
-	"strings"
 
 	gabs "github.com/Jeffail/gabs/v2"
+	changein "github.com/semaphoreci/spc/pkg/when/changein"
+	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
 
 type WhenExpression struct {
 	Expression string
 	Path       []string
+	YamlPath   string
 }
 
-type Inputs struct {
-	Requirments *gabs.Container
+func (w *WhenExpression) Eval() error {
+	fmt.Println("")
+	fmt.Println("*** Processing when expression ***")
+	fmt.Printf("Expression: %v\n", w.Expression)
+	fmt.Printf("From: %v\n", w.Path)
 
-	Keywords  map[string]string `json:"keywords"`
-	Functions []FunctionInput   `json:"functions"`
-}
-
-func (w *WhenExpression) ListNeededInputs() (*Inputs, error) {
-	bytes, err := exec.Command("when", "list-inputs", w.Expression).Output()
-	if err != nil {
-		return nil, fmt.Errorf("Unprecessable when expression %s", string(bytes))
-	}
-
-	neededInputs, err := gabs.ParseJSON(bytes)
-	if err != nil {
-		return nil, fmt.Errorf("Unprocessable input list for when expressions %s", err.Error())
-	}
-
-	keywords := map[string]string{}
-	functions := []FunctionInput{}
-
-	return &Inputs{
-		Requirments: neededInputs,
-		Keywords:    keywords,
-		Functions:   functions,
-	}, nil
-}
-
-func (w *WhenExpression) Reduce(inputs *Inputs) error {
-	inputBytes, err := json.Marshal(inputs)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("  Providing inputs: %s\n", string(inputBytes))
-
-	err = ioutil.WriteFile("/tmp/inputs.json", inputBytes, 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	bytes, err := exec.Command("when", "reduce", w.Expression, "--input", "/tmp/inputs.json").Output()
+	requirments, err := w.ListNeededInputs()
 	if err != nil {
 		return err
 	}
 
-	w.Expression = strings.TrimSpace(string(bytes))
+	fmt.Printf("Needs:\n")
+	for _, need := range requirments.Children() {
+		fmt.Printf("  - %v\n", need)
+	}
+
+	reduceInputs := whencli.ReduceInputs{}
+
+	for _, requirment := range w.ListChangeInFunctions(requirments) {
+		result, err := w.EvalFunction(requirment)
+		if err != nil {
+			return err
+		}
+
+		input := map[string]interface{}{}
+		input["name"] = requirment.Search("name")
+		input["params"] = requirment.Search("params")
+		input["result"] = result
+
+		reduceInputs.Functions = append(reduceInputs.Functions, input)
+	}
+
+	result, err := whencli.Reduce(w.Expression, reduceInputs)
+	if err != nil {
+		return err
+	}
+
+	w.Expression = result
 
 	return nil
+}
+
+func (w *WhenExpression) ListChangeInFunctions(requirments *gabs.Container) []*gabs.Container {
+	result := []*gabs.Container{}
+
+	for _, input := range requirments.Children() {
+		if w.IsChangeInFunction(input) {
+			result = append(result, input)
+		}
+	}
+
+	return result
+}
+
+func (w *WhenExpression) IsChangeInFunction(input *gabs.Container) bool {
+	elType := input.Search("type").Data().(string)
+	if elType != "fun" {
+		return false
+	}
+
+	elName := input.Search("name").Data().(string)
+	if elName != "change_in" {
+		return false
+	}
+
+	return true
+}
+
+func (w *WhenExpression) EvalFunction(input *gabs.Container) (bool, error) {
+	fun, err := changein.Parse(w.Path, input, w.YamlPath)
+	if err != nil {
+		return false, err
+	}
+
+	return changein.Eval(fun)
+}
+
+func (w *WhenExpression) ListNeededInputs() (*gabs.Container, error) {
+	return whencli.ListInputs(w.Expression)
 }

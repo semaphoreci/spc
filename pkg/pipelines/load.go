@@ -18,10 +18,7 @@ func LoadFromYaml(path string) (*Pipeline, error) {
 		return nil, err
 	}
 
-	raw, err := gabs.ParseJSON(jsonData)
-	if err != nil {
-		return nil, err
-	}
+	raw, _ := gabs.ParseJSON(jsonData)
 
-	return &Pipeline{raw: raw}, nil
+	return &Pipeline{raw: raw, yamlPath: path}, nil
 }

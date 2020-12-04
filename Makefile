@@ -1,5 +1,8 @@
 .PHONY: build test
 
+lint:
+	revive -formatter friendly -config lint.toml ./...
+
 setup:
 	go get ./...
 

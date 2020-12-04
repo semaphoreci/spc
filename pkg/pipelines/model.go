@@ -3,7 +3,6 @@ package pipelines
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
@@ -11,55 +10,26 @@ import (
 )
 
 type Pipeline struct {
-	raw *gabs.Container
+	raw      *gabs.Container
+	yamlPath string
 }
 
-func (p *Pipeline) EvaluateChangeIns(yamlPath string) error {
+func (p *Pipeline) EvaluateChangeIns() error {
 	fmt.Println("Evaluating start.")
 
 	for _, w := range p.ListWhenConditions() {
-		fmt.Println("")
-		fmt.Printf("Processing when expression %s\n", w.Expression)
-		fmt.Printf("  From: %v\n", w.Path)
-
-		inputs, err := w.ListNeededInputs()
-		fmt.Printf("  Inputs needed: %v\n", inputs.Requirments.String())
-
-		for _, input := range inputs.Requirments.Children() {
-			if !when.IsChangeInFunction(input) {
-				continue
-			}
-
-			fun, err := when.ParseChangeIn(&w, input, yamlPath)
-			if err != nil {
-				return err
-			}
-
-			hasChanges, err := fun.Eval()
-			if err != nil {
-				return err
-			}
-
-			funInput := when.FunctionInput{
-				Name:   "change_in",
-				Params: input.Search("params"),
-				Result: hasChanges,
-			}
-
-			inputs.Functions = append(inputs.Functions, funInput)
-		}
-
-		err = w.Reduce(inputs)
+		err := w.Eval()
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("  Reduced When Expression: %s\n", w.Expression)
+		fmt.Printf("Reduced When Expression: %s\n", w.Expression)
 
 		p.raw.Set(w.Expression, w.Path...)
 	}
 
 	fmt.Println("Evaluating end.")
+
 	return nil
 }
 
@@ -71,40 +41,27 @@ func (p *Pipeline) Promotions() []*gabs.Container {
 	return p.raw.Search("blocks").Children()
 }
 
+func (p *Pipeline) PathExists(path []string) bool {
+	return p.raw.Exists(path...)
+}
+
+func (p *Pipeline) GetStringFromPath(path []string) string {
+	return p.raw.Search(path...).Data().(string)
+}
+
+func (p *Pipeline) PriorityRules() []*gabs.Container {
+	return p.raw.Search("priority").Children()
+}
+
+func (p *Pipeline) QueueRules() []*gabs.Container {
+	return p.raw.Search("queue").Children()
+}
+
 func (p *Pipeline) ListWhenConditions() []when.WhenExpression {
-	list := []when.WhenExpression{}
+	extractor := whenExtractor{pipeline: p}
+	extractor.ExtractAll()
 
-	appendIfExists := func(path ...string) {
-		value := p.raw.Search(path...)
-
-		if value != nil {
-			list = append(list, when.WhenExpression{Expression: value.Data().(string), Path: path})
-		}
-	}
-
-	appendIfExists("auto_cancel", "queued", "when")
-	appendIfExists("auto_cancel", "running", "when")
-	appendIfExists("fail_fast", "cancel", "when")
-	appendIfExists("fail_fast", "stop", "when")
-
-	for index, _ := range p.Blocks() {
-		appendIfExists("blocks", strconv.Itoa(index), "skip", "when")
-		appendIfExists("blocks", strconv.Itoa(index), "run", "when")
-	}
-
-	for index, _ := range p.Promotions() {
-		appendIfExists("promotions", strconv.Itoa(index), "auto_promote", "when")
-	}
-
-	for index, _ := range p.raw.Search("queue").Children() {
-		appendIfExists("queue", strconv.Itoa(index), "when")
-	}
-
-	for index, _ := range p.raw.Search("priority").Children() {
-		appendIfExists("priority", strconv.Itoa(index), "when")
-	}
-
-	return list
+	return extractor.list
 }
 
 func (p *Pipeline) ToJSON() ([]byte, error) {

@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// revive:disable:deep-exit
 func fetchRequiredStringFlag(cmd *cobra.Command, name string) string {
 	value, err := cmd.Flags().GetString(name)
 
@@ -17,3 +18,5 @@ func fetchRequiredStringFlag(cmd *cobra.Command, name string) string {
 
 	return value
 }
+
+// revive:enable:deep-exit
