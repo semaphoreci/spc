@@ -177,10 +177,10 @@ func (p *parser) CommitRange(defaultBranch string) (string, error) {
 	}
 
 	if !found {
-		return p.fetchCommitRange(defaultBranch), nil
+		commitRange = "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_GIT_SHA"
 	}
 
-	commitRange = strings.ReplaceAll(commitRange, "$SEMAPHORE_MERGE_BASE", environment.MergeBase())
+	commitRange = strings.ReplaceAll(commitRange, "$SEMAPHORE_MERGE_BASE", defaultBranch)
 	commitRange = strings.ReplaceAll(commitRange, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
 
 	return commitRange, nil

@@ -49,12 +49,3 @@ func CurrentGitSha() string {
 
 	return strings.TrimSpace(string(sha))
 }
-
-func MergeBase() string {
-	value := os.Getenv("SEMAPHORE_MERGE_BASE")
-	if value != "" {
-		return value
-	}
-
-	return "master"
-}

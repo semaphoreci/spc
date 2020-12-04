@@ -44,7 +44,6 @@ origin.commit!("Bootstrap lib")
 repo = origin.clone_local_copy(branch: "feature-1")
 repo.run(%{
   export SEMAPHORE_GIT_SHA=$(git rev-parse HEAD)
-  export SEMAPHORE_MERGE_BASE=master
 
   #{spc} evaluate change-in \
      --input .semaphore/semaphore.yml \
