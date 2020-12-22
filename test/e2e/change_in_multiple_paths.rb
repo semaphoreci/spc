@@ -21,7 +21,7 @@ blocks:
 
   - name: Test2
     skip:
-      when: "branch = 'master' and change_in(['/app'])"
+      when: "branch = 'master' and change_in(['/app'], {on_tags: false})"
     task:
       jobs:
         - name: Hello

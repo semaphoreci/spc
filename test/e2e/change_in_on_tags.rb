@@ -37,7 +37,7 @@ agent:
 blocks:
   - name: Test
     run:
-      when: "branch = 'master' and change_in('/app', {on_tags: true})"
+      when: "branch = 'master' and change_in(['/app', 'log.txt'], {on_tags: true})"
     task:
       jobs:
         - name: Hello

@@ -49,6 +49,15 @@ blocks:
           commands:
             - echo "Hello World"
 
+  - name: Explicit track + list of paths
+    run:
+      when: "branch = 'master' and change_in(['/lib', 'log.txt'], {pipeline_file: 'track'})"
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "Hello World"
+
 promotions:
   - name: P1
     auto_promote:
@@ -102,6 +111,15 @@ blocks:
             - echo "Hello World"
 
   - name: Explicit track
+    run:
+      when: "(branch = 'master') and true"
+    task:
+      jobs:
+        - name: Hello
+          commands:
+            - echo "Hello World"
+
+  - name: Explicit track + list of paths
     run:
       when: "(branch = 'master') and true"
     task:

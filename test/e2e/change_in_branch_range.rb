@@ -25,7 +25,7 @@ blocks:
 
   - name: Test4
     run:
-      when: "branch = 'master' and change_in('/lib', {branch_range: 'dev...$SEMAPHORE_GIT_SHA'})"
+      when: "branch = 'master' and change_in(['/lib', 'log.txt'], {branch_range: 'dev...$SEMAPHORE_GIT_SHA'})"
 }
 
 origin = TestRepoForChangeIn.setup()
