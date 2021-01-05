@@ -31,11 +31,11 @@ blocks:
 
   - name: Test3
     run:
-      when: "branch = 'master' and change_in('/lib', {default_range: 'HEAD~2..HEAD'})"
+      when: "branch = 'master' and change_in(['/lib'], {default_range: 'HEAD~2..HEAD'})"
 
   - name: Test4
     run:
-      when: "branch = 'master' and change_in('/app', {default_range: 'HEAD~1..HEAD'})"
+      when: "branch = 'master' and change_in(['/app', '/log.txt'], {default_range: 'HEAD~1..HEAD'})"
 }
 
 origin = TestRepoForChangeIn.setup()

@@ -30,7 +30,7 @@ blocks:
 
   - name: Test3
     skip:
-      when: "branch = 'master' and change_in('/lib', {default_branch: 'dev'})"
+      when: "branch = 'master' and change_in(['/lib', 'log.txt'], {default_branch: 'dev'})"
     task:
       jobs:
         - name: Hello
