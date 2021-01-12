@@ -53,7 +53,15 @@ func (e *evaluator) runningOnGitTag() bool {
 	return environment.GitRefType() == environment.GitRefTypeTag
 }
 
+func (e *evaluator) runningOnPullRequest() bool {
+	return environment.GitRefType() == environment.GitRefTypePullRequest
+}
+
 func (e *evaluator) runningOnDefaultBranch() bool {
+	if e.runningOnPullRequest() {
+		return false
+	}
+
 	return environment.CurrentBranch() == e.function.DefaultBranch
 }
 
@@ -71,11 +79,34 @@ func (e *evaluator) CommitRangeBase() string {
 	return parts[0]
 }
 
+func (e *evaluator) CommitRangeHead() string {
+	var splitAt string
+
+	if strings.Contains(e.CommitRange(), "...") {
+		splitAt = "..."
+	} else {
+		splitAt = ".."
+	}
+
+	parts := strings.Split(e.CommitRange(), splitAt)
+
+	return parts[1]
+}
+
 func (e *evaluator) FetchBranches() error {
 	if e.runningOnDefaultBranch() {
 		// We don't need to fetch any branch, we are evaluating the
 		// change in on the current branch.
 		return nil
+	}
+
+	if e.runningOnPullRequest() {
+		pullRequestBranch := e.CommitRangeHead()
+
+		result, error := git.Fetch(pullRequestBranch)
+		if error != nil {
+			return e.ParseFetchError(pullRequestBranch, string(result), error)
+		}
 	}
 
 	base := e.CommitRangeBase()
@@ -111,9 +142,13 @@ func (e *evaluator) LoadDiffList() ([]string, error) {
 }
 
 func (e *evaluator) CommitRange() string {
-	if environment.CurrentBranch() == e.function.DefaultBranch {
-		return e.function.DefaultRange
+	if e.runningOnPullRequest() {
+		return e.function.PullRequestRange
 	} else {
-		return e.function.CommitRange
+		if e.runningOnDefaultBranch() {
+			return e.function.DefaultRange
+		} else {
+			return e.function.BranchRange
+		}
 	}
 }

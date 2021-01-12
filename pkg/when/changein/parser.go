@@ -59,10 +59,12 @@ func (p *parser) parse() (*Function, error) {
 		return nil, err
 	}
 
-	commitRange, err := p.CommitRange(defaultBranch)
+	branchRange, err := p.BranchRange(defaultBranch)
 	if err != nil {
 		return nil, err
 	}
+
+	pullRequestRange := p.PullRequestRange()
 
 	location := logs.Location{
 		File: p.yamlPath,
@@ -80,7 +82,8 @@ func (p *parser) parse() (*Function, error) {
 		TrackPipelineFile:    track,
 		OnTags:               onTags,
 		DefaultRange:         defaultRange,
-		CommitRange:          commitRange,
+		BranchRange:          branchRange,
+		PullRequestRange:     pullRequestRange,
 	}, nil
 }
 
@@ -170,20 +173,29 @@ func (p *parser) DefaultRange(defaultBranch string) (string, error) {
 
 }
 
-func (p *parser) CommitRange(defaultBranch string) (string, error) {
-	commitRange, found, err := p.getStringParam("branch_range")
+func (p *parser) BranchRange(defaultBranch string) (string, error) {
+	branchRange, found, err := p.getStringParam("branch_range")
 	if err != nil {
 		return "", err
 	}
 
 	if !found {
-		commitRange = "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_GIT_SHA"
+		branchRange = "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_GIT_SHA"
 	}
 
-	commitRange = strings.ReplaceAll(commitRange, "$SEMAPHORE_MERGE_BASE", defaultBranch)
-	commitRange = strings.ReplaceAll(commitRange, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
+	branchRange = strings.ReplaceAll(branchRange, "$SEMAPHORE_MERGE_BASE", defaultBranch)
+	branchRange = strings.ReplaceAll(branchRange, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
 
-	return commitRange, nil
+	return branchRange, nil
+}
+
+func (p *parser) PullRequestRange() string {
+	pullRequestRange := "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_BRANCH_HEAD"
+
+	pullRequestRange = strings.ReplaceAll(pullRequestRange, "$SEMAPHORE_MERGE_BASE", environment.CurrentBranch())
+	pullRequestRange = strings.ReplaceAll(pullRequestRange, "$SEMAPHORE_BRANCH_HEAD", environment.PullRequestBranch())
+
+	return pullRequestRange
 }
 
 func (p *parser) fetchCommitRange(defaultBranch string) string {
