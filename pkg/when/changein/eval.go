@@ -22,6 +22,9 @@ type evaluator struct {
 	err      error
 }
 
+const ThreeDots = "..."
+const TwoDots = ".."
+
 func (e *evaluator) Run() (bool, error) {
 	fmt.Println("Processing change_in function")
 	fmt.Println("Params:")
@@ -68,10 +71,10 @@ func (e *evaluator) runningOnDefaultBranch() bool {
 func (e *evaluator) CommitRangeBase() string {
 	var splitAt string
 
-	if strings.Contains(e.CommitRange(), "...") {
-		splitAt = "..."
+	if strings.Contains(e.CommitRange(), ThreeDots) {
+		splitAt = ThreeDots
 	} else {
-		splitAt = ".."
+		splitAt = TwoDots
 	}
 
 	parts := strings.Split(e.CommitRange(), splitAt)
@@ -82,10 +85,10 @@ func (e *evaluator) CommitRangeBase() string {
 func (e *evaluator) CommitRangeHead() string {
 	var splitAt string
 
-	if strings.Contains(e.CommitRange(), "...") {
-		splitAt = "..."
+	if strings.Contains(e.CommitRange(), ThreeDots) {
+		splitAt = ThreeDots
 	} else {
-		splitAt = ".."
+		splitAt = TwoDots
 	}
 
 	parts := strings.Split(e.CommitRange(), splitAt)
