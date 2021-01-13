@@ -17,7 +17,8 @@ type Function struct {
 	TrackPipelineFile    bool
 	OnTags               bool
 	DefaultRange         string
-	CommitRange          string
+	BranchRange          string
+	PullRequestRange     string
 }
 
 func (f *Function) HasMatchesInDiffList(diffList []string) bool {

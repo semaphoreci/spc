@@ -60,6 +60,7 @@ blocks:
                 - test/e2e/change_in_missing_branch.rb
                 - test/e2e/change_in_multiple_paths.rb
                 - test/e2e/change_in_on_tags.rb
+                - test/e2e/change_in_on_prs.rb
                 - test/e2e/change_in_pipeline_file_tracking.rb
                 - test/e2e/change_in_relative_paths.rb
                 - test/e2e/change_in_simple.rb

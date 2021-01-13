@@ -72,6 +72,10 @@ class TestRepoForChangeIn
     run("git checkout -b #{name}")
   end
 
+  def merge_branch(name)
+    run("git merge --no-edit #{name}")
+  end
+
   def add_file(file_path, content)
     full_path = File.join(@path, file_path)
     system "mkdir -p #{File.dirname(full_path)}"

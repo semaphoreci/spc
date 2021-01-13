@@ -8,6 +8,7 @@ import (
 
 const GitRefTypeTag = "tag"
 const GitRefTypeBranch = "branch"
+const GitRefTypePullRequest = "pull-request"
 
 func GitRefType() string {
 	value := os.Getenv("SEMAPHORE_GIT_REF_TYPE")
@@ -18,6 +19,8 @@ func GitRefType() string {
 	return GitRefTypeBranch
 }
 
+// In pipelines initiated by Pull Request, this environment variable
+// points to branch that is the TARGET of pull request
 func CurrentBranch() string {
 	value := os.Getenv("SEMAPHORE_GIT_BRANCH")
 	if value != "" {
@@ -30,6 +33,12 @@ func CurrentBranch() string {
 	}
 
 	return strings.TrimSpace(string(gitBranch))
+}
+
+// In pipelines initiated by Pull Requests, this environment variable
+// points to branch that contains all the changes that should be merged
+func PullRequestBranch() string {
+	return os.Getenv("SEMAPHORE_GIT_PR_BRANCH")
 }
 
 func GitCommitRange() string {

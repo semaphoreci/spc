@@ -22,6 +22,9 @@ type evaluator struct {
 	err      error
 }
 
+const ThreeDots = "..."
+const TwoDots = ".."
+
 func (e *evaluator) Run() (bool, error) {
 	fmt.Println("Processing change_in function")
 	fmt.Println("Params:")
@@ -53,17 +56,25 @@ func (e *evaluator) runningOnGitTag() bool {
 	return environment.GitRefType() == environment.GitRefTypeTag
 }
 
+func (e *evaluator) runningOnPullRequest() bool {
+	return environment.GitRefType() == environment.GitRefTypePullRequest
+}
+
 func (e *evaluator) runningOnDefaultBranch() bool {
+	if e.runningOnPullRequest() {
+		return false
+	}
+
 	return environment.CurrentBranch() == e.function.DefaultBranch
 }
 
 func (e *evaluator) CommitRangeBase() string {
 	var splitAt string
 
-	if strings.Contains(e.CommitRange(), "...") {
-		splitAt = "..."
+	if strings.Contains(e.CommitRange(), ThreeDots) {
+		splitAt = ThreeDots
 	} else {
-		splitAt = ".."
+		splitAt = TwoDots
 	}
 
 	parts := strings.Split(e.CommitRange(), splitAt)
@@ -71,11 +82,34 @@ func (e *evaluator) CommitRangeBase() string {
 	return parts[0]
 }
 
+func (e *evaluator) CommitRangeHead() string {
+	var splitAt string
+
+	if strings.Contains(e.CommitRange(), ThreeDots) {
+		splitAt = ThreeDots
+	} else {
+		splitAt = TwoDots
+	}
+
+	parts := strings.Split(e.CommitRange(), splitAt)
+
+	return parts[1]
+}
+
 func (e *evaluator) FetchBranches() error {
 	if e.runningOnDefaultBranch() {
 		// We don't need to fetch any branch, we are evaluating the
 		// change in on the current branch.
 		return nil
+	}
+
+	if e.runningOnPullRequest() {
+		pullRequestBranch := e.CommitRangeHead()
+
+		result, error := git.Fetch(pullRequestBranch)
+		if error != nil {
+			return e.ParseFetchError(pullRequestBranch, string(result), error)
+		}
 	}
 
 	base := e.CommitRangeBase()
@@ -111,9 +145,13 @@ func (e *evaluator) LoadDiffList() ([]string, error) {
 }
 
 func (e *evaluator) CommitRange() string {
-	if environment.CurrentBranch() == e.function.DefaultBranch {
-		return e.function.DefaultRange
+	if e.runningOnPullRequest() {
+		return e.function.PullRequestRange
 	} else {
-		return e.function.CommitRange
+		if e.runningOnDefaultBranch() {
+			return e.function.DefaultRange
+		} else {
+			return e.function.BranchRange
+		}
 	}
 }
