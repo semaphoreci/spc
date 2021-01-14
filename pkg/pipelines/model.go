@@ -3,6 +3,7 @@ package pipelines
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
@@ -14,10 +15,23 @@ type Pipeline struct {
 	yamlPath string
 }
 
+func n() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
 func (p *Pipeline) EvaluateChangeIns() error {
 	fmt.Println("Evaluating start.")
 
-	for _, w := range p.ListWhenConditions() {
+	start2 := n()
+
+	list, err := p.ExtractWhenConditions()
+	if err != nil {
+		return err
+	}
+
+	when.TotalList = n() - start2
+
+	for _, w := range list {
 		err := w.Eval()
 		if err != nil {
 			return err
@@ -66,11 +80,11 @@ func (p *Pipeline) QueueRules() []*gabs.Container {
 	return p.raw.Search("queue").Children()
 }
 
-func (p *Pipeline) ListWhenConditions() []when.WhenExpression {
+func (p *Pipeline) ExtractWhenConditions() ([]when.WhenExpression, error) {
 	extractor := whenExtractor{pipeline: p}
 	extractor.ExtractAll()
 
-	return extractor.list
+	return extractor.Parse()
 }
 
 func (p *Pipeline) ToJSON() ([]byte, error) {

@@ -10,9 +10,10 @@ import (
 )
 
 type WhenExpression struct {
-	Expression string
-	Path       []string
-	YamlPath   string
+	Expression  string
+	Path        []string
+	YamlPath    string
+	Requirments *gabs.Container
 }
 
 var TotalList int64
@@ -29,22 +30,15 @@ func (w *WhenExpression) Eval() error {
 	fmt.Printf("Expression: %v\n", w.Expression)
 	fmt.Printf("From: %v\n", w.Path)
 
-	start1 := n()
-	requirments, err := w.ListNeededInputs()
-	if err != nil {
-		return err
-	}
-	TotalList += n() - start1
-
 	fmt.Printf("Needs:\n")
-	for _, need := range requirments.Children() {
+	for _, need := range w.Requirments.Children() {
 		fmt.Printf("  - %v\n", need)
 	}
 
 	start2 := n()
 	reduceInputs := whencli.ReduceInputs{}
 
-	for _, requirment := range w.ListChangeInFunctions(requirments) {
+	for _, requirment := range w.ListChangeInFunctions(w.Requirments) {
 		result, err := w.EvalFunction(requirment)
 		if err != nil {
 			return err
@@ -105,8 +99,4 @@ func (w *WhenExpression) EvalFunction(input *gabs.Container) (bool, error) {
 	}
 
 	return changein.Eval(fun)
-}
-
-func (w *WhenExpression) ListNeededInputs() (*gabs.Container, error) {
-	return whencli.ListInputs(w.Expression)
 }
