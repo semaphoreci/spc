@@ -65,6 +65,7 @@ blocks:
                 - test/e2e/change_in_relative_paths.rb
                 - test/e2e/change_in_simple.rb
                 - test/e2e/change_in_with_default_branch.rb
+                - test/e2e/change_in_performance.rb
 
           commands:
             - make build
