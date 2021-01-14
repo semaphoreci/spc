@@ -2,6 +2,7 @@ package when
 
 import (
 	"fmt"
+	"time"
 
 	gabs "github.com/Jeffail/gabs/v2"
 	changein "github.com/semaphoreci/spc/pkg/when/changein"
@@ -14,22 +15,33 @@ type WhenExpression struct {
 	YamlPath   string
 }
 
+var TotalList int64
+var TotalEval int64
+var TotalReduce int64
+
+func n() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
 func (w *WhenExpression) Eval() error {
 	fmt.Println("")
 	fmt.Println("*** Processing when expression ***")
 	fmt.Printf("Expression: %v\n", w.Expression)
 	fmt.Printf("From: %v\n", w.Path)
 
+	start1 := n()
 	requirments, err := w.ListNeededInputs()
 	if err != nil {
 		return err
 	}
+	TotalList += n() - start1
 
 	fmt.Printf("Needs:\n")
 	for _, need := range requirments.Children() {
 		fmt.Printf("  - %v\n", need)
 	}
 
+	start2 := n()
 	reduceInputs := whencli.ReduceInputs{}
 
 	for _, requirment := range w.ListChangeInFunctions(requirments) {
@@ -46,12 +58,16 @@ func (w *WhenExpression) Eval() error {
 		reduceInputs.Functions = append(reduceInputs.Functions, input)
 	}
 
+	TotalEval += n() - start2
+
+	start3 := n()
 	result, err := whencli.Reduce(w.Expression, reduceInputs)
 	if err != nil {
 		return err
 	}
 
 	w.Expression = result
+	TotalReduce += n() - start3
 
 	return nil
 }

@@ -30,6 +30,15 @@ func (p *Pipeline) EvaluateChangeIns() error {
 
 	fmt.Println("Evaluating end.")
 
+	fmt.Println("Total List")
+	fmt.Println(when.TotalList)
+
+	fmt.Println("Total Eval")
+	fmt.Println(when.TotalEval)
+
+	fmt.Println("Total Reduce")
+	fmt.Println(when.TotalReduce)
+
 	return nil
 }
 
