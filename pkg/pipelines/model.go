@@ -8,6 +8,7 @@ import (
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
 	when "github.com/semaphoreci/spc/pkg/when"
+	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
 
 type Pipeline struct {
@@ -19,17 +20,23 @@ func n() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+var TotalList int64
+var TotalEval int64
+var TotalReduce int64
+
 func (p *Pipeline) EvaluateChangeIns() error {
 	fmt.Println("Evaluating start.")
 
-	start2 := n()
+	start1 := n()
 
 	list, err := p.ExtractWhenConditions()
 	if err != nil {
 		return err
 	}
 
-	when.TotalList = n() - start2
+	TotalList = n() - start1
+
+	start2 := n()
 
 	for index := range list {
 		err := list[index].Eval()
@@ -38,31 +45,34 @@ func (p *Pipeline) EvaluateChangeIns() error {
 		}
 	}
 
+	TotalEval = n() - start2
+
+	start3 := n()
+
 	expressions := []string{}
 	inputs := []whencli.ReduceInputs{}
 
 	for index := range list {
 		expressions = append(expressions, list[index].Expression)
-		inputs = append(inputs, list[index].Expression)
-
-		expressions, err := whencli.Reduce(expressions, inputs)
-		if err != nil {
-			return err
-		}
-
-		p.raw.Set(expressions[index].Expression, list[index].listPath...)
+		inputs = append(inputs, list[index].ReduceInputs)
 	}
+
+	expressions, err = whencli.Reduce(expressions, inputs)
+	if err != nil {
+		return err
+	}
+
+	for index := range expressions {
+		p.raw.Set(expressions[index], list[index].Path...)
+	}
+
+	TotalReduce = n() - start3
 
 	fmt.Println("Evaluating end.")
 
-	fmt.Println("Total List")
-	fmt.Println(when.TotalList)
-
-	fmt.Println("Total Eval")
-	fmt.Println(when.TotalEval)
-
-	fmt.Println("Total Reduce")
-	fmt.Println(when.TotalReduce)
+	fmt.Printf("Parse When Expressions:   %dms\n", TotalList)
+	fmt.Printf("Evaluated change_in:      %dms\n", TotalEval)
+	fmt.Printf("Reduce When Expressions:  %dms\n", TotalReduce)
 
 	return nil
 }

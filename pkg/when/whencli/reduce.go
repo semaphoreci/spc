@@ -16,8 +16,8 @@ type ReduceInputs struct {
 }
 
 type ReduceElement struct {
-	Expression string
-	Inputs     ReduceInputs
+	Expression string       `json:"expression"`
+	Inputs     ReduceInputs `json:"inputs"`
 }
 
 func Reduce(expressions []string, inputs []ReduceInputs) ([]string, error) {
@@ -29,7 +29,7 @@ func Reduce(expressions []string, inputs []ReduceInputs) ([]string, error) {
 		return []string{}, err
 	}
 
-	bytes, err := exec.Command("when", "reduce", "--input", inputPath, "output", outputPath).CombinedOutput()
+	bytes, err := exec.Command("when", "reduce", "--input", inputPath, "--output", outputPath).CombinedOutput()
 	if err != nil {
 		return []string{}, fmt.Errorf("Failed to reduce when expressions %s. Output: %s.", err, bytes)
 	}
@@ -82,6 +82,11 @@ func ReduceLoadOutput(path string) ([]string, error) {
 		return []string{}, err
 	}
 
-	// return inputs.Children(), nil
-	return []string{}, nil
+	exprs := []string{}
+
+	for index := range inputs.Children() {
+		exprs = append(exprs, inputs.Children()[index].Data().(string))
+	}
+
+	return exprs, nil
 }
