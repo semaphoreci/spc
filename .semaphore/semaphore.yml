@@ -30,7 +30,7 @@ blocks:
     task:
       prologue:
         commands:
-          - curl -LO https://github.com/renderedtext/when/releases/download/v0.0.1-alpha/when
+          - curl -LO https://github.com/renderedtext/when/releases/download/v0.0.2-alpha/when
           - sudo chmod +x when
           - sudo mv when /usr/bin/when
           - git config --global user.email "you@example.com"
