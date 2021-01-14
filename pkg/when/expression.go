@@ -10,10 +10,11 @@ import (
 )
 
 type WhenExpression struct {
-	Expression  string
-	Path        []string
-	YamlPath    string
-	Requirments *gabs.Container
+	Expression   string
+	Path         []string
+	YamlPath     string
+	Requirments  *gabs.Container
+	ReduceInputs []whencli.ReduceInputs
 }
 
 var TotalList int64
@@ -36,7 +37,6 @@ func (w *WhenExpression) Eval() error {
 	}
 
 	start2 := n()
-	reduceInputs := whencli.ReduceInputs{}
 
 	for _, requirment := range w.ListChangeInFunctions(w.Requirments) {
 		result, err := w.EvalFunction(requirment)
@@ -49,19 +49,11 @@ func (w *WhenExpression) Eval() error {
 		input["params"] = requirment.Search("params")
 		input["result"] = result
 
-		reduceInputs.Functions = append(reduceInputs.Functions, input)
+		w.ReduceInputs.Keywords = map[string]interface{}{}
+		w.ReduceInputs.Functions = append(w.ReduceInputs.Functions, input)
 	}
 
 	TotalEval += n() - start2
-
-	start3 := n()
-	result, err := whencli.Reduce(w.Expression, reduceInputs)
-	if err != nil {
-		return err
-	}
-
-	w.Expression = result
-	TotalReduce += n() - start3
 
 	return nil
 }

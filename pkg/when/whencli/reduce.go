@@ -6,7 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
+
+	gabs "github.com/Jeffail/gabs/v2"
 )
 
 type ReduceInputs struct {
@@ -14,31 +15,73 @@ type ReduceInputs struct {
 	Functions []interface{}          `json:"functions"`
 }
 
-func Reduce(expression string, inputs ReduceInputs) (string, error) {
-	path := "/tmp/input.json"
+type ReduceElement struct {
+	Expression string
+	Inputs     ReduceInputs
+}
 
-	inputs.Keywords = map[string]interface{}{}
+func Reduce(expressions []string, inputs []ReduceInputs) ([]string, error) {
+	inputPath := "/tmp/reduce-inputs"
+	outputPath := "/tmp/reduce-output"
 
-	fmt.Printf("Inputs: \n")
-	for _, f := range inputs.Functions {
-		j, _ := json.Marshal(f)
-		fmt.Printf("  - %s\n", j)
-	}
-
-	inputBytes, err := json.Marshal(inputs)
+	err := ReducePrepareInput(expressions, inputs, inputPath)
 	if err != nil {
-		return "", err
+		return []string{}, err
 	}
 
-	err = ioutil.WriteFile(path, inputBytes, os.ModePerm)
+	bytes, err := exec.Command("when", "reduce", "--input", inputPath, "output", outputPath).CombinedOutput()
 	if err != nil {
-		return "", err
+		return []string{}, fmt.Errorf("Failed to reduce when expressions %s. Output: %s.", err, bytes)
 	}
 
-	bytes, err := exec.Command("when", "reduce", expression, "--input", path).Output()
+	exprs, err := ReduceLoadOutput(outputPath)
 	if err != nil {
-		return "", err
+		return []string{}, fmt.Errorf("Failed to reduce when expressions %s. Output: %s.", err, bytes)
 	}
 
-	return strings.TrimSpace(string(bytes)), nil
+	return exprs, nil
+}
+
+func ReducePrepareInput(expressions []string, inputs []ReduceInputs, path string) error {
+	content := []ReduceElement{}
+
+	for index := range expressions {
+		content = append(content, ReduceElement{
+			Expression: expressions[index],
+			Inputs:     inputs[index],
+		})
+	}
+
+	j, err := json.Marshal(content)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(path, []byte(j), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ReduceLoadOutput(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return []string{}, err
+	}
+	defer file.Close()
+
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		return []string{}, err
+	}
+
+	inputs, err := gabs.ParseJSON(content)
+	if err != nil {
+		return []string{}, err
+	}
+
+	// return inputs.Children(), nil
+	return []string{}, nil
 }

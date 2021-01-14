@@ -31,15 +31,26 @@ func (p *Pipeline) EvaluateChangeIns() error {
 
 	when.TotalList = n() - start2
 
-	for _, w := range list {
-		err := w.Eval()
+	for index := range list {
+		err := list[index].Eval()
+		if err != nil {
+			return err
+		}
+	}
+
+	expressions := []string{}
+	inputs := []whencli.ReduceInputs{}
+
+	for index := range list {
+		expressions = append(expressions, list[index].Expression)
+		inputs = append(inputs, list[index].Expression)
+
+		expressions, err := whencli.Reduce(expressions, inputs)
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("Reduced When Expression: %s\n", w.Expression)
-
-		p.raw.Set(w.Expression, w.Path...)
+		p.raw.Set(expressions[index].Expression, list[index].listPath...)
 	}
 
 	fmt.Println("Evaluating end.")
