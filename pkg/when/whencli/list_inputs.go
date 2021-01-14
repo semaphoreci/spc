@@ -23,12 +23,12 @@ func ListInputs(expressions []string) ([]*gabs.Container, error) {
 
 	output, err := exec.Command("when", "list-inputs", "--input", inputPath, "--output", outputPath).CombinedOutput()
 	if err != nil {
-		return []*gabs.Container{}, fmt.Errorf("Unprecessable when expressions %s", string(output))
+		return []*gabs.Container{}, fmt.Errorf("unprecessable when expressions %s", string(output))
 	}
 
 	result, err := ListInputsLoadResults(outputPath)
 	if err != nil {
-		return result, fmt.Errorf("Unprocessable input list for when expressions %s. When CLI output: %s.", err.Error(), output)
+		return result, fmt.Errorf("unprocessable when expressions %s, when CLI output: %s", err.Error(), output)
 	}
 
 	return result, nil
@@ -40,7 +40,7 @@ func ListInputsPrepareInputFile(path string, expressions []string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(path, []byte(j), 0644)
+	err = ioutil.WriteFile(path, []byte(j), os.ModePerm)
 	if err != nil {
 		return err
 	}

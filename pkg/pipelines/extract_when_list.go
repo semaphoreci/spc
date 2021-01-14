@@ -1,7 +1,6 @@
 package pipelines
 
 import (
-	"fmt"
 	"strconv"
 
 	when "github.com/semaphoreci/spc/pkg/when"
@@ -35,13 +34,9 @@ func (e *whenExtractor) Parse() ([]when.WhenExpression, error) {
 		return []when.WhenExpression{}, err
 	}
 
-	fmt.Print("%+v", requirments)
-
 	for index := range e.list {
 		e.list[index].Requirments = requirments[index]
 	}
-
-	fmt.Print("%+v", e.list)
 
 	return e.list, nil
 }

@@ -31,12 +31,12 @@ func Reduce(expressions []string, inputs []ReduceInputs) ([]string, error) {
 
 	bytes, err := exec.Command("when", "reduce", "--input", inputPath, "--output", outputPath).CombinedOutput()
 	if err != nil {
-		return []string{}, fmt.Errorf("Failed to reduce when expressions %s. Output: %s.", err, bytes)
+		return []string{}, fmt.Errorf("failed to reduce when expressions %s, output: %s", err, bytes)
 	}
 
 	exprs, err := ReduceLoadOutput(outputPath)
 	if err != nil {
-		return []string{}, fmt.Errorf("Failed to reduce when expressions %s. Output: %s.", err, bytes)
+		return []string{}, fmt.Errorf("failed to reduce when expressions %s, Output: %s", err, bytes)
 	}
 
 	return exprs, nil
@@ -57,7 +57,7 @@ func ReducePrepareInput(expressions []string, inputs []ReduceInputs, path string
 		return err
 	}
 
-	err = ioutil.WriteFile(path, []byte(j), 0644)
+	err = ioutil.WriteFile(path, []byte(j), os.ModePerm)
 	if err != nil {
 		return err
 	}
