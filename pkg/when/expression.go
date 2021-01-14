@@ -9,9 +9,11 @@ import (
 )
 
 type WhenExpression struct {
-	Expression string
-	Path       []string
-	YamlPath   string
+	Expression   string
+	Path         []string
+	YamlPath     string
+	Requirments  *gabs.Container
+	ReduceInputs whencli.ReduceInputs
 }
 
 func (w *WhenExpression) Eval() error {
@@ -20,19 +22,12 @@ func (w *WhenExpression) Eval() error {
 	fmt.Printf("Expression: %v\n", w.Expression)
 	fmt.Printf("From: %v\n", w.Path)
 
-	requirments, err := w.ListNeededInputs()
-	if err != nil {
-		return err
-	}
-
 	fmt.Printf("Needs:\n")
-	for _, need := range requirments.Children() {
+	for _, need := range w.Requirments.Children() {
 		fmt.Printf("  - %v\n", need)
 	}
 
-	reduceInputs := whencli.ReduceInputs{}
-
-	for _, requirment := range w.ListChangeInFunctions(requirments) {
+	for _, requirment := range w.ListChangeInFunctions(w.Requirments) {
 		result, err := w.EvalFunction(requirment)
 		if err != nil {
 			return err
@@ -43,15 +38,9 @@ func (w *WhenExpression) Eval() error {
 		input["params"] = requirment.Search("params")
 		input["result"] = result
 
-		reduceInputs.Functions = append(reduceInputs.Functions, input)
+		w.ReduceInputs.Keywords = map[string]interface{}{}
+		w.ReduceInputs.Functions = append(w.ReduceInputs.Functions, input)
 	}
-
-	result, err := whencli.Reduce(w.Expression, reduceInputs)
-	if err != nil {
-		return err
-	}
-
-	w.Expression = result
 
 	return nil
 }
@@ -89,8 +78,4 @@ func (w *WhenExpression) EvalFunction(input *gabs.Container) (bool, error) {
 	}
 
 	return changein.Eval(fun)
-}
-
-func (w *WhenExpression) ListNeededInputs() (*gabs.Container, error) {
-	return whencli.ListInputs(w.Expression)
 }

@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	when "github.com/semaphoreci/spc/pkg/when"
+	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
 
 // revive:disable:add-constant
@@ -20,6 +21,24 @@ func (e *whenExtractor) ExtractAll() {
 	e.ExtractFromPromotions()
 	e.ExtractFromPriority()
 	e.ExtractFromQueue()
+}
+
+func (e *whenExtractor) Parse() ([]when.WhenExpression, error) {
+	expressions := []string{}
+	for _, e := range e.list {
+		expressions = append(expressions, e.Expression)
+	}
+
+	requirments, err := whencli.ListInputs(expressions)
+	if err != nil {
+		return []when.WhenExpression{}, err
+	}
+
+	for index := range e.list {
+		e.list[index].Requirments = requirments[index]
+	}
+
+	return e.list, nil
 }
 
 func (e *whenExtractor) ExtractAutoCancel() {

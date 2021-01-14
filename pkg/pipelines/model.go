@@ -3,10 +3,12 @@ package pipelines
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
 	when "github.com/semaphoreci/spc/pkg/when"
+	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
 
 type Pipeline struct {
@@ -14,21 +16,63 @@ type Pipeline struct {
 	yamlPath string
 }
 
+func n() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
+var TotalList int64
+var TotalEval int64
+var TotalReduce int64
+
 func (p *Pipeline) EvaluateChangeIns() error {
 	fmt.Println("Evaluating start.")
 
-	for _, w := range p.ListWhenConditions() {
-		err := w.Eval()
+	start1 := n()
+
+	list, err := p.ExtractWhenConditions()
+	if err != nil {
+		return err
+	}
+
+	TotalList = n() - start1
+
+	start2 := n()
+
+	for index := range list {
+		err := list[index].Eval()
 		if err != nil {
 			return err
 		}
-
-		fmt.Printf("Reduced When Expression: %s\n", w.Expression)
-
-		p.raw.Set(w.Expression, w.Path...)
 	}
 
+	TotalEval = n() - start2
+
+	start3 := n()
+
+	expressions := []string{}
+	inputs := []whencli.ReduceInputs{}
+
+	for index := range list {
+		expressions = append(expressions, list[index].Expression)
+		inputs = append(inputs, list[index].ReduceInputs)
+	}
+
+	expressions, err = whencli.Reduce(expressions, inputs)
+	if err != nil {
+		return err
+	}
+
+	for index := range expressions {
+		p.raw.Set(expressions[index], list[index].Path...)
+	}
+
+	TotalReduce = n() - start3
+
 	fmt.Println("Evaluating end.")
+
+	fmt.Printf("Parse When Expressions:   %dms\n", TotalList)
+	fmt.Printf("Evaluated change_in:      %dms\n", TotalEval)
+	fmt.Printf("Reduce When Expressions:  %dms\n", TotalReduce)
 
 	return nil
 }
@@ -57,11 +101,11 @@ func (p *Pipeline) QueueRules() []*gabs.Container {
 	return p.raw.Search("queue").Children()
 }
 
-func (p *Pipeline) ListWhenConditions() []when.WhenExpression {
+func (p *Pipeline) ExtractWhenConditions() ([]when.WhenExpression, error) {
 	extractor := whenExtractor{pipeline: p}
 	extractor.ExtractAll()
 
-	return extractor.list
+	return extractor.Parse()
 }
 
 func (p *Pipeline) ToJSON() ([]byte, error) {

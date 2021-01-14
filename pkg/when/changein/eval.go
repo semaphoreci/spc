@@ -106,9 +106,9 @@ func (e *evaluator) FetchBranches() error {
 	if e.runningOnPullRequest() {
 		pullRequestBranch := e.CommitRangeHead()
 
-		result, error := git.Fetch(pullRequestBranch)
-		if error != nil {
-			return e.ParseFetchError(pullRequestBranch, string(result), error)
+		result, err := git.Fetch(pullRequestBranch)
+		if err != nil {
+			return e.ParseFetchError(pullRequestBranch, string(result), err)
 		}
 	}
 

@@ -32,8 +32,6 @@ func (f *Function) HasMatchesInDiffList(diffList []string) bool {
 }
 
 func (f *Function) IsPatternMatchWith(diffLine string) bool {
-	fmt.Printf("* Testing diff line: %s\n", diffLine)
-
 	if pattern, ok := f.IsDiffLineExcluded(diffLine); ok {
 		fmt.Printf("* Rejected by pattern: %s\n", pattern)
 		return false
@@ -49,7 +47,6 @@ func (f *Function) IsPatternMatchWith(diffLine string) bool {
 		return true
 	}
 
-	fmt.Printf("* Not matched\n")
 	return false
 }
 
