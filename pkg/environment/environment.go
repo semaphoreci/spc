@@ -41,6 +41,14 @@ func PullRequestBranch() string {
 	return os.Getenv("SEMAPHORE_GIT_PR_BRANCH")
 }
 
+func PullRequestRepoSlug() string {
+	return os.Getenv("SEMAPHORE_GIT_PR_SLUG")
+}
+
+func GitRepoSlug() string {
+	return os.Getenv("SEMAPHORE_GIT_REPO_SLUG")
+}
+
 func GitCommitRange() string {
 	return os.Getenv("SEMAPHORE_GIT_COMMIT_RANGE")
 }

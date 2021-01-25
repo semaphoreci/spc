@@ -60,6 +60,14 @@ func (e *evaluator) runningOnPullRequest() bool {
 	return environment.GitRefType() == environment.GitRefTypePullRequest
 }
 
+func (e *evaluator) isForkedPullRequest() bool {
+	if !e.runningOnPullRequest() {
+		return false
+	}
+
+	return environment.PullRequestRepoSlug() != environment.GitRepoSlug()
+}
+
 func (e *evaluator) runningOnDefaultBranch() bool {
 	if e.runningOnPullRequest() {
 		return false
@@ -97,7 +105,7 @@ func (e *evaluator) CommitRangeHead() string {
 }
 
 func (e *evaluator) FetchBranches() error {
-	if e.runningOnDefaultBranch() {
+	if e.runningOnDefaultBranch() || e.isForkedPullRequest() {
 		// We don't need to fetch any branch, we are evaluating the
 		// change in on the current branch.
 		return nil
@@ -146,7 +154,11 @@ func (e *evaluator) LoadDiffList() ([]string, error) {
 
 func (e *evaluator) CommitRange() string {
 	if e.runningOnPullRequest() {
-		return e.function.PullRequestRange
+		if e.isForkedPullRequest() {
+			return e.function.ForkedPullRequestRange
+		} else {
+			return e.function.PullRequestRange
+		}
 	} else {
 		if e.runningOnDefaultBranch() {
 			return e.function.DefaultRange

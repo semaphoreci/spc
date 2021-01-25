@@ -66,6 +66,8 @@ func (p *parser) parse() (*Function, error) {
 
 	pullRequestRange := p.PullRequestRange()
 
+	forkedPullRequestRange := p.fetchCommitRange(defaultBranch)
+
 	location := logs.Location{
 		File: p.yamlPath,
 		Path: p.whenPath,
@@ -76,14 +78,15 @@ func (p *parser) parse() (*Function, error) {
 		YamlPath: p.yamlPath,
 		Location: location,
 
-		PathPatterns:         paths,
-		ExcludedPathPatterns: excludedPaths,
-		DefaultBranch:        defaultBranch,
-		TrackPipelineFile:    track,
-		OnTags:               onTags,
-		DefaultRange:         defaultRange,
-		BranchRange:          branchRange,
-		PullRequestRange:     pullRequestRange,
+		PathPatterns:           paths,
+		ExcludedPathPatterns:   excludedPaths,
+		DefaultBranch:          defaultBranch,
+		TrackPipelineFile:      track,
+		OnTags:                 onTags,
+		DefaultRange:           defaultRange,
+		BranchRange:            branchRange,
+		PullRequestRange:       pullRequestRange,
+		ForkedPullRequestRange: forkedPullRequestRange,
 	}, nil
 }
 

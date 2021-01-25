@@ -11,14 +11,15 @@ type Function struct {
 	YamlPath string
 	Location logs.Location
 
-	PathPatterns         []string
-	ExcludedPathPatterns []string
-	DefaultBranch        string
-	TrackPipelineFile    bool
-	OnTags               bool
-	DefaultRange         string
-	BranchRange          string
-	PullRequestRange     string
+	PathPatterns           []string
+	ExcludedPathPatterns   []string
+	DefaultBranch          string
+	TrackPipelineFile      bool
+	OnTags                 bool
+	DefaultRange           string
+	BranchRange            string
+	PullRequestRange       string
+	ForkedPullRequestRange string
 }
 
 func (f *Function) HasMatchesInDiffList(diffList []string) bool {
