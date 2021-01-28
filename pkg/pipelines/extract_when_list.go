@@ -35,7 +35,7 @@ func (e *whenExtractor) Parse() ([]when.WhenExpression, error) {
 	}
 
 	for index := range e.list {
-		e.list[index].Requirments = requirments[index]
+		e.list[index].Requirments = requirments[index].Inputs
 	}
 
 	return e.list, nil

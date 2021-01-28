@@ -4,31 +4,55 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 
 	gabs "github.com/Jeffail/gabs/v2"
 )
 
-func ListInputs(expressions []string) ([]*gabs.Container, error) {
+type ListInputsResult struct {
+	Expression string
+	Inputs     *gabs.Container
+	Error      string
+}
+
+func ListInputs(expressions []string) ([]ListInputsResult, error) {
 	var err error
+	res := []ListInputsResult{}
 
 	inputPath := "/tmp/when-expressions"
 	outputPath := "/tmp/parsed-when-expressions"
 
 	err = ListInputsPrepareInputFile(inputPath, expressions)
 	if err != nil {
-		return []*gabs.Container{}, nil
+		return res, nil
 	}
 
 	output, err := exec.Command("when", "list-inputs", "--input", inputPath, "--output", outputPath).CombinedOutput()
 	if err != nil {
-		return []*gabs.Container{}, fmt.Errorf("unprecessable when expressions %s", string(output))
+		return res, fmt.Errorf("unprecessable when expressions %s", string(output))
 	}
 
-	result, err := ListInputsLoadResults(outputPath)
+	results, err := ListInputsLoadResults(outputPath)
 	if err != nil {
-		return result, fmt.Errorf("unprocessable when expressions %s, when CLI output: %s", err.Error(), output)
+		return res, fmt.Errorf("unprocessable when expressions %s, when CLI output: %s", err.Error(), output)
+	}
+
+	return prepareResults(expressions, results)
+}
+
+func prepareResults(expressions []string, results *gabs.Container) ([]ListInputsResult, error) {
+	result := []ListInputsResult{}
+
+	for index, el := range results.Children() {
+		result = append(result, ListInputsResult{
+			Expression: expressions[index],
+			Inputs:     el.Search("inputs"),
+			Error:      el.Search("error").Data().(string),
+		})
+		log.Println(index)
+		log.Println(el)
 	}
 
 	return result, nil
@@ -48,22 +72,22 @@ func ListInputsPrepareInputFile(path string, expressions []string) error {
 	return nil
 }
 
-func ListInputsLoadResults(path string) ([]*gabs.Container, error) {
+func ListInputsLoadResults(path string) (*gabs.Container, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return []*gabs.Container{}, err
+		return nil, err
 	}
 	defer file.Close()
 
 	content, err := ioutil.ReadAll(file)
 	if err != nil {
-		return []*gabs.Container{}, err
+		return nil, err
 	}
 
 	inputs, err := gabs.ParseJSON(content)
 	if err != nil {
-		return []*gabs.Container{}, err
+		return nil, err
 	}
 
-	return inputs.Children(), nil
+	return inputs, nil
 }
