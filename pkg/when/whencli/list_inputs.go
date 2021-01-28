@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 
@@ -51,8 +50,6 @@ func prepareResults(expressions []string, results *gabs.Container) ([]ListInputs
 			Inputs:     el.Search("inputs"),
 			Error:      el.Search("error").Data().(string),
 		})
-		log.Println(index)
-		log.Println(el)
 	}
 
 	return result, nil

@@ -54,7 +54,7 @@ assert_eq(errors.size, 2)
 
 assert_eq(errors[0], {
   "type" => "ErrorInvalidWhenExpression",
-  "message" => "Invalid when expression: branch = 'master' and ahahahaha and change_in('/lib')",
+  "message" => "Invalid expression on the left of 'and' operator.",
   "location" => {
     "file" => ".semaphore/semaphore.yml",
     "path" => ["blocks", "0", "skip", "when"]
@@ -63,7 +63,7 @@ assert_eq(errors[0], {
 
 assert_eq(errors[1], {
   "type" => "ErrorInvalidWhenExpression",
-  "message" => "Invalid when expression: branch =",
+  "message" => "Invalid or incomplete expression at the end of the line.",
   "location" => {
     "file" => ".semaphore/semaphore.yml",
     "path" => ["blocks", "1", "skip", "when"]

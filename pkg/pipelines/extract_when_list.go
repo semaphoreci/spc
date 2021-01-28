@@ -3,6 +3,7 @@ package pipelines
 import (
 	"strconv"
 
+	logs "github.com/semaphoreci/spc/pkg/logs"
 	when "github.com/semaphoreci/spc/pkg/when"
 	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
@@ -29,9 +30,16 @@ func (e *whenExtractor) Parse() ([]when.WhenExpression, error) {
 		expressions = append(expressions, e.Expression)
 	}
 
+	res := []when.WhenExpression{}
+
 	requirments, err := whencli.ListInputs(expressions)
 	if err != nil {
-		return []when.WhenExpression{}, err
+		return res, err
+	}
+
+	err = e.verifyParsed(requirments)
+	if err != nil {
+		return res, err
 	}
 
 	for index := range e.list {
@@ -39,6 +47,30 @@ func (e *whenExtractor) Parse() ([]when.WhenExpression, error) {
 	}
 
 	return e.list, nil
+}
+
+func (e *whenExtractor) verifyParsed(requirments []whencli.ListInputsResult) error {
+	var err error
+
+	for index, r := range requirments {
+		if r.Error != "" {
+			loc := logs.Location{
+				Path: e.list[index].Path,
+				File: e.pipeline.yamlPath,
+			}
+
+			logError := logs.ErrorInvalidWhenExpression{
+				Message:  r.Error,
+				Location: loc,
+			}
+
+			logs.Log(logError)
+
+			err = &logError
+		}
+	}
+
+	return err
 }
 
 func (e *whenExtractor) ExtractAutoCancel() {
