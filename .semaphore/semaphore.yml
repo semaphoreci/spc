@@ -12,6 +12,9 @@ global_job_config:
       - export GO111MODULE=on
       - export GOPATH=~/go
       - 'export PATH=/home/semaphore/go/bin:$PATH'
+      - curl -LO https://github.com/renderedtext/when/releases/download/v0.0.3-alpha/when
+      - sudo chmod +x when
+      - sudo mv when /usr/bin/when
       - checkout
       - go get ./...
 
@@ -30,9 +33,6 @@ blocks:
     task:
       prologue:
         commands:
-          - curl -LO https://github.com/renderedtext/when/releases/download/v0.0.2-alpha/when
-          - sudo chmod +x when
-          - sudo mv when /usr/bin/when
           - git config --global user.email "you@example.com"
           - git config --global user.name "Your Name"
           - unset SEMAPHORE_GIT_REF_TYPE

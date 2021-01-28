@@ -17,7 +17,7 @@ func Test__ListInputs(t *testing.T) {
 	results, err := ListInputs(expressions)
 
 	assert.Nil(t, err)
-	assert.Equal(t, 3, len(results))
+	assert.Equal(t, len(expressions), len(results))
 	assert.Equal(t, []ListInputsResult{
 		ListInputsResult{
 			Expression: expressions[0],
