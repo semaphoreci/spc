@@ -2,7 +2,6 @@ package pipelines
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	gabs "github.com/Jeffail/gabs/v2"
@@ -25,18 +24,10 @@ var TotalEval int64
 var TotalReduce int64
 
 func (p *Pipeline) EvaluateChangeIns() error {
-	fmt.Println("Evaluating start.")
-
-	start1 := n()
-
 	list, err := p.ExtractWhenConditions()
 	if err != nil {
 		return err
 	}
-
-	TotalList = n() - start1
-
-	start2 := n()
 
 	for index := range list {
 		err := list[index].Eval()
@@ -44,10 +35,6 @@ func (p *Pipeline) EvaluateChangeIns() error {
 			return err
 		}
 	}
-
-	TotalEval = n() - start2
-
-	start3 := n()
 
 	expressions := []string{}
 	inputs := []whencli.ReduceInputs{}
@@ -65,14 +52,6 @@ func (p *Pipeline) EvaluateChangeIns() error {
 	for index := range expressions {
 		p.raw.Set(expressions[index], list[index].Path...)
 	}
-
-	TotalReduce = n() - start3
-
-	fmt.Println("Evaluating end.")
-
-	fmt.Printf("Parse When Expressions:   %dms\n", TotalList)
-	fmt.Printf("Evaluated change_in:      %dms\n", TotalEval)
-	fmt.Printf("Reduce When Expressions:  %dms\n", TotalReduce)
 
 	return nil
 }

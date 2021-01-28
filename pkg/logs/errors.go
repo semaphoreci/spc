@@ -13,3 +13,12 @@ type ErrorChangeInMissingBranch struct {
 func (e *ErrorChangeInMissingBranch) Error() string {
 	return e.Message
 }
+
+type ErrorInvalidWhenExpression struct {
+	Message  string   `json:"message"`
+	Location Location `json:"location"`
+}
+
+func (e *ErrorInvalidWhenExpression) Error() string {
+	return e.Message
+}

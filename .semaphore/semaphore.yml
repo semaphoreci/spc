@@ -12,6 +12,9 @@ global_job_config:
       - export GO111MODULE=on
       - export GOPATH=~/go
       - 'export PATH=/home/semaphore/go/bin:$PATH'
+      - curl -LO https://github.com/renderedtext/when/releases/download/v0.0.3-alpha/when
+      - sudo mv when /usr/local/bin/when
+      - sudo chmod +x /usr/local/bin/when
       - checkout
       - go get ./...
 
@@ -30,9 +33,6 @@ blocks:
     task:
       prologue:
         commands:
-          - curl -LO https://github.com/renderedtext/when/releases/download/v0.0.2-alpha/when
-          - sudo chmod +x when
-          - sudo mv when /usr/bin/when
           - git config --global user.email "you@example.com"
           - git config --global user.name "Your Name"
           - unset SEMAPHORE_GIT_REF_TYPE
@@ -57,16 +57,17 @@ blocks:
                 - test/e2e/change_in_default_range.rb
                 - test/e2e/change_in_excluded_paths.rb
                 - test/e2e/change_in_glob.rb
+                - test/e2e/change_in_invalid_when.rb
                 - test/e2e/change_in_missing_branch.rb
                 - test/e2e/change_in_multiple_paths.rb
-                - test/e2e/change_in_on_tags.rb
-                - test/e2e/change_in_on_prs.rb
                 - test/e2e/change_in_on_forked_prs.rb
+                - test/e2e/change_in_on_prs.rb
+                - test/e2e/change_in_on_tags.rb
+                - test/e2e/change_in_performance.rb
                 - test/e2e/change_in_pipeline_file_tracking.rb
                 - test/e2e/change_in_relative_paths.rb
                 - test/e2e/change_in_simple.rb
                 - test/e2e/change_in_with_default_branch.rb
-                - test/e2e/change_in_performance.rb
 
           commands:
             - make build
