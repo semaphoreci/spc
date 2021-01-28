@@ -3,7 +3,6 @@ package whencli
 import (
 	"testing"
 
-	gabs "github.com/Jeffail/gabs/v2"
 	assert "github.com/stretchr/testify/assert"
 )
 
@@ -35,13 +34,4 @@ func Test__ListInputs(t *testing.T) {
 			Inputs:     fromJSON(`[]`),
 		},
 	}, results)
-}
-
-func fromJSON(s string) *gabs.Container {
-	res, err := gabs.ParseJSON([]byte(s))
-	if err != nil {
-		panic(err)
-	}
-
-	return res
 }

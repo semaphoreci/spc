@@ -77,6 +77,8 @@ func ReduceLoadOutput(path string) ([]string, error) {
 		return []string{}, err
 	}
 
+	fmt.Println(string(content))
+
 	inputs, err := gabs.ParseJSON(content)
 	if err != nil {
 		return []string{}, err
@@ -85,7 +87,15 @@ func ReduceLoadOutput(path string) ([]string, error) {
 	exprs := []string{}
 
 	for index := range inputs.Children() {
-		exprs = append(exprs, inputs.Children()[index].Data().(string))
+		el := inputs.Children()[index]
+		result := el.Search("result").Data().(string)
+		errString := el.Search("error").Data().(string)
+
+		if errString != "" {
+			return []string{}, fmt.Errorf("unprocessable when expression %s", errString)
+		}
+
+		exprs = append(exprs, result)
 	}
 
 	return exprs, nil
