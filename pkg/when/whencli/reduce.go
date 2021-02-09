@@ -46,6 +46,14 @@ func ReducePrepareInput(expressions []string, inputs []ReduceInputs, path string
 	content := []ReduceElement{}
 
 	for index := range expressions {
+		if inputs[index].Functions == nil {
+			inputs[index].Functions = []interface{}{}
+		}
+
+		if inputs[index].Keywords == nil {
+			inputs[index].Keywords = map[string]interface{}{}
+		}
+
 		content = append(content, ReduceElement{
 			Expression: expressions[index],
 			Inputs:     inputs[index],
@@ -76,8 +84,6 @@ func ReduceLoadOutput(path string) ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-
-	fmt.Println(string(content))
 
 	inputs, err := gabs.ParseJSON(content)
 	if err != nil {
