@@ -37,4 +37,7 @@ func Test__PatternMatch(t *testing.T) {
 
 	matched = patternMatch("lib/h.rb", "../lib/**/*.txt", workdir)
 	assert.False(t, matched)
+	
+	matched = patternMatch("library/a.txt", "/lib/", workdir)
+	assert.False(t, matched)
 }
