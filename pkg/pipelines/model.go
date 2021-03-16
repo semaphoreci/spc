@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	gabs "github.com/Jeffail/gabs/v2"
@@ -29,7 +30,13 @@ func (p *Pipeline) EvaluateChangeIns() error {
 		return err
 	}
 
-	for index := range list {
+	p.displayFoundWhenExpressions(list)
+
+	fmt.Println("Evaluating when expressions.\n")
+
+	for index, condition := range list {
+		fmt.Printf("%03d) %s\n", index+1, condition.Expression)
+
 		err := list[index].Eval()
 		if err != nil {
 			return err
@@ -85,6 +92,17 @@ func (p *Pipeline) ExtractWhenConditions() ([]when.WhenExpression, error) {
 	extractor.ExtractAll()
 
 	return extractor.Parse()
+}
+
+func (p *Pipeline) displayFoundWhenExpressions(list []when.WhenExpression) {
+	fmt.Printf("Found when expressions at %d locations:\n\n", len(list))
+
+	for index, condition := range list {
+		fmt.Printf("%03d) Location: %+v\n", index+1, condition.Path)
+		fmt.Printf("     File: %s\n", condition.YamlPath)
+		fmt.Printf("     Expression: %s\n", condition.Expression)
+		fmt.Println()
+	}
 }
 
 func (p *Pipeline) ToJSON() ([]byte, error) {

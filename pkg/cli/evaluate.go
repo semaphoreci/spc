@@ -26,6 +26,8 @@ var evaluateChangeInCmd = &cobra.Command{
 		output := fetchRequiredStringFlag(cmd, "output")
 		logsPath := fetchRequiredStringFlag(cmd, "logs")
 
+		fmt.Printf("Evaluating change_in expressions in %s.\n\n", input)
+
 		logs.Open(logsPath)
 		logs.SetCurrentPipelineFilePath(input)
 
