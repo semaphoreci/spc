@@ -13,7 +13,6 @@ func patternMatch(diffLine, pattern, workDir string) bool {
 	}
 
 	diffLine = path.Clean("/" + diffLine)
-	pattern = path.Clean(pattern)
 
 	if !strings.Contains(pattern, "*") {
 		return strings.HasPrefix(diffLine, pattern)
