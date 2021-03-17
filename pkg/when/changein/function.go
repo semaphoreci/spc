@@ -1,8 +1,7 @@
 package changein
 
 import (
-	"fmt"
-
+	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
 	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
@@ -24,7 +23,15 @@ type Function struct {
 
 func (f *Function) HasMatchesInDiffList(diffList []string) bool {
 	for _, diffLine := range diffList {
-		if f.IsPatternMatchWith(diffLine) {
+		result := f.IsPatternMatchWith(diffLine)
+
+		if result {
+			consolelogger.Infof("(match) %s\n", diffLine)
+		} else {
+			consolelogger.Infof("(no match) %s\n", diffLine)
+		}
+
+		if result {
 			return true
 		}
 	}
@@ -33,18 +40,15 @@ func (f *Function) HasMatchesInDiffList(diffList []string) bool {
 }
 
 func (f *Function) IsPatternMatchWith(diffLine string) bool {
-	if pattern, ok := f.IsDiffLineExcluded(diffLine); ok {
-		fmt.Printf("* Rejected by pattern: %s\n", pattern)
+	if _, ok := f.IsDiffLineExcluded(diffLine); ok {
 		return false
 	}
 
-	if pattern, ok := f.IsPipelineFileMatched(diffLine); ok {
-		fmt.Printf("* Matched by pipeline file: %s\n", pattern)
+	if _, ok := f.IsPipelineFileMatched(diffLine); ok {
 		return true
 	}
 
-	if pattern, ok := f.IsPatternMacthed(diffLine); ok {
-		fmt.Printf("* Matched by pattern: %s\n", pattern)
+	if _, ok := f.IsPatternMacthed(diffLine); ok {
 		return true
 	}
 

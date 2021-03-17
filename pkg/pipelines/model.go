@@ -7,6 +7,7 @@ import (
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
+	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
 	when "github.com/semaphoreci/spc/pkg/when"
 	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
@@ -20,10 +21,6 @@ func n() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-var TotalList int64
-var TotalEval int64
-var TotalReduce int64
-
 func (p *Pipeline) EvaluateChangeIns() error {
 	list, err := p.ExtractWhenConditions()
 	if err != nil {
@@ -32,15 +29,20 @@ func (p *Pipeline) EvaluateChangeIns() error {
 
 	p.displayFoundWhenExpressions(list)
 
-	fmt.Println("Evaluating when expressions.\n")
+	consolelogger.Infof("Evaluating when expressions.\n")
+	consolelogger.EmptyLine()
 
 	for index, condition := range list {
-		fmt.Printf("%03d) %s\n", index+1, condition.Expression)
+		fmt.Printf("%03d| %s\n", index+1, condition.Expression)
+		consolelogger.IncrementNesting()
 
 		err := list[index].Eval()
 		if err != nil {
 			return err
 		}
+
+		consolelogger.DecreaseNesting()
+		consolelogger.EmptyLine()
 	}
 
 	expressions := []string{}
@@ -98,7 +100,7 @@ func (p *Pipeline) displayFoundWhenExpressions(list []when.WhenExpression) {
 	fmt.Printf("Found when expressions at %d locations:\n\n", len(list))
 
 	for index, condition := range list {
-		fmt.Printf("%03d) Location: %+v\n", index+1, condition.Path)
+		fmt.Printf("%03d| Location: %+v\n", index+1, condition.Path)
 		fmt.Printf("     File: %s\n", condition.YamlPath)
 		fmt.Printf("     Expression: %s\n", condition.Expression)
 		fmt.Println()

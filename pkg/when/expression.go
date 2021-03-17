@@ -1,9 +1,8 @@
 package when
 
 import (
-	"fmt"
-
 	gabs "github.com/Jeffail/gabs/v2"
+	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
 	changein "github.com/semaphoreci/spc/pkg/when/changein"
 	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
@@ -17,16 +16,6 @@ type WhenExpression struct {
 }
 
 func (w *WhenExpression) Eval() error {
-	fmt.Println("")
-	fmt.Println("*** Processing when expression ***")
-	fmt.Printf("Expression: %v\n", w.Expression)
-	fmt.Printf("From: %v\n", w.Path)
-
-	fmt.Printf("Needs:\n")
-	for _, need := range w.Requirments.Children() {
-		fmt.Printf("  - %v\n", need)
-	}
-
 	for _, requirment := range w.ListChangeInFunctions(w.Requirments) {
 		result, err := w.EvalFunction(requirment)
 		if err != nil {
@@ -72,6 +61,10 @@ func (w *WhenExpression) IsChangeInFunction(input *gabs.Container) bool {
 }
 
 func (w *WhenExpression) EvalFunction(input *gabs.Container) (bool, error) {
+	consolelogger.EmptyLine()
+
+	consolelogger.Infof("%s(%+v)\n", input.Search("name").Data(), input.Search("params"))
+
 	fun, err := changein.Parse(w.Path, input, w.YamlPath)
 	if err != nil {
 		return false, err

@@ -250,8 +250,6 @@ func (p *parser) getBoolParam(key string) (bool, bool, error) {
 }
 
 func (p *parser) castToStringArray(obj interface{}) ([]string, bool) {
-	fmt.Println(obj)
-
 	if value, ok := obj.(string); ok {
 		return []string{value}, true
 	}
