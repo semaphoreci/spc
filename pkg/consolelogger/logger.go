@@ -12,6 +12,10 @@ func Info(msg string) {
 	fmt.Println(nestPadding() + msg)
 }
 
+func InfoNumberListLn(num int, msg string) {
+	fmt.Printf("%03d | %s\n", num, msg)
+}
+
 func Infof(msg string, attr ...interface{}) {
 	fmt.Printf(nestPadding()+msg, attr...)
 }
@@ -35,7 +39,7 @@ func nestPadding() string {
 		res += "   "
 	}
 
-	res += "| "
+	res += " | "
 
 	return res
 }

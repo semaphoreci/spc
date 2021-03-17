@@ -2,14 +2,10 @@ package pipelines
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
-	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
-	when "github.com/semaphoreci/spc/pkg/when"
-	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
 
 type Pipeline struct {
@@ -21,48 +17,14 @@ func n() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+func (p *Pipeline) UpdateWhenExpression(path []string, value string) error {
+	_, err := p.raw.Set(value, path...)
+
+	return err
+}
+
 func (p *Pipeline) EvaluateChangeIns() error {
-	list, err := p.ExtractWhenConditions()
-	if err != nil {
-		return err
-	}
-
-	p.displayFoundWhenExpressions(list)
-
-	consolelogger.Infof("Evaluating when expressions.\n")
-	consolelogger.EmptyLine()
-
-	for index, condition := range list {
-		fmt.Printf("%03d| %s\n", index+1, condition.Expression)
-		consolelogger.IncrementNesting()
-
-		err := list[index].Eval()
-		if err != nil {
-			return err
-		}
-
-		consolelogger.DecreaseNesting()
-		consolelogger.EmptyLine()
-	}
-
-	expressions := []string{}
-	inputs := []whencli.ReduceInputs{}
-
-	for index := range list {
-		expressions = append(expressions, list[index].Expression)
-		inputs = append(inputs, list[index].ReduceInputs)
-	}
-
-	expressions, err = whencli.Reduce(expressions, inputs)
-	if err != nil {
-		return err
-	}
-
-	for index := range expressions {
-		p.raw.Set(expressions[index], list[index].Path...)
-	}
-
-	return nil
+	return newWhenEvaluator(p).Run()
 }
 
 func (p *Pipeline) Blocks() []*gabs.Container {
@@ -87,24 +49,6 @@ func (p *Pipeline) PriorityRules() []*gabs.Container {
 
 func (p *Pipeline) QueueRules() []*gabs.Container {
 	return p.raw.Search("queue").Children()
-}
-
-func (p *Pipeline) ExtractWhenConditions() ([]when.WhenExpression, error) {
-	extractor := whenExtractor{pipeline: p}
-	extractor.ExtractAll()
-
-	return extractor.Parse()
-}
-
-func (p *Pipeline) displayFoundWhenExpressions(list []when.WhenExpression) {
-	fmt.Printf("Found when expressions at %d locations:\n\n", len(list))
-
-	for index, condition := range list {
-		fmt.Printf("%03d| Location: %+v\n", index+1, condition.Path)
-		fmt.Printf("     File: %s\n", condition.YamlPath)
-		fmt.Printf("     Expression: %s\n", condition.Expression)
-		fmt.Println()
-	}
 }
 
 func (p *Pipeline) ToJSON() ([]byte, error) {

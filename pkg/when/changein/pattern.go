@@ -8,10 +8,7 @@ import (
 )
 
 func patternMatch(diffLine, pattern, workDir string) bool {
-	if pattern[0] != '/' {
-		pattern = path.Join("/", workDir, pattern)
-	}
-
+	pattern = cleanPattern(workDir, pattern)
 	diffLine = path.Clean("/" + diffLine)
 
 	if !strings.Contains(pattern, "*") {
@@ -24,4 +21,20 @@ func patternMatch(diffLine, pattern, workDir string) bool {
 	}
 
 	return ok
+}
+
+func cleanPattern(workDir, pattern string) string {
+	var cleanPattern string
+
+	if pattern[0] != '/' {
+		cleanPattern = path.Join("/", workDir, pattern)
+	} else {
+		cleanPattern = path.Clean(pattern)
+	}
+
+	if cleanPattern[len(pattern)-1] != '/' && pattern[len(pattern)-1] == '/' {
+		cleanPattern += "/"
+	}
+
+	return cleanPattern
 }
