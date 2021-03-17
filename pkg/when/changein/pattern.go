@@ -32,7 +32,7 @@ func cleanPattern(workDir, pattern string) string {
 		cleanPattern = path.Clean(pattern)
 	}
 
-	if cleanPattern[len(pattern)-1] != '/' && pattern[len(pattern)-1] == '/' {
+	if cleanPattern[len(cleanPattern)-1] != '/' && pattern[len(pattern)-1] == '/' {
 		cleanPattern += "/"
 	}
 
