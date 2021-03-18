@@ -1,9 +1,8 @@
 package when
 
 import (
-	"fmt"
-
 	gabs "github.com/Jeffail/gabs/v2"
+	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
 	changein "github.com/semaphoreci/spc/pkg/when/changein"
 	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
@@ -17,16 +16,6 @@ type WhenExpression struct {
 }
 
 func (w *WhenExpression) Eval() error {
-	fmt.Println("")
-	fmt.Println("*** Processing when expression ***")
-	fmt.Printf("Expression: %v\n", w.Expression)
-	fmt.Printf("From: %v\n", w.Path)
-
-	fmt.Printf("Needs:\n")
-	for _, need := range w.Requirments.Children() {
-		fmt.Printf("  - %v\n", need)
-	}
-
 	for _, requirment := range w.ListChangeInFunctions(w.Requirments) {
 		result, err := w.EvalFunction(requirment)
 		if err != nil {
@@ -34,8 +23,8 @@ func (w *WhenExpression) Eval() error {
 		}
 
 		input := map[string]interface{}{}
-		input["name"] = requirment.Search("name")
-		input["params"] = requirment.Search("params")
+		input["name"] = w.functionName(requirment)
+		input["params"] = w.functionParams(requirment)
 		input["result"] = result
 
 		w.ReduceInputs.Keywords = map[string]interface{}{}
@@ -63,8 +52,7 @@ func (w *WhenExpression) IsChangeInFunction(input *gabs.Container) bool {
 		return false
 	}
 
-	elName := input.Search("name").Data().(string)
-	if elName != "change_in" {
+	if w.functionName(input) != "change_in" {
 		return false
 	}
 
@@ -72,10 +60,22 @@ func (w *WhenExpression) IsChangeInFunction(input *gabs.Container) bool {
 }
 
 func (w *WhenExpression) EvalFunction(input *gabs.Container) (bool, error) {
+	consolelogger.EmptyLine()
+
+	consolelogger.Infof("%s(%+v)\n", w.functionName(input), w.functionParams(input))
+
 	fun, err := changein.Parse(w.Path, input, w.YamlPath)
 	if err != nil {
 		return false, err
 	}
 
 	return changein.Eval(fun)
+}
+
+func (w *WhenExpression) functionName(input *gabs.Container) string {
+	return input.Search("name").Data().(string)
+}
+
+func (w *WhenExpression) functionParams(input *gabs.Container) *gabs.Container {
+	return input.Search("params")
 }

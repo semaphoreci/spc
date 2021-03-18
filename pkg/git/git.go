@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
 )
 
 //
@@ -36,7 +38,7 @@ func Fetch(name string) ([]byte, error) {
 	}
 
 	flags := []string{"fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", name, name)}
-	fmt.Printf("Running git %s\n", strings.Join(flags, " "))
+	consolelogger.Infof("Running git %s\n", strings.Join(flags, " "))
 
 	output, err := exec.Command("git", flags...).CombinedOutput()
 	if err != nil {
@@ -53,7 +55,7 @@ func Diff(commitRange string) ([]string, string, error) {
 	}
 
 	flags := []string{"diff", "--name-only", commitRange}
-	fmt.Printf("Running git %s\n", strings.Join(flags, " "))
+	consolelogger.Infof("Running git %s\n", strings.Join(flags, " "))
 
 	bytes, err := exec.Command("git", flags...).CombinedOutput()
 	if err != nil {

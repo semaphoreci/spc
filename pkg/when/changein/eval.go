@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
 	environment "github.com/semaphoreci/spc/pkg/environment"
 	git "github.com/semaphoreci/spc/pkg/git"
 	logs "github.com/semaphoreci/spc/pkg/logs"
@@ -26,14 +27,8 @@ const ThreeDots = "..."
 const TwoDots = ".."
 
 func (e *evaluator) Run() (bool, error) {
-	fmt.Println("Processing change_in function")
-	fmt.Println("Params:")
-	fmt.Printf("  - File Patterns: '%v'\n", e.function.PathPatterns)
-	fmt.Printf("  - Exclude Patterns: '%v'\n", e.function.ExcludedPathPatterns)
-	fmt.Printf("  - TrackPipelineFile: '%v'\n", e.function.TrackPipelineFile)
-
 	if e.runningOnGitTag() {
-		fmt.Printf("Running on a tag, skipping evaluation")
+		consolelogger.Infof("Running on a tag, skipping evaluation\n")
 		return e.function.OnTags, nil
 	}
 
@@ -47,7 +42,13 @@ func (e *evaluator) Run() (bool, error) {
 		return false, err
 	}
 
+	consolelogger.EmptyLine()
+	consolelogger.Infof("Comparing change_in with git diff\n")
+
 	result := e.function.HasMatchesInDiffList(diffList)
+
+	consolelogger.EmptyLine()
+	consolelogger.Infof("Result: %+v\n", result)
 
 	return result, nil
 }

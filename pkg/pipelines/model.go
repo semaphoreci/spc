@@ -6,8 +6,6 @@ import (
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
-	when "github.com/semaphoreci/spc/pkg/when"
-	whencli "github.com/semaphoreci/spc/pkg/when/whencli"
 )
 
 type Pipeline struct {
@@ -19,41 +17,14 @@ func n() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-var TotalList int64
-var TotalEval int64
-var TotalReduce int64
+func (p *Pipeline) UpdateWhenExpression(path []string, value string) error {
+	_, err := p.raw.Set(value, path...)
+
+	return err
+}
 
 func (p *Pipeline) EvaluateChangeIns() error {
-	list, err := p.ExtractWhenConditions()
-	if err != nil {
-		return err
-	}
-
-	for index := range list {
-		err := list[index].Eval()
-		if err != nil {
-			return err
-		}
-	}
-
-	expressions := []string{}
-	inputs := []whencli.ReduceInputs{}
-
-	for index := range list {
-		expressions = append(expressions, list[index].Expression)
-		inputs = append(inputs, list[index].ReduceInputs)
-	}
-
-	expressions, err = whencli.Reduce(expressions, inputs)
-	if err != nil {
-		return err
-	}
-
-	for index := range expressions {
-		p.raw.Set(expressions[index], list[index].Path...)
-	}
-
-	return nil
+	return newWhenEvaluator(p).Run()
 }
 
 func (p *Pipeline) Blocks() []*gabs.Container {
@@ -78,13 +49,6 @@ func (p *Pipeline) PriorityRules() []*gabs.Container {
 
 func (p *Pipeline) QueueRules() []*gabs.Container {
 	return p.raw.Search("queue").Children()
-}
-
-func (p *Pipeline) ExtractWhenConditions() ([]when.WhenExpression, error) {
-	extractor := whenExtractor{pipeline: p}
-	extractor.ExtractAll()
-
-	return extractor.Parse()
 }
 
 func (p *Pipeline) ToJSON() ([]byte, error) {
