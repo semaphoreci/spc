@@ -42,6 +42,9 @@ func Fetch(name string) ([]byte, error) {
 
 	output, err := exec.Command("git", flags...).CombinedOutput()
 	if err != nil {
+		consolelogger.Infof("Git failed with %s\n", err.Error())
+		consolelogger.Info(string(output))
+
 		return output, err
 	}
 
@@ -59,6 +62,9 @@ func Diff(commitRange string) ([]string, string, error) {
 
 	bytes, err := exec.Command("git", flags...).CombinedOutput()
 	if err != nil {
+		consolelogger.Infof("Git failed with %s\n", err.Error())
+		consolelogger.Info(string(bytes))
+
 		return []string{}, string(bytes), err
 	}
 
