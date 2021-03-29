@@ -7,6 +7,25 @@ global_job_config:
     - value: 45
       when: true
 
+fail_fast:
+  cancel:
+    when: "branch = 'master' and change_in('/lib')"
+  stop:
+    when: "branch = 'master' and change_in('/app')"
+
+auto_cancel:
+  queued:
+    when: "branch = 'master' and change_in('/lib')"
+  running:
+    when: "branch = 'master' and change_in('/app')"
+
+queue:
+  - name: test
+    when: "branch = 'master' and change_in('/lib')"
+
+  - name: test2
+    when: "branch = 'master' and change_in('/app')"
+
 blocks:
   - name: Unit
     run:

@@ -109,7 +109,8 @@ func (e *whenEvaluator) ExtractAll() {
 	e.ExtractFailFast()
 	e.ExtractFromBlocks()
 	e.ExtractFromPromotions()
-	e.ExtractFromPriority()
+	e.ExtractFromGlobalJobPriority()
+	e.ExtractFromJobPriority()
 	e.ExtractFromQueue()
 }
 
@@ -197,11 +198,13 @@ func (e *whenEvaluator) ExtractFromPromotions() {
 	}
 }
 
-func (e *whenEvaluator) ExtractFromPriority() {
+func (e *whenEvaluator) ExtractFromGlobalJobPriority() {
 	for index := range e.pipeline.GlobalPriorityRules() {
 		e.tryExtractingFromPath([]string{"global_job_config", "priority", strconv.Itoa(index), "when"})
 	}
+}
 
+func (e *whenEvaluator) ExtractFromJobPriority() {
 	for blockIndex, block := range e.pipeline.Blocks() {
 		jobs := block.Search("task", "jobs").Children()
 
