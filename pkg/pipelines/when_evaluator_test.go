@@ -1,5 +1,7 @@
 package pipelines
 
+// revive:disable:add-constant
+
 import (
 	"testing"
 
