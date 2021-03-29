@@ -39,10 +39,6 @@ func (p *Pipeline) PathExists(path []string) bool {
 	return p.raw.Exists(path...)
 }
 
-func (p *Pipeline) GetStringFromPath(path []string) string {
-	return p.raw.Search(path...).Data().(string)
-}
-
 func (p *Pipeline) GlobalPriorityRules() []*gabs.Container {
 	return p.raw.Search("global_job_config", "priority").Children()
 }

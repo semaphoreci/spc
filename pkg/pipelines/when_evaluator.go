@@ -201,6 +201,27 @@ func (e *whenEvaluator) ExtractFromPriority() {
 	for index := range e.pipeline.GlobalPriorityRules() {
 		e.tryExtractingFromPath([]string{"global_job_config", "priority", strconv.Itoa(index), "when"})
 	}
+
+	for blockIndex, block := range e.pipeline.Blocks() {
+		jobs := block.Search("task", "jobs").Children()
+
+		for jobIndex, job := range jobs {
+			priority := job.Search("priority").Children()
+
+			for priorityIndex := range priority {
+				e.tryExtractingFromPath([]string{
+					"blocks",
+					strconv.Itoa(blockIndex),
+					"task",
+					"jobs",
+					strconv.Itoa(jobIndex),
+					"priority",
+					strconv.Itoa(priorityIndex),
+					"when",
+				})
+			}
+		}
+	}
 }
 
 func (e *whenEvaluator) ExtractFromQueue() {
@@ -214,8 +235,13 @@ func (e *whenEvaluator) tryExtractingFromPath(path []string) {
 		return
 	}
 
+	value, ok := e.pipeline.raw.Search(path...).Data().(string)
+	if !ok {
+		return
+	}
+
 	expression := when.WhenExpression{
-		Expression: e.pipeline.GetStringFromPath(path),
+		Expression: value,
 		Path:       path,
 		YamlPath:   e.pipeline.yamlPath,
 	}
