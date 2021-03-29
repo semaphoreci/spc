@@ -1,6 +1,9 @@
 package consolelogger
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 var nesting = 0
 
@@ -9,7 +12,9 @@ func EmptyLine() {
 }
 
 func Info(msg string) {
-	fmt.Println(nestPadding() + msg)
+	for _, line := range strings.Split(msg, "\n") {
+		fmt.Println(nestPadding() + line)
+	}
 }
 
 func InfoNumberListLn(num int, msg string) {
