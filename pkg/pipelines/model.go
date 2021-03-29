@@ -32,7 +32,7 @@ func (p *Pipeline) Blocks() []*gabs.Container {
 }
 
 func (p *Pipeline) Promotions() []*gabs.Container {
-	return p.raw.Search("blocks").Children()
+	return p.raw.Search("promotions").Children()
 }
 
 func (p *Pipeline) PathExists(path []string) bool {
@@ -43,8 +43,8 @@ func (p *Pipeline) GetStringFromPath(path []string) string {
 	return p.raw.Search(path...).Data().(string)
 }
 
-func (p *Pipeline) PriorityRules() []*gabs.Container {
-	return p.raw.Search("priority").Children()
+func (p *Pipeline) GlobalPriorityRules() []*gabs.Container {
+	return p.raw.Search("global_job_config", "priority").Children()
 }
 
 func (p *Pipeline) QueueRules() []*gabs.Container {

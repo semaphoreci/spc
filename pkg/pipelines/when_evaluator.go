@@ -198,8 +198,8 @@ func (e *whenEvaluator) ExtractFromPromotions() {
 }
 
 func (e *whenEvaluator) ExtractFromPriority() {
-	for index := range e.pipeline.PriorityRules() {
-		e.tryExtractingFromPath([]string{"priority", strconv.Itoa(index), "when"})
+	for index := range e.pipeline.GlobalPriorityRules() {
+		e.tryExtractingFromPath([]string{"global_job_config", "priority", strconv.Itoa(index), "when"})
 	}
 }
 

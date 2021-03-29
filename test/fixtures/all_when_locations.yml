@@ -1,0 +1,37 @@
+version: v1.0
+
+global_job_config:
+  priority:
+    - value: 70
+      when: "branch = 'master'"
+    - value: 45
+      when: true
+
+blocks:
+  - name: Unit
+    run:
+      when: "change_in('lib')"
+    task:
+      jobs:
+        - name: Run
+          commands:
+            - echo "hello"
+
+  - name: E2E
+    run:
+      when: "change_in('lib')"
+    task:
+      jobs:
+        - name: Run
+          priority:
+            - value: 70
+              when: "branch = 'master'"
+            - value: 45
+              when: true
+          commands:
+            - echo "hello"
+
+promotions:
+  - name: Production
+    auto_promote:
+      when: "change_in('lib')"
