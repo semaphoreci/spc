@@ -128,7 +128,12 @@ func (e *evaluator) FetchBranches() error {
 		return e.ParseFetchError(base, string(output), err)
 	}
 
-	return e.ParseFetchError(base, string(output), err)
+	err = e.ParseFetchError(base, string(output), err)
+	if err != nil {
+		return err
+	}
+
+	return git.Unshallow("aaa")
 }
 
 func (e *evaluator) ParseFetchError(name string, output string, err error) error {

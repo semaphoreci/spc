@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
@@ -72,4 +73,43 @@ func Diff(commitRange string) ([]string, string, error) {
 
 	evaluatedDiffs[commitRange] = difflines
 	return difflines, "", nil
+}
+
+func Unshallow(defaultBranch string) error {
+	for {
+		if canResolveMergeBase() {
+			return nil
+		}
+
+		err := deepen()
+		if err != nil {
+			return err
+		}
+	}
+}
+
+const DeepeningPerCycle = 100 // commits
+
+func deepen() error {
+	flags := []string{"fetch", "origin", "--deepen", strconv.Itoa(DeepeningPerCycle)}
+	consolelogger.Infof("Running git %s\n", strings.Join(flags, " "))
+
+	output, err := exec.Command("git", flags...).CombinedOutput()
+	if err != nil {
+		consolelogger.Infof("Git failed with %s\n", err.Error())
+		consolelogger.Info(string(output))
+
+		return err
+	}
+
+	return err
+}
+
+func canResolveMergeBase() bool {
+	flags := []string{"show-branch", "--merge-base"}
+	consolelogger.Infof("Running git %s\n", strings.Join(flags, " "))
+
+	err := exec.Command("git", flags...).Run()
+
+	return err == nil
 }
