@@ -34,12 +34,13 @@ queue:
   - name: test2
     when: "branch = 'master' and change_in('/app')"
 
-priority:
-  - value: 1
-    when: "branch = 'master' and change_in('/lib')"
+global_job_config:
+  priority:
+    - value: 1
+      when: "branch = 'master' and change_in('/lib')"
 
-  - value: 10
-    when: "branch = 'master' and change_in('/lib')"
+    - value: 10
+      when: "branch = 'master' and change_in('/lib')"
 
 blocks:
   - name: Test
@@ -50,6 +51,12 @@ blocks:
         - name: Hello
           commands:
             - echo "Hello World"
+          priority:
+            - value: 1
+              when: "branch = 'master' and change_in('/lib')"
+
+            - value: 10
+              when: "branch = 'master' and change_in('/lib')"
 
   - name: Test2
     run :
@@ -62,6 +69,14 @@ blocks:
 
 promotions:
   - name: Staging
+    auto_promote:
+      when: "branch = 'master' and change_in('/lib')"
+
+  - name: Staging2
+    auto_promote:
+      when: "branch = 'master' and change_in('/lib')"
+
+  - name: Staging3
     auto_promote:
       when: "branch = 'master' and change_in('/lib')"
 }
@@ -108,12 +123,13 @@ queue:
   - name: test2
     when: "(branch = 'master') and false"
 
-priority:
-  - value: 1
-    when: "(branch = 'master') and true"
+global_job_config:
+  priority:
+    - value: 1
+      when: "(branch = 'master') and true"
 
-  - value: 10
-    when: "(branch = 'master') and true"
+    - value: 10
+      when: "(branch = 'master') and true"
 
 blocks:
   - name: Test
@@ -124,6 +140,11 @@ blocks:
         - name: Hello
           commands:
             - echo "Hello World"
+          priority:
+            - value: 1
+              when: "(branch = 'master') and true"
+            - value: 10
+              when: "(branch = 'master') and true"
 
   - name: Test2
     run :
@@ -136,6 +157,14 @@ blocks:
 
 promotions:
   - name: Staging
+    auto_promote:
+      when: "(branch = 'master') and true"
+
+  - name: Staging2
+    auto_promote:
+      when: "(branch = 'master') and true"
+
+  - name: Staging3
     auto_promote:
       when: "(branch = 'master') and true"
 }))

@@ -7,7 +7,7 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-func LoadFromYaml(path string) (*Pipeline, error) {
+func LoadFromFile(path string) (*Pipeline, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err

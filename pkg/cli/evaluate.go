@@ -31,7 +31,7 @@ var evaluateChangeInCmd = &cobra.Command{
 		logs.Open(logsPath)
 		logs.SetCurrentPipelineFilePath(input)
 
-		ppl, err := pipelines.LoadFromYaml(input)
+		ppl, err := pipelines.LoadFromFile(input)
 		check(err)
 
 		err = ppl.EvaluateChangeIns()
