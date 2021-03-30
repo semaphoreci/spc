@@ -29,12 +29,21 @@ origin.commit!("Bootstrap")
 origin.add_file("lib/A.txt", "hello")
 origin.commit!("Changes on master")
 
-origin.create_branch("dev")
+# diverge master and dev by 100 commits
 
+origin.create_branch("dev")
 100.times do |index|
   origin.add_file("lib/B#{index}.txt", "hello")
   origin.commit!("Changes in dev number #{index}")
 end
+
+origin.switch_branch("master")
+100.times do |index|
+  origin.add_file("lib/B#{index}.txt", "hello")
+  origin.commit!("Changes in master number #{index}")
+end
+
+origin.switch_branch("dev")
 
 repo = origin.clone_local_copy(branch: "dev")
 repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
