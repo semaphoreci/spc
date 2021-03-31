@@ -2,6 +2,7 @@ package git
 
 import (
 	"fmt"
+	"math"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -69,8 +70,8 @@ func Diff(commitRange string) ([]string, string, error) {
 	return difflines, "", nil
 }
 
-const MaxUnshallowIterations = 100
-const DeepeningPerCycle = 100 // commits
+const MaxUnshallowIterations = 10
+const InitialDeepenBy = 100
 
 func Unshallow(commitRange string) error {
 	for i := 0; i < MaxUnshallowIterations; i++ {
@@ -78,7 +79,9 @@ func Unshallow(commitRange string) error {
 			return nil
 		}
 
-		err := deepen()
+		deepenBy := InitialDeepenBy * int(math.Exp2(float64(i)))
+
+		err := deepen(deepenBy)
 		if err != nil {
 			return err
 		}
@@ -87,11 +90,11 @@ func Unshallow(commitRange string) error {
 	return fmt.Errorf("commit range %s is not resolvable", commitRange)
 }
 
-func deepen() error {
-	output, err := run("fetch", "origin", "--deepen", strconv.Itoa(DeepeningPerCycle))
+func deepen(numberOfCommits int) error {
+	output, err := run("fetch", "origin", "--deepen", strconv.Itoa(numberOfCommits))
 	if err != nil {
 		consolelogger.Infof("Git failed with %s\n", err.Error())
-		consolelogger.Info(string(output))
+		consolelogger.Info(output)
 
 		return err
 	}
@@ -102,7 +105,7 @@ func deepen() error {
 func canResolveCommitRnage(commitRange string) bool {
 	output, err := run("diff", "--shortstat", commitRange)
 	if err != nil {
-		consolelogger.Info(string(output))
+		consolelogger.Info(output)
 	}
 
 	return err == nil

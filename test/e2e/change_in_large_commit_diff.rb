@@ -32,13 +32,13 @@ origin.commit!("Changes on master")
 # diverge master and dev by 100 commits
 
 origin.create_branch("dev")
-300.times do |index|
+350.times do |index|
   origin.add_file("lib/B#{index}.txt", "hello")
   origin.commit!("Changes in dev number #{index}")
 end
 
 origin.switch_branch("master")
-300.times do |index|
+350.times do |index|
   origin.add_file("lib/B#{index}.txt", "hello")
   origin.commit!("Changes in master number #{index}")
 end

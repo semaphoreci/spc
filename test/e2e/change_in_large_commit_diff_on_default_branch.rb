@@ -29,7 +29,7 @@ origin.commit!("Bootstrap")
 origin.add_file("lib/A.txt", "hello")
 origin.commit!("Changes on master")
 
-300.times do |index|
+350.times do |index|
   origin.add_file("lib/B#{index}.txt", "hello")
   origin.commit!("Changes in master number #{index}")
 end
