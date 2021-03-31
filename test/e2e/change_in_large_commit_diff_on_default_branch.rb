@@ -36,7 +36,7 @@ end
 
 repo = origin.clone_local_copy(branch: "master")
 repo.run(%{
-  export SEMAPHORE_GIT_COMMIT_RANGE="$(cd ../test-repo-origin && git rev-parse HEAD~98)...$(cd ../test-repo-origin && git rev-parse HEAD)"
+  export SEMAPHORE_GIT_COMMIT_RANGE="$(cd ../test-repo-origin && git rev-parse HEAD~95)...$(cd ../test-repo-origin && git rev-parse HEAD)"
 
   #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
 })

@@ -16,7 +16,7 @@ import (
 //
 // Results of fetch are only memorized if there are no errors while fetching.
 //
-var fetchedBranches map[string][]byte
+var fetchedBranches map[string]string
 
 //
 // Running and listing diffs has a non-trivial performance impact.
@@ -29,22 +29,19 @@ var fetchedBranches map[string][]byte
 var evaluatedDiffs map[string][]string
 
 func init() {
-	fetchedBranches = map[string][]byte{}
+	fetchedBranches = map[string]string{}
 	evaluatedDiffs = map[string][]string{}
 }
 
-func Fetch(name string) ([]byte, error) {
+func Fetch(name string) (string, error) {
 	if output, ok := fetchedBranches[name]; ok {
 		return output, nil
 	}
 
-	flags := []string{"fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", name, name)}
-	consolelogger.Infof("Running git %s\n", strings.Join(flags, " "))
-
-	output, err := exec.Command("git", flags...).CombinedOutput()
+	output, err := run("fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", name, name))
 	if err != nil {
 		consolelogger.Infof("Git failed with %s\n", err.Error())
-		consolelogger.Info(string(output))
+		consolelogger.Info(output)
 
 		return output, err
 	}
@@ -58,26 +55,26 @@ func Diff(commitRange string) ([]string, string, error) {
 		return difflines, "", nil
 	}
 
-	flags := []string{"diff", "--name-only", commitRange}
-	consolelogger.Infof("Running git %s\n", strings.Join(flags, " "))
-
-	bytes, err := exec.Command("git", flags...).CombinedOutput()
+	output, err := run("diff", "--name-only", commitRange)
 	if err != nil {
 		consolelogger.Infof("Git failed with %s\n", err.Error())
-		consolelogger.Info(string(bytes))
+		consolelogger.Info(output)
 
-		return []string{}, string(bytes), err
+		return []string{}, output, err
 	}
 
-	difflines := strings.Split(strings.TrimSpace(string(bytes)), "\n")
+	difflines := strings.Split(strings.TrimSpace(output), "\n")
 
 	evaluatedDiffs[commitRange] = difflines
 	return difflines, "", nil
 }
 
-func Unshallow(defaultBranch string) error {
-	for {
-		if canResolveMergeBase() {
+const MaxUnshallowIterations = 100
+const DeepeningPerCycle = 100 // commits
+
+func Unshallow(commitRange string) error {
+	for i := 0; i < MaxUnshallowIterations; i++ {
+		if canResolveCommitRnage(commitRange) {
 			return nil
 		}
 
@@ -86,15 +83,12 @@ func Unshallow(defaultBranch string) error {
 			return err
 		}
 	}
+
+	return fmt.Errorf("commit range %s is not resolvable", commitRange)
 }
 
-const DeepeningPerCycle = 100 // commits
-
 func deepen() error {
-	flags := []string{"fetch", "origin", "--deepen", strconv.Itoa(DeepeningPerCycle)}
-	consolelogger.Infof("Running git %s\n", strings.Join(flags, " "))
-
-	output, err := exec.Command("git", flags...).CombinedOutput()
+	output, err := run("fetch", "origin", "--deepen", strconv.Itoa(DeepeningPerCycle))
 	if err != nil {
 		consolelogger.Infof("Git failed with %s\n", err.Error())
 		consolelogger.Info(string(output))
@@ -105,11 +99,18 @@ func deepen() error {
 	return err
 }
 
-func canResolveMergeBase() bool {
-	flags := []string{"show-branch", "--merge-base"}
-	consolelogger.Infof("Running git %s\n", strings.Join(flags, " "))
-
-	err := exec.Command("git", flags...).Run()
+func canResolveCommitRnage(commitRange string) bool {
+	output, err := run("diff", "--shortstat", commitRange)
+	if err != nil {
+		consolelogger.Info(string(output))
+	}
 
 	return err == nil
+}
+
+func run(args ...string) (string, error) {
+	consolelogger.Infof("Running git %s\n", strings.Join(args, " "))
+
+	output, err := exec.Command("git", args...).CombinedOutput()
+	return string(output), err
 }
