@@ -117,7 +117,7 @@ func (e *evaluator) FetchBranches() error {
 
 		result, err := git.Fetch(pullRequestBranch)
 		if err != nil {
-			return e.ParseFetchError(pullRequestBranch, string(result), err)
+			return e.ParseFetchError(pullRequestBranch, result, err)
 		}
 	}
 
@@ -125,10 +125,10 @@ func (e *evaluator) FetchBranches() error {
 
 	output, err := git.Fetch(base)
 	if err != nil {
-		return e.ParseFetchError(base, string(output), err)
+		return e.ParseFetchError(base, output, err)
 	}
 
-	return e.ParseFetchError(base, string(output), err)
+	return e.ParseFetchError(base, output, err)
 }
 
 func (e *evaluator) ParseFetchError(name string, output string, err error) error {
@@ -145,6 +145,11 @@ func (e *evaluator) ParseFetchError(name string, output string, err error) error
 }
 
 func (e *evaluator) LoadDiffList() ([]string, error) {
+	err := git.Unshallow(e.CommitRange())
+	if err != nil {
+		return []string{}, nil
+	}
+
 	list, _, err := git.Diff(e.CommitRange())
 	if err != nil {
 		return list, err

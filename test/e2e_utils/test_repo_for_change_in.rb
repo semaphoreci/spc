@@ -91,7 +91,7 @@ class TestRepoForChangeIn
     clone_path = "/tmp/test-repo"
 
     system "rm -rf #{clone_path}"
-    system "git clone #{@path} --branch #{options[:branch]} #{clone_path}"
+    system "git clone file:///#{@path} --depth 10 --branch #{options[:branch]} #{clone_path}"
 
     repo = TestRepoForChangeIn.new(clone_path)
 
