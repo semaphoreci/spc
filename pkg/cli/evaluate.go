@@ -34,6 +34,9 @@ var evaluateChangeInCmd = &cobra.Command{
 		ppl, err := pipelines.LoadFromFile(input)
 		check(err)
 
+		err = ppl.SubstituteEnvVarsInDockerImages()
+		check(err)
+
 		err = ppl.EvaluateChangeIns()
 		check(err)
 
