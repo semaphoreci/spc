@@ -9,6 +9,9 @@ name: Test
 agent:
   machine:
     type: e1-standard-2
+  containers:
+    - name: main
+      image: "dev-env-$SEMAPHORE_GIT_COMMIT_SHA"
 
 blocks:
   # Build docker image in a Linux VM
@@ -58,6 +61,9 @@ name: Test
 agent:
   machine:
     type: e1-standard-2
+  containers:
+    - name: main
+      image: "dev-env-055556799236d27ab754b503f2acad3e9a29350f"
 
 blocks:
   # Build docker image in a Linux VM

@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"encoding/json"
+	"os"
 	"strconv"
 	"time"
 
@@ -25,43 +26,53 @@ func (p *Pipeline) UpdateString(path []string, value string) error {
 	return err
 }
 
+func (p *Pipeline) GetStringValueFrom(path []string) (string, bool) {
+	val, ok := p.raw.Search(path...).Data().(string)
+	return val, ok
+}
+
 func (p *Pipeline) EvaluateChangeIns() error {
 	return newWhenEvaluator(p).Run()
 }
 
 func (p *Pipeline) SubstituteEnvVarsInDockerImages() error {
-	consolelogger.Infof("Substituting aaaa\n")
+	consolelogger.Info("Expanding environment variables in YAML file")
+	consolelogger.EmptyLine()
 
 	containers := p.raw.Search("agent", "containers").Children()
 
 	for containerIndex := range containers {
-		consolelogger.Infof("Substituting bbb\n")
-
 		path := []string{"agent", "containers", strconv.Itoa(containerIndex), "image"}
-		newValue := "hello"
 
-		p.UpdateString(path, newValue)
+		p.expandEnvIfExists(path)
 	}
 
 	for blockIndex := range p.Blocks() {
-		consolelogger.Infof("Substituting ccc\n")
-
 		path := []string{"blocks", strconv.Itoa(blockIndex), "agent", "containers"}
 
 		containers := p.raw.Search(path...).Children()
 
 		for containerIndex := range containers {
-			consolelogger.Infof("Substituting %d", containerIndex)
-
 			path := append(path, []string{strconv.Itoa(containerIndex), "image"}...)
 
-			newValue := "hello"
-
-			p.UpdateString(path, newValue)
+			p.expandEnvIfExists(path)
 		}
 	}
 
 	return nil
+}
+
+func (p *Pipeline) expandEnvIfExists(path []string) {
+	if value, ok := p.GetStringValueFrom(path); ok {
+		newValue := os.ExpandEnv(value)
+
+		consolelogger.Infof("Expanding env vars in %+v\n", path)
+		consolelogger.Infof("Original: '%s'\n", value)
+		consolelogger.Infof("Expanded: '%s'\n", newValue)
+		consolelogger.EmptyLine()
+
+		p.UpdateString(path, newValue)
+	}
 }
 
 func (p *Pipeline) Blocks() []*gabs.Container {
