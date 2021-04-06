@@ -55,7 +55,7 @@ func (e *whenEvaluator) Run() error {
 
 func (e *whenEvaluator) updatePipeline() error {
 	for index := range e.results {
-		err := e.pipeline.UpdateString(e.list[index].Path, e.results[index])
+		err := e.pipeline.UpdateWhenExpression(e.list[index].Path, e.results[index])
 
 		if err != nil {
 			return err
