@@ -12,9 +12,6 @@ global_job_config:
       - export GO111MODULE=on
       - export GOPATH=~/go
       - 'export PATH=/home/semaphore/go/bin:$PATH'
-      - curl -LO https://github.com/renderedtext/when/releases/download/v0.0.3-alpha/when
-      - sudo mv when /usr/local/bin/when
-      - sudo chmod +x /usr/local/bin/when
       - checkout
       - go get ./...
 
@@ -76,6 +73,10 @@ blocks:
           commands:
             - make build
             - make e2e TEST=$TEST_FILE
+      epilogue:
+        always:
+          commands:
+            - test-results publish /tmp/junit.xml
 
 promotions:
   - name: "Release on Github"
