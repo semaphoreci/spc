@@ -182,6 +182,11 @@ func (p *parser) BranchRange(defaultBranch string) (string, error) {
 		return "", err
 	}
 
+	if found && branchRange == "$SEMAPHORE_GIT_COMMIT_RANGE" {
+		branchRange = p.fetchCommitRange(defaultBranch)
+		return branchRange, nil
+	}
+
 	if !found {
 		branchRange = "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_GIT_SHA"
 	}

@@ -26,6 +26,10 @@ blocks:
   - name: Test4
     run:
       when: "branch = 'master' and change_in(['/lib', 'log.txt'], {branch_range: 'dev...$SEMAPHORE_GIT_SHA'})"
+
+  - name: Test5
+    run:
+      when: "branch = 'master' and change_in(['/lib'], {branch_range: '$SEMAPHORE_GIT_COMMIT_RANGE'})"
 }
 
 origin = TestRepoForChangeIn.setup()
@@ -72,6 +76,10 @@ blocks:
       when: "(branch = 'master') and false"
 
   - name: Test4
+    run:
+      when: "(branch = 'master') and true"
+
+  - name: Test5
     run:
       when: "(branch = 'master') and true"
 }))
