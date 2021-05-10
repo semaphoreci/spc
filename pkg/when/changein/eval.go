@@ -77,6 +77,10 @@ func (e *evaluator) runningOnDefaultBranch() bool {
 	return environment.CurrentBranch() == e.function.DefaultBranch
 }
 
+func (e *evaluator) isBaseCommitSha() bool {
+	return e.function.BaseIsCommitSha
+}
+
 func (e *evaluator) CommitRangeBase() string {
 	var splitAt string
 
@@ -106,7 +110,7 @@ func (e *evaluator) CommitRangeHead() string {
 }
 
 func (e *evaluator) FetchBranches() error {
-	if e.runningOnDefaultBranch() || e.isForkedPullRequest() {
+	if e.runningOnDefaultBranch() || e.isForkedPullRequest() || e.isBaseCommitSha() {
 		// We don't need to fetch any branch, we are evaluating the
 		// change in on the current branch.
 		return nil

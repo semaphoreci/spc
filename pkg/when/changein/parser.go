@@ -59,7 +59,7 @@ func (p *parser) parse() (*Function, error) {
 		return nil, err
 	}
 
-	branchRange, err := p.BranchRange(defaultBranch)
+	branchRange, baseIsCommitSha, err := p.BranchRange(defaultBranch)
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +87,7 @@ func (p *parser) parse() (*Function, error) {
 		BranchRange:            branchRange,
 		PullRequestRange:       pullRequestRange,
 		ForkedPullRequestRange: forkedPullRequestRange,
+		BaseIsCommitSha:        baseIsCommitSha,
 	}, nil
 }
 
@@ -176,15 +177,15 @@ func (p *parser) DefaultRange(defaultBranch string) (string, error) {
 
 }
 
-func (p *parser) BranchRange(defaultBranch string) (string, error) {
+func (p *parser) BranchRange(defaultBranch string) (string, bool, error) {
 	branchRange, found, err := p.getStringParam("branch_range")
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
 	if found && branchRange == "$SEMAPHORE_GIT_COMMIT_RANGE" {
 		branchRange = p.fetchCommitRange(defaultBranch)
-		return branchRange, nil
+		return branchRange, true, nil
 	}
 
 	if !found {
@@ -194,7 +195,7 @@ func (p *parser) BranchRange(defaultBranch string) (string, error) {
 	branchRange = strings.ReplaceAll(branchRange, "$SEMAPHORE_MERGE_BASE", defaultBranch)
 	branchRange = strings.ReplaceAll(branchRange, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
 
-	return branchRange, nil
+	return branchRange, false, nil
 }
 
 func (p *parser) PullRequestRange() string {

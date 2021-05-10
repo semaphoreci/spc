@@ -19,6 +19,7 @@ type Function struct {
 	BranchRange            string
 	PullRequestRange       string
 	ForkedPullRequestRange string
+	BaseIsCommitSha        bool
 }
 
 func (f *Function) HasMatchesInDiffList(diffList []string) bool {
