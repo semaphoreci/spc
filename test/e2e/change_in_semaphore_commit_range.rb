@@ -13,19 +13,15 @@ agent:
 blocks:
   - name: Test
     run:
-      when: "branch = 'master' and change_in('/app')"
+      when: "change_in('/app')"
 
   - name: Test2
     run:
-      when: "branch = 'master' and change_in('/lib', {branch_range: '$SEMAPHORE_MERGE_BASE...$SEMAPHORE_GIT_SHA'})"
+      when: "change_in('/lib')"
 
   - name: Test3
     run:
-      when: "branch = 'master' and change_in('/app', {branch_range: 'dev...$SEMAPHORE_GIT_SHA'})"
-
-  - name: Test4
-    run:
-      when: "branch = 'master' and change_in(['/lib', 'log.txt'], {branch_range: 'dev...$SEMAPHORE_GIT_SHA'})"
+      when: "change_in(['/lib'], {branch_range: '$SEMAPHORE_GIT_COMMIT_RANGE'})"
 }
 
 origin = TestRepoForChangeIn.setup()
@@ -33,17 +29,17 @@ origin = TestRepoForChangeIn.setup()
 origin.add_file('.semaphore/semaphore.yml', pipeline)
 origin.commit!("Bootstrap")
 
+origin.add_file("lib/a.yml", "hello")
+origin.commit!("Bootstrap lib")
+
 origin.create_branch("dev")
 origin.add_file("app/a.yml", "hello")
 origin.commit!("Bootstrap app")
 
-origin.create_branch("feature-1")
-origin.add_file("lib/a.yml", "hello")
-origin.commit!("Bootstrap lib")
-
-repo = origin.clone_local_copy(branch: "feature-1")
+repo = origin.clone_local_copy(branch: "dev")
 repo.run(%{
   export SEMAPHORE_GIT_SHA=$(git rev-parse HEAD)
+  export SEMAPHORE_GIT_COMMIT_RANGE=$(git rev-parse HEAD~2)...$(git rev-parse HEAD~1)
 
   #{spc} evaluate change-in \
      --input .semaphore/semaphore.yml \
@@ -61,17 +57,13 @@ agent:
 blocks:
   - name: Test
     run:
-      when: "(branch = 'master') and true"
+      when: "true"
 
   - name: Test2
     run:
-      when: "(branch = 'master') and true"
+      when: "false"
 
   - name: Test3
     run:
-      when: "(branch = 'master') and false"
-
-  - name: Test4
-    run:
-      when: "(branch = 'master') and true"
+      when: "true"
 }))
