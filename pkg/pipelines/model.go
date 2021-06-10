@@ -17,7 +17,7 @@ func n() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func (p *Pipeline) UpdateWhenExpression(path []string, value string) error {
+func (p *Pipeline) UpdateField(path []string, value string) error {
 	_, err := p.raw.Set(value, path...)
 
 	return err
@@ -41,6 +41,10 @@ func (p *Pipeline) PathExists(path []string) bool {
 
 func (p *Pipeline) GlobalPriorityRules() []*gabs.Container {
 	return p.raw.Search("global_job_config", "priority").Children()
+}
+
+func (p *Pipeline) GlobalSecrets() []*gabs.Container {
+	return p.raw.Search("global_job_config", "secrets").Children()
 }
 
 func (p *Pipeline) QueueRules() []*gabs.Container {
