@@ -7,8 +7,10 @@ import (
 	assert "github.com/stretchr/testify/assert"
 )
 
+const Foo string = "Foo"
+
 func Test__Substitute(t *testing.T) {
-	os.Setenv("TEST_VAL_1", "Foo")
+	os.Setenv("TEST_VAL_1", Foo)
 	os.Setenv("TEST_VAL_2", "Bar")
 	os.Setenv("TEST_VAL_3", "Baz")
 
@@ -23,17 +25,17 @@ func Test__Substitute(t *testing.T) {
 	exp.Expression = "${{parameters.TEST_VAL_1}}"
 	err := exp.Substitute()
 	assert.Nil(t, err)
-	assert.Equal(t, "Foo", exp.Value)
+	assert.Equal(t, Foo, exp.Value)
 
 	exp.Expression = "${{  parameters.TEST_VAL_1}}"
 	err = exp.Substitute()
 	assert.Nil(t, err)
-	assert.Equal(t, "Foo", exp.Value)
+	assert.Equal(t, Foo, exp.Value)
 
 	exp.Expression = "${{  parameters.TEST_VAL_1  }}"
 	err = exp.Substitute()
 	assert.Nil(t, err)
-	assert.Equal(t, "Foo", exp.Value)
+	assert.Equal(t, Foo, exp.Value)
 
 	// Text before and after  params expression
 

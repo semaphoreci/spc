@@ -87,21 +87,21 @@ func Test__Run(t *testing.T) {
 	err = e.Run()
 	assert.Nil(t, err)
 
-	yaml_result, er := e.pipeline.ToYAML()
+	yamlResult, er := e.pipeline.ToYAML()
 	assert.Nil(t, er)
-	fmt.Printf("%s\n", yaml_result)
+	fmt.Printf("%s\n", yamlResult)
 
-	assert_value_on_path(t, e, []string{"name"}, "Deploy to prod on server_1")
-	assert_value_on_path(t, e, []string{"queue", "0", "name"}, "prod_deployment_queue")
-	assert_value_on_path(t, e, []string{"queue", "1", "name"}, "MISSING_queue")
-	assert_value_on_path(t, e, []string{"global_job_config", "secrets", "0", "name"}, "prod_deploy_key")
-	assert_value_on_path(t, e, []string{"blocks", "0", "task", "secrets", "0", "name"}, "prod_dockerhub")
-	assert_value_on_path(t, e, []string{"blocks", "0", "task", "secrets", "1", "name"}, "prod_ecr")
-	assert_value_on_path(t, e, []string{"blocks", "1", "task", "secrets", "0", "name"}, "prod_deploy_key")
-	assert_value_on_path(t, e, []string{"blocks", "1", "task", "secrets", "1", "name"}, "prod_aws_creds")
+	assertValueOnPath(t, e, []string{"name"}, "Deploy to prod on server_1")
+	assertValueOnPath(t, e, []string{"queue", "0", "name"}, "prod_deployment_queue")
+	assertValueOnPath(t, e, []string{"queue", "1", "name"}, "MISSING_queue")
+	assertValueOnPath(t, e, []string{"global_job_config", "secrets", "0", "name"}, "prod_deploy_key")
+	assertValueOnPath(t, e, []string{"blocks", "0", "task", "secrets", "0", "name"}, "prod_dockerhub")
+	assertValueOnPath(t, e, []string{"blocks", "0", "task", "secrets", "1", "name"}, "prod_ecr")
+	assertValueOnPath(t, e, []string{"blocks", "1", "task", "secrets", "0", "name"}, "prod_deploy_key")
+	assertValueOnPath(t, e, []string{"blocks", "1", "task", "secrets", "1", "name"}, "prod_aws_creds")
 }
 
-func assert_value_on_path(t *testing.T, e *parametersEvaluator, path []string, value string) {
+func assertValueOnPath(t *testing.T, e *parametersEvaluator, path []string, value string) {
 	field, ok := e.pipeline.raw.Search(path...).Data().(string)
 	if !ok {
 		assert.Equal(t, "Invalid value after parsing at", path)

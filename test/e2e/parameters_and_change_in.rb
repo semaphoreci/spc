@@ -113,30 +113,30 @@ agent:
 
 fail_fast:
   cancel:
-when: "branch = 'master' and true"
+    when: "(branch = 'master') and true"
   stop:
-when: "branch = 'master' and false"
+    when: "(branch = 'master') and false"
 
 auto_cancel:
   queued:
-when: "branch = 'master' and true"
+    when: "(branch = 'master') and true"
   running:
-when: "branch = 'master' and false"
+    when: "(branch = 'master') and false"
 
 global_job_config:
   priority:
     - value: 1
-  when: "branch = 'master' and true"
+      when: "(branch = 'master') and true"
   secrets:
     - name: "prod_github"
     - name: "github_key"
 
 queue:
   - name: "prod_deployment_queue"
-    when: "branch = 'master' and true"
+    when: "(branch = 'master') and true"
 
   - name: "MISSING_queue"
-    when: "branch = 'master' and false"
+    when: "(branch = 'master') and false"
 
   - name: "default_queue"
     when: true
@@ -144,7 +144,7 @@ queue:
 blocks:
   - name: Build and push image
     skip:
-      when: "branch = 'master' and true"
+      when: "(branch = 'master') and true"
     task:
       secrets:
         - name: prod_dockerhub
@@ -153,14 +153,14 @@ blocks:
         - name: Build & Push
           priority:
             - value: 1
-              when: "branch = 'master' and true"
+              when: "(branch = 'master') and true"
           commands:
             - make build
             - make push
 
   - name: Deploy image
     run :
-      when: "branch = 'master' and false"
+      when: "(branch = 'master') and false"
     task:
       secrets:
         - name: prod_deploy_key
@@ -173,5 +173,5 @@ blocks:
 promotions:
   - name: Performance tests
     auto_promote:
-      when: "branch = 'master' and true"
+      when: "(branch = 'master') and true"
 }))
