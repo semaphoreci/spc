@@ -77,7 +77,7 @@ repo.create_branch("client-changes")
 repo.add_file("client/app.js", "hello hello")
 repo.commit!("Change things in the client")
 
-repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
+repo.run("#{spc} compile --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
 
 assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
@@ -105,7 +105,7 @@ repo.create_branch("backend-changes")
 repo.add_file("config.txt", "hello hello")
 repo.commit!("Change things in the backend")
 
-repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
+repo.run("#{spc} compile --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
 
 assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
@@ -134,7 +134,7 @@ repo.add_file("client/app.txt", "hello hello")
 repo.add_file("config.txt", "hello hello")
 repo.commit!("Change things in both places")
 
-repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
+repo.run("#{spc} compile --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
 
 assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0

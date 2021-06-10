@@ -27,6 +27,10 @@ func (p *Pipeline) EvaluateChangeIns() error {
 	return newWhenEvaluator(p).Run()
 }
 
+func (p *Pipeline) EvaluateParameters() error {
+	return newParametersEvaluator(p).Run()
+}
+
 func (p *Pipeline) Blocks() []*gabs.Container {
 	return p.raw.Search("blocks").Children()
 }

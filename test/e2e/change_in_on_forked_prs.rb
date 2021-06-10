@@ -73,7 +73,7 @@ repo.run(%{
   git fetch origin +refs/heads/forked-branch:refs/heads/forked-branch
 
 
-  #{spc} evaluate change-in \
+  #{spc} compile \
      --input .semaphore/semaphore.yml \
      --output /tmp/output.yml \
      --logs /tmp/logs.yml

@@ -120,7 +120,7 @@ func (e *parametersEvaluator) displayFound() {
 }
 
 func (e *parametersEvaluator) substituteValues() error {
-	consolelogger.Infof("Substituting parameters with their values .\n")
+	consolelogger.Infof("Substituting parameters with their values.\n")
 	consolelogger.EmptyLine()
 
 	for index, item := range e.list {
