@@ -1,8 +1,8 @@
 # rubocop:disable all
 
 #
-# This test verifies if the compiler is able to recognize and
-# process all locations where a change_in expression can appear.
+# This test verifies that copiler can process all possible locations for both the
+# parameters and changs in the same yaml file.
 #
 
 require_relative "../e2e"
@@ -10,7 +10,7 @@ require 'yaml'
 
 pipeline = %{
 version: v1.0
-name: Test
+name: "Deploy to ${{parameters.SERVICE}} to ${{parameters.DEPLOY_ENV}}"
 agent:
   machine:
     type: e1-standard-2
@@ -27,56 +27,55 @@ auto_cancel:
   running:
     when: "branch = 'master' and change_in('/app')"
 
-queue:
-  - name: test
-    when: "branch = 'master' and change_in('/lib')"
-
-  - name: test2
-    when: "branch = 'master' and change_in('/app')"
-
 global_job_config:
   priority:
     - value: 1
       when: "branch = 'master' and change_in('/lib')"
+  secrets:
+    - name: "${{parameters.DEPLOY_ENV}}_github"
+    - name: "github_key"
 
-    - value: 10
-      when: "branch = 'master' and change_in('/lib')"
+queue:
+  - name: "${{parameters.DEPLOY_ENV}}_deployment_queue"
+    when: "branch = 'master' and change_in('/lib')"
+
+  - name: "${{parameters.MISSING}}_queue"
+    when: "branch = 'master' and change_in('/app')"
+
+  - name: "default_queue"
+    when: true
 
 blocks:
-  - name: Test
+  - name: Build and push image
     skip:
       when: "branch = 'master' and change_in('/lib')"
     task:
+      secrets:
+        - name: ${{parameters.DEPLOY_ENV}}_dockerhub
+        - name: ${{parameters.DEPLOY_ENV}}_ecr
       jobs:
-        - name: Hello
-          commands:
-            - echo "Hello World"
+        - name: Build & Push
           priority:
             - value: 1
               when: "branch = 'master' and change_in('/lib')"
+          commands:
+            - make build
+            - make push
 
-            - value: 10
-              when: "branch = 'master' and change_in('/lib')"
-
-  - name: Test2
+  - name: Deploy image
     run :
       when: "branch = 'master' and change_in('/app')"
     task:
+      secrets:
+        - name: ${{parameters.DEPLOY_ENV}}_deploy_key
+        - name: ${{parameters.DEPLOY_ENV}}_aws_creds
       jobs:
-        - name: Hello
+        - name: Deploy
           commands:
-            - echo "Hello World"
+            - make deploy
 
 promotions:
-  - name: Staging
-    auto_promote:
-      when: "branch = 'master' and change_in('/lib')"
-
-  - name: Staging2
-    auto_promote:
-      when: "branch = 'master' and change_in('/lib')"
-
-  - name: Staging3
+  - name: Performance tests
     auto_promote:
       when: "branch = 'master' and change_in('/lib')"
 }
@@ -94,12 +93,20 @@ origin.add_file("lib/B.txt", "hello")
 origin.commit!("Changes in dev")
 
 repo = origin.clone_local_copy(branch: "dev")
-repo.list_branches
-repo.run("#{spc} compile --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
+
+repo.run(%{
+  export SERVICE=web_server
+  export DEPLOY_ENV=prod
+
+  #{spc} compile \
+     --input .semaphore/semaphore.yml \
+     --output /tmp/output.yml \
+     --logs /tmp/logs.yml
+})
 
 assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0
-name: Test
+name: "Deploy to web_server to prod"
 agent:
   machine:
     type: e1-standard-2
@@ -116,55 +123,55 @@ auto_cancel:
   running:
     when: "(branch = 'master') and false"
 
-queue:
-  - name: test
-    when: "(branch = 'master') and true"
-
-  - name: test2
-    when: "(branch = 'master') and false"
-
 global_job_config:
   priority:
     - value: 1
       when: "(branch = 'master') and true"
+  secrets:
+    - name: "prod_github"
+    - name: "github_key"
 
-    - value: 10
-      when: "(branch = 'master') and true"
+queue:
+  - name: "prod_deployment_queue"
+    when: "(branch = 'master') and true"
+
+  - name: "MISSING_queue"
+    when: "(branch = 'master') and false"
+
+  - name: "default_queue"
+    when: true
 
 blocks:
-  - name: Test
+  - name: Build and push image
     skip:
       when: "(branch = 'master') and true"
     task:
+      secrets:
+        - name: prod_dockerhub
+        - name: prod_ecr
       jobs:
-        - name: Hello
-          commands:
-            - echo "Hello World"
+        - name: Build & Push
           priority:
             - value: 1
               when: "(branch = 'master') and true"
-            - value: 10
-              when: "(branch = 'master') and true"
+          commands:
+            - make build
+            - make push
 
-  - name: Test2
+  - name: Deploy image
     run :
       when: "(branch = 'master') and false"
     task:
+      secrets:
+        - name: prod_deploy_key
+        - name: prod_aws_creds
       jobs:
-        - name: Hello
+        - name: Deploy
           commands:
-            - echo "Hello World"
+            - make deploy
 
 promotions:
-  - name: Staging
-    auto_promote:
-      when: "(branch = 'master') and true"
-
-  - name: Staging2
-    auto_promote:
-      when: "(branch = 'master') and true"
-
-  - name: Staging3
+  - name: Performance tests
     auto_promote:
       when: "(branch = 'master') and true"
 }))

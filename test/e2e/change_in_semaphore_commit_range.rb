@@ -42,7 +42,7 @@ repo.run(%{
   export SEMAPHORE_GIT_COMMIT_RANGE=$(git rev-parse HEAD~2)...$(git rev-parse HEAD~1)
   echo "SEMAPHORE_GIT_COMMIT_RANGE: $SEMAPHORE_GIT_COMMIT_RANGE"
 
-  #{spc} evaluate change-in \
+  #{spc} compile \
      --input .semaphore/semaphore.yml \
      --output /tmp/output.yml \
      --logs /tmp/logs.yml

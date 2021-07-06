@@ -25,7 +25,7 @@ gen.pipeline.models:
 # Utility targets for testing out the cli.
 
 dev.run.change-in:
-	make build && ./build/cli evaluate change-in --input "test/fixtures/hello.yml" --output "/tmp/hello.yml.compiled" --logs "/tmp/logs.jsonl"
+	make build && ./build/cli compile --input "test/fixtures/hello.yml" --output "/tmp/hello.yml.compiled" --logs "/tmp/logs.jsonl"
 
 test:
 	gotestsum --format short-verbose

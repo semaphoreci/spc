@@ -69,7 +69,7 @@ repo.run(%{
   export SEMAPHORE_GIT_BRANCH=master
   export SEMAPHORE_GIT_PR_BRANCH=dev
 
-  #{spc} evaluate change-in \
+  #{spc} compile \
      --input .semaphore/semaphore.yml \
      --output /tmp/output.yml \
      --logs /tmp/logs.yml

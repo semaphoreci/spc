@@ -63,7 +63,7 @@ repo.run(%{
   echo "Passing $SEMAPHORE_GIT_COMMIT_RANGE to the compiler"
   echo ""
 
-  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
+  #{spc} compile --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
 })
 
 assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{

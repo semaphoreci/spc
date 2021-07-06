@@ -55,7 +55,7 @@ origin.add_file("app/C.txt", "hello")
 origin.commit!("Changes in dev")
 
 repo = origin.clone_local_copy(branch: "dev")
-repo.run("#{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
+repo.run("#{spc} compile --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml")
 
 assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
 version: v1.0

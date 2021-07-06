@@ -1,0 +1,27 @@
+version: v1.0
+
+name: "Deploy to ${{parameters.DEPLOY_ENV}} on ${{parameters.SERVER}}"
+
+global_job_config:
+  secrets:
+    - name: "${{parameters.DEPLOY_ENV}}_deploy_key"
+    - name: "github_key"
+
+
+queue:
+  - name: "${{parameters.DEPLOY_ENV}}_deployment_queue"
+  - name: "${{parameters.MISSING}}_queue"
+  - name: "default_queue"
+
+blocks:
+  - name: Build and push image
+    task:
+      secrets:
+        - name: ${{parameters.DEPLOY_ENV}}_dockerhub
+        - name: ${{parameters.DEPLOY_ENV}}_ecr
+
+  - name: Deploy image
+    task:
+      secrets:
+        - name: ${{parameters.DEPLOY_ENV}}_deploy_key
+        - name: ${{parameters.DEPLOY_ENV}}_aws_creds

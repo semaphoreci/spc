@@ -77,7 +77,7 @@ repo = origin.clone_local_copy(branch: "dev")
 repo.run(%{
   export SEMAPHORE_GIT_REF_TYPE=tag
 
-  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
+  #{spc} compile --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
 })
 
 assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{
@@ -119,7 +119,7 @@ blocks:
 repo.run(%{
   export SEMAPHORE_GIT_REF_TYPE=branch
 
-  #{spc} evaluate change-in --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
+  #{spc} compile --input .semaphore/semaphore.yml --output /tmp/output.yml --logs /tmp/logs.yml
 })
 
 assert_eq(YAML.load_file('/tmp/output.yml'), YAML.load(%{

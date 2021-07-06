@@ -45,7 +45,7 @@ repo = origin.clone_local_copy(branch: "feature-1")
 repo.run(%{
   export SEMAPHORE_GIT_SHA=$(git rev-parse HEAD)
 
-  #{spc} evaluate change-in \
+  #{spc} compile \
      --input .semaphore/semaphore.yml \
      --output /tmp/output.yml \
      --logs /tmp/logs.yml
