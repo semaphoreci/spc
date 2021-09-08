@@ -26,6 +26,10 @@ blocks:
   - name: Test4
     run:
       when: "branch = 'master' and change_in(['/lib', 'log.txt'], {branch_range: 'dev...$SEMAPHORE_GIT_SHA'})"
+
+  - name: Test5
+    run:
+      when: "branch = 'master' and change_in(['/lib'], {branch_range: '$SEMAPHORE_GIT_SHA^...$SEMAPHORE_GIT_SHA'})"
 }
 
 origin = TestRepoForChangeIn.setup()
@@ -44,6 +48,7 @@ origin.commit!("Bootstrap lib")
 repo = origin.clone_local_copy(branch: "feature-1")
 repo.run(%{
   export SEMAPHORE_GIT_SHA=$(git rev-parse HEAD)
+  export SEMAPHORE_GIT_BRANCH=feature-1
 
   #{spc} compile \
      --input .semaphore/semaphore.yml \
@@ -72,6 +77,10 @@ blocks:
       when: "(branch = 'master') and false"
 
   - name: Test4
+    run:
+      when: "(branch = 'master') and true"
+
+  - name: Test5
     run:
       when: "(branch = 'master') and true"
 }))
