@@ -188,6 +188,11 @@ func (p *parser) BranchRange(defaultBranch string) (string, bool, error) {
 		return branchRange, true, nil
 	}
 
+	if found && branchRange == "$SEMAPHORE_GIT_SHA^...$SEMAPHORE_GIT_SHA" {
+		branchRange = strings.ReplaceAll(branchRange, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
+		return branchRange, true, nil
+	}
+
 	if !found {
 		branchRange = "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_GIT_SHA"
 	}
