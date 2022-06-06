@@ -69,7 +69,7 @@ func (w *WhenExpression) EvalFunction(input *gabs.Container) (bool, error) {
 		return false, err
 	}
 
-	return changein.Eval(fun)
+	return fun.Eval()
 }
 
 func (w *WhenExpression) functionName(input *gabs.Container) string {

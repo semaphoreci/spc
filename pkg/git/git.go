@@ -70,10 +70,24 @@ func Diff(commitRange string) ([]string, string, error) {
 	return difflines, "", nil
 }
 
+func DiffList(commitRange string) ([]string, error) {
+	err := unshallow(commitRange)
+	if err != nil {
+		return []string{}, nil
+	}
+
+	list, _, err := Diff(commitRange)
+	if err != nil {
+		return list, err
+	}
+
+	return list, nil
+}
+
 const MaxUnshallowIterations = 10
 const InitialDeepenBy = 100
 
-func Unshallow(commitRange string) error {
+func unshallow(commitRange string) error {
 	for i := 0; i < MaxUnshallowIterations; i++ {
 		if canResolveCommitRnage(commitRange) {
 			return nil
