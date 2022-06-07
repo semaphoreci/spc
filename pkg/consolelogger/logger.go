@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+var Enabled = true
 var nesting = 0
 
 func EmptyLine() {
@@ -12,17 +13,23 @@ func EmptyLine() {
 }
 
 func Info(msg string) {
-	for _, line := range strings.Split(msg, "\n") {
-		fmt.Println(nestPadding() + line)
+	if Enabled {
+		for _, line := range strings.Split(msg, "\n") {
+			fmt.Println(nestPadding() + line)
+		}
 	}
 }
 
 func InfoNumberListLn(num int, msg string) {
-	fmt.Printf("%03d | %s\n", num, msg)
+	if Enabled {
+		fmt.Printf("%03d | %s\n", num, msg)
+	}
 }
 
 func Infof(msg string, attr ...interface{}) {
-	fmt.Printf(nestPadding()+msg, attr...)
+	if Enabled {
+		fmt.Printf(nestPadding()+msg, attr...)
+	}
 }
 
 func IncrementNesting() {
