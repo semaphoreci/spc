@@ -7,11 +7,11 @@ import (
 	env "github.com/semaphoreci/spc/pkg/environment"
 )
 
-const ImplicitBranchRange = "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_GIT_SHA"
-const ImplicitDefaultBranch = "master"
+const implicitBranchRange = "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_GIT_SHA"
+const implicitDefaultBranch = "master"
 
-const ThreeDots = "..."
-const TwoDots = ".."
+const threeDots = "..."
+const twoDots = ".."
 
 type GitSettings struct {
 	DefaultBranch string
@@ -28,11 +28,11 @@ func NewGitSettings(
 ) *GitSettings {
 
 	if branchRange == "" {
-		branchRange = ImplicitBranchRange
+		branchRange = implicitBranchRange
 	}
 
 	if defaultBranch == "" {
-		defaultBranch = ImplicitDefaultBranch
+		defaultBranch = implicitDefaultBranch
 	}
 
 	if defaultRange == "" {
@@ -97,10 +97,10 @@ func commitRangeHead(commitRange string) string {
 func splitCommitRange(commitRange string) []string {
 	var splitAt string
 
-	if strings.Contains(commitRange, ThreeDots) {
-		splitAt = ThreeDots
+	if strings.Contains(commitRange, threeDots) {
+		splitAt = threeDots
 	} else {
-		splitAt = TwoDots
+		splitAt = twoDots
 	}
 
 	return strings.Split(commitRange, splitAt)
