@@ -17,7 +17,7 @@ type Function struct {
 	PathPatterns         []string
 	ExcludedPathPatterns []string
 	TrackPipelineFile    bool
-	GitSettings          *git.GitSettings
+	GitSettings          *git.DiffSet
 }
 
 func (f *Function) Eval() (bool, error) {
@@ -26,7 +26,7 @@ func (f *Function) Eval() (bool, error) {
 		return f.GitSettings.OnTags, nil
 	}
 
-	fetchNeeded, fetchTarget := f.GitSettings.IsFetchNeeded()
+	fetchNeeded, fetchTarget := f.GitSettings.IsGitFetchNeeded()
 	if fetchNeeded {
 		output, err := git.Fetch(fetchTarget)
 		err = f.parseFetchError(fetchTarget, output, err)

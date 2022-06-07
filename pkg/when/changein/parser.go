@@ -80,7 +80,7 @@ func (p *parser) PathPatterns() ([]string, error) {
 	return result, nil
 }
 
-func (p *parser) GitSettings() (*git.GitSettings, error) {
+func (p *parser) GitSettings() (*git.DiffSet, error) {
 	defaultBranch, _, err := p.getStringParam("default_branch")
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (p *parser) GitSettings() (*git.GitSettings, error) {
 		return nil, err
 	}
 
-	return git.NewGitSettings(
+	return git.NewDiffSet(
 		defaultBranch,
 		defaultRange,
 		branchRange,
