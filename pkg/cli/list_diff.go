@@ -24,7 +24,7 @@ var listDiffCmd = &cobra.Command{
 		gitDiffSet := git.NewDiffSet(defaultBranch, defaultRange, branchRange, onTags)
 
 		if gitDiffSet.IsEvaluationNeeded() {
-			fmt.Println("Running on a tag, skipping evaluation.")
+			println("Listing diffs for tags is not supported.")
 			return
 		}
 

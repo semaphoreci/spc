@@ -52,15 +52,20 @@ repo = origin.clone_local_copy(branch: "dev")
 
 repo.run(%{
   export SEMAPHORE_GIT_REF_TYPE=tag
-  #{spc} list-diff > /tmp/output.txt
+  #{spc} list-diff 1>/tmp/output.txt 2>/tmp/error.txt
 })
 
 output = File.readlines('/tmp/output.txt')
   .map { |line| line.strip }
   .reject { |line| line.empty? }
 
+error = File.readlines('/tmp/error.txt')
+  .map { |line| line.strip }
+  .reject { |line| line.empty? }
+
 assert_eq($?.exitstatus, 0)
-assert_eq(["Running on a tag, skipping evaluation."], output)
+assert_eq([], output)
+assert_eq(["Running on a tag, skipping evaluation."], error)
 
 repo.run(%{
   export SEMAPHORE_GIT_REF_TYPE=branch
