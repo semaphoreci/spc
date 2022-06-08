@@ -3,30 +3,6 @@
 require_relative "../e2e"
 require 'yaml'
 
-#
-# Change In on tags has no defined value.
-#
-# When the CI job is building a tag, there is no clear reference what is the
-# base commit to which to compare the tag.
-#
-# However, the YAML file is probably the same for tags and regular branches.
-# For this reason, the 'on_tags' parameter allows the developer to define
-# what we are going to use a replacement when a tag is run.
-#
-# For example:
-#
-#   change_in("/lib", {on_tags: true})
-#
-# Will always be true on tags. The changes won't be calculated.
-#
-# The 'true' value is also the default value of this parameter. You can also
-# set this value to 'false' with:
-#
-#   change_in("/lib", {on_tags: false})
-#
-# In which case the value will always be 'false' on tags.
-#
-
 pipeline = %{
 version: v1.0
 name: Test

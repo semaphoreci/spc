@@ -3,16 +3,6 @@
 require_relative "../e2e"
 require 'yaml'
 
-#
-# If the change_in is evaluated on the default branch, usually master branch,
-# the commit range is the one provided by the git post commit hook.
-#
-# To configure this range, a developer can pass a default_range parameter to
-# the function.
-#
-# The default value of this parameter is $SEMAPHORE_GIT_COMMIT_RANGE.
-#
-
 pipeline = %{
 version: v1.0
 name: Test
@@ -69,6 +59,3 @@ fixtures.each do |default_range, expected|
   assert_eq($?.success?, true)
   assert_eq(expected, output)
 end
-
-
-

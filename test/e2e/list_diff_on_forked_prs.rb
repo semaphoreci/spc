@@ -1,14 +1,5 @@
 # rubocop:disable all
 
-#
-# This is not a full e2e test since it is impossible to completely immitate
-# forked pull requests without GitHub.
-# Instead, this tests replicates approach from test in *change_in_on_prs.rb*
-# for testing regullar PRs but has several enivronment variables set in a way
-# to indicate to change_in that it is a forked PR and that it should use a value
-# of SEMAPHORE_GIT_COMMIT_RANGE env var as a range for git diff.
-#
-
 require_relative "../e2e"
 require 'yaml'
 
@@ -79,5 +70,3 @@ output = File.readlines('/tmp/output.txt')
 
 assert_eq($?.exitstatus, 0)
 assert_eq(["lib/a.yml"], output)
-
-

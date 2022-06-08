@@ -1,22 +1,5 @@
 # rubocop:disable all
 
-#
-# In pipelines triggered by PRs Semaphore checkouts the merge commit as a
-# detached head. That makes evaluating change_in tricky because merge commit
-# includes changes made to target branch  after the branch that is the source of
-# the PR diverged from targeted branch.
-#
-# In order to get proper changeset we need to fetch both source and target
-# branches, since target might not be master.
-# After that we can use "<target_branch>....<pr_source_branch>" as a commit
-# range for change_in since it does not include changes made to target branch
-# after the source branch diverged.
-#
-# This test simulates this state by creating repo with two branches, merging
-# them and reseting HEAD of target branch back by one so merge commit becomes
-# a detached head when it is checked out.
-#
-
 require_relative "../e2e"
 require 'yaml'
 

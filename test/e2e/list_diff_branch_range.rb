@@ -56,5 +56,3 @@ fixtures.each do |branch_range, expected|
   assert_eq($?.success?, true)
   assert_eq(expected, output)
 end
-
-
