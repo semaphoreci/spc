@@ -65,7 +65,7 @@ error = File.readlines('/tmp/error.txt')
 
 assert_eq($?.exitstatus, 0)
 assert_eq([], output)
-assert_eq(["Running on a tag, skipping evaluation."], error)
+assert_eq(["Listing diffs for tags is not supported."], error)
 
 repo.run(%{
   export SEMAPHORE_GIT_REF_TYPE=branch

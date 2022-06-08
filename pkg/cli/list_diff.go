@@ -19,9 +19,8 @@ var listDiffCmd = &cobra.Command{
 		defaultBranch := fetchOptionalStringFlag(cmd, "default-branch")
 		defaultRange := fetchOptionalStringFlag(cmd, "default-range")
 		branchRange := fetchOptionalStringFlag(cmd, "branch-range")
-		onTags := fetchOptionalBoolFlag(cmd, "on-tags")
 
-		gitDiffSet := git.NewDiffSet(defaultBranch, defaultRange, branchRange, onTags)
+		gitDiffSet := git.NewDiffSet(defaultBranch, defaultRange, branchRange, true)
 
 		if gitDiffSet.IsEvaluationNeeded() {
 			println("Listing diffs for tags is not supported.")
@@ -60,7 +59,6 @@ func init() {
 	listDiffCmd.Flags().String("default-branch", "", "default branch of repository")
 	listDiffCmd.Flags().String("default-range", "", "default range for evaluation")
 	listDiffCmd.Flags().String("branch-range", "", "branch range for evaluation")
-	listDiffCmd.Flags().Bool("on-tags", true, "if commands is running on tags")
 
 	rootCmd.AddCommand(listDiffCmd)
 }
