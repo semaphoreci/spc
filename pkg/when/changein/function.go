@@ -17,16 +17,16 @@ type Function struct {
 	PathPatterns         []string
 	ExcludedPathPatterns []string
 	TrackPipelineFile    bool
-	GitSettings          *git.DiffSet
+	GitDiffSet           *git.DiffSet
 }
 
 func (f *Function) Eval() (bool, error) {
-	if f.GitSettings.IsEvaluationNeeded() {
+	if f.GitDiffSet.IsEvaluationNeeded() {
 		consolelogger.Infof("Running on a tag, skipping evaluation\n")
-		return f.GitSettings.OnTags, nil
+		return f.GitDiffSet.OnTags, nil
 	}
 
-	fetchNeeded, fetchTarget := f.GitSettings.IsGitFetchNeeded()
+	fetchNeeded, fetchTarget := f.GitDiffSet.IsGitFetchNeeded()
 	if fetchNeeded {
 		output, err := git.Fetch(fetchTarget)
 		err = f.parseFetchError(fetchTarget, output, err)
@@ -36,7 +36,7 @@ func (f *Function) Eval() (bool, error) {
 		}
 	}
 
-	diffList, err := git.DiffList(f.GitSettings.CommitRange())
+	diffList, err := git.DiffList(f.GitDiffSet.CommitRange())
 	if err != nil {
 		return false, err
 	}

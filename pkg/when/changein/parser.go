@@ -43,7 +43,7 @@ func (p *parser) parse() (*Function, error) {
 		return nil, err
 	}
 
-	rangeSettings, err := p.GitSettings()
+	rangeSettings, err := p.GitDiffSet()
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (p *parser) parse() (*Function, error) {
 		PathPatterns:         paths,
 		ExcludedPathPatterns: excludedPaths,
 		TrackPipelineFile:    track,
-		GitSettings:          rangeSettings,
+		GitDiffSet:           rangeSettings,
 	}, nil
 }
 
@@ -80,7 +80,7 @@ func (p *parser) PathPatterns() ([]string, error) {
 	return result, nil
 }
 
-func (p *parser) GitSettings() (*git.DiffSet, error) {
+func (p *parser) GitDiffSet() (*git.DiffSet, error) {
 	defaultBranch, _, err := p.getStringParam("default_branch")
 	if err != nil {
 		return nil, err

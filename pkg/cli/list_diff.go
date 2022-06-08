@@ -21,21 +21,21 @@ var listDiffCmd = &cobra.Command{
 		branchRange := fetchOptionalStringFlag(cmd, "branch-range")
 		onTags := fetchOptionalBoolFlag(cmd, "on-tags")
 
-		gitSettings := git.NewDiffSet(defaultBranch, defaultRange, branchRange, onTags)
+		gitDiffSet := git.NewDiffSet(defaultBranch, defaultRange, branchRange, onTags)
 
-		if gitSettings.IsEvaluationNeeded() {
+		if gitDiffSet.IsEvaluationNeeded() {
 			fmt.Println("Running on a tag, skipping evaluation.")
 			return
 		}
 
-		fetchNeeded, fetchTarget := gitSettings.IsGitFetchNeeded()
+		fetchNeeded, fetchTarget := gitDiffSet.IsGitFetchNeeded()
 		if fetchNeeded {
 			output, err := git.Fetch(fetchTarget)
 			err = parseFetchError(fetchTarget, output, err)
 			check(err)
 		}
 
-		diffList, err := git.DiffList(gitSettings.CommitRange())
+		diffList, err := git.DiffList(gitDiffSet.CommitRange())
 		check(err)
 
 		for _, file := range diffList {
