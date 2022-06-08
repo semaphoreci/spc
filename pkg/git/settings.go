@@ -47,37 +47,37 @@ func NewDiffSet(
 	}
 }
 
-func (r *DiffSet) CommitRange() string {
-	if r.runningOnPullRequest() {
-		if r.runningOnForkedPullRequest() {
-			return r.DefaultRange
+func (d *DiffSet) CommitRange() string {
+	if d.runningOnPullRequest() {
+		if d.runningOnForkedPullRequest() {
+			return d.DefaultRange
 		} else {
-			return r.pullRequestRange()
+			return d.pullRequestRange()
 		}
 	} else {
-		if r.runningOnDefaultBranch() {
-			return r.DefaultRange
+		if d.runningOnDefaultBranch() {
+			return d.DefaultRange
 		} else {
-			return r.branchRange()
+			return d.branchRange()
 		}
 	}
 }
 
-func (r *DiffSet) IsEvaluationNeeded() bool {
-	return r.runningOnGitTag()
+func (d *DiffSet) IsEvaluationNeeded() bool {
+	return d.runningOnGitTag()
 }
 
-func (r *DiffSet) IsGitFetchNeeded() (bool, string) {
+func (d *DiffSet) IsGitFetchNeeded() (bool, string) {
 	// We don't need to fetch any branch, we are evaluating the
 	// change in on the current branch.
-	if r.runningOnDefaultBranch() ||
-		r.runningOnForkedPullRequest() ||
-		r.isBaseCommitSha() {
+	if d.runningOnDefaultBranch() ||
+		d.runningOnForkedPullRequest() ||
+		d.isBaseCommitSha() {
 		return false, ""
 	}
 
-	commitRange := r.CommitRange()
-	if r.runningOnPullRequest() {
+	commitRange := d.CommitRange()
+	if d.runningOnPullRequest() {
 		return true, commitRangeHead(commitRange)
 	} else {
 		return true, commitRangeBase(commitRange)
@@ -108,27 +108,27 @@ func splitCommitRange(commitRange string) []string {
 
 // running environment flags
 
-func (e *DiffSet) runningOnGitTag() bool {
+func (d *DiffSet) runningOnGitTag() bool {
 	return env.GitRefType() == env.GitRefTypeTag
 }
 
-func (r *DiffSet) runningOnPullRequest() bool {
+func (d *DiffSet) runningOnPullRequest() bool {
 	return env.GitRefType() == env.GitRefTypePullRequest
 }
 
-func (r *DiffSet) runningOnForkedPullRequest() bool {
-	return r.runningOnPullRequest() &&
+func (d *DiffSet) runningOnForkedPullRequest() bool {
+	return d.runningOnPullRequest() &&
 		env.PullRequestRepoSlug() != env.GitRepoSlug()
 }
 
-func (r *DiffSet) runningOnDefaultBranch() bool {
-	return !r.runningOnPullRequest() &&
-		env.CurrentBranch() == r.DefaultBranch
+func (d *DiffSet) runningOnDefaultBranch() bool {
+	return !d.runningOnPullRequest() &&
+		env.CurrentBranch() == d.DefaultBranch
 }
 
-func (r *DiffSet) isBaseCommitSha() bool {
-	return r.BranchRange == "$SEMAPHORE_GIT_COMMIT_RANGE" ||
-		r.BranchRange == "$SEMAPHORE_GIT_SHA^...$SEMAPHORE_GIT_SHA"
+func (d *DiffSet) isBaseCommitSha() bool {
+	return d.BranchRange == "$SEMAPHORE_GIT_COMMIT_RANGE" ||
+		d.BranchRange == "$SEMAPHORE_GIT_SHA^...$SEMAPHORE_GIT_SHA"
 }
 
 // evaluating commit ranges
@@ -142,15 +142,15 @@ func fetchCommitRange(defaultBranch string) string {
 	return fmt.Sprintf("%s...%s", defaultBranch, env.CurrentGitSha())
 }
 
-func (r *DiffSet) branchRange() string {
-	if r.BranchRange == "$SEMAPHORE_GIT_COMMIT_RANGE" {
-		return r.DefaultRange
+func (d *DiffSet) branchRange() string {
+	if d.BranchRange == "$SEMAPHORE_GIT_COMMIT_RANGE" {
+		return d.DefaultRange
 	}
-	if r.BranchRange == "$SEMAPHORE_GIT_SHA^...$SEMAPHORE_GIT_SHA" {
-		return strings.ReplaceAll(r.BranchRange, "$SEMAPHORE_GIT_SHA", env.CurrentGitSha())
+	if d.BranchRange == "$SEMAPHORE_GIT_SHA^...$SEMAPHORE_GIT_SHA" {
+		return strings.ReplaceAll(d.BranchRange, "$SEMAPHORE_GIT_SHA", env.CurrentGitSha())
 	}
 
-	return standardBranchRange(r.BranchRange, r.DefaultBranch)
+	return standardBranchRange(d.BranchRange, d.DefaultBranch)
 }
 
 func standardBranchRange(branchRange string, defaultBranch string) string {
@@ -159,7 +159,7 @@ func standardBranchRange(branchRange string, defaultBranch string) string {
 	return branchRange
 }
 
-func (r *DiffSet) pullRequestRange() string {
+func (d *DiffSet) pullRequestRange() string {
 	pullRequestRange := "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_BRANCH_HEAD"
 	pullRequestRange = strings.ReplaceAll(pullRequestRange, "$SEMAPHORE_MERGE_BASE", env.CurrentBranch())
 	pullRequestRange = strings.ReplaceAll(pullRequestRange, "$SEMAPHORE_BRANCH_HEAD", env.PullRequestBranch())
