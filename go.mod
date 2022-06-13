@@ -1,6 +1,6 @@
 module github.com/semaphoreci/spc
 
-go 1.15
+go 1.16
 
 require (
 	github.com/Jeffail/gabs v1.4.0
