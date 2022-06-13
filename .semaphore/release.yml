@@ -21,7 +21,7 @@ blocks:
       jobs:
       - name: GoReleaser
         commands:
-          - curl -L https://github.com/goreleaser/goreleaser/releases/download/v0.106.0/goreleaser_Linux_x86_64.tar.gz -o /tmp/goreleaser.tar.gz
+          - curl -L https://github.com/goreleaser/goreleaser/releases/download/v1.9.2/goreleaser_Linux_x86_64.tar.gz -o /tmp/goreleaser.tar.gz
           - tar -xf /tmp/goreleaser.tar.gz -C /tmp
           - sudo mv /tmp/goreleaser /usr/bin/goreleaser
-          - goreleaser --rm-dist
+          - goreleaser release --rm-dist
