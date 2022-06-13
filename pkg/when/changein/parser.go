@@ -3,10 +3,9 @@ package changein
 import (
 	"fmt"
 	"path"
-	"strings"
 
 	gabs "github.com/Jeffail/gabs/v2"
-	environment "github.com/semaphoreci/spc/pkg/environment"
+	git "github.com/semaphoreci/spc/pkg/git"
 	logs "github.com/semaphoreci/spc/pkg/logs"
 )
 
@@ -44,29 +43,10 @@ func (p *parser) parse() (*Function, error) {
 		return nil, err
 	}
 
-	onTags, err := p.OnTags()
+	rangeSettings, err := p.GitDiffSet()
 	if err != nil {
 		return nil, err
 	}
-
-	defaultBranch, err := p.DefaultBranch()
-	if err != nil {
-		return nil, err
-	}
-
-	defaultRange, err := p.DefaultRange(defaultBranch)
-	if err != nil {
-		return nil, err
-	}
-
-	branchRange, baseIsCommitSha, err := p.BranchRange(defaultBranch)
-	if err != nil {
-		return nil, err
-	}
-
-	pullRequestRange := p.PullRequestRange()
-
-	forkedPullRequestRange := p.fetchCommitRange(defaultBranch)
 
 	location := logs.Location{
 		File: p.yamlPath,
@@ -78,16 +58,10 @@ func (p *parser) parse() (*Function, error) {
 		YamlPath: p.yamlPath,
 		Location: location,
 
-		PathPatterns:           paths,
-		ExcludedPathPatterns:   excludedPaths,
-		DefaultBranch:          defaultBranch,
-		TrackPipelineFile:      track,
-		OnTags:                 onTags,
-		DefaultRange:           defaultRange,
-		BranchRange:            branchRange,
-		PullRequestRange:       pullRequestRange,
-		ForkedPullRequestRange: forkedPullRequestRange,
-		BaseIsCommitSha:        baseIsCommitSha,
+		PathPatterns:         paths,
+		ExcludedPathPatterns: excludedPaths,
+		TrackPipelineFile:    track,
+		GitDiffSet:           rangeSettings,
 	}, nil
 }
 
@@ -106,13 +80,33 @@ func (p *parser) PathPatterns() ([]string, error) {
 	return result, nil
 }
 
-func (p *parser) DefaultBranch() (string, error) {
-	defaultBranch, found, err := p.getStringParam("default_branch")
-	if !found {
-		return "master", nil
+func (p *parser) GitDiffSet() (*git.DiffSet, error) {
+	defaultBranch, _, err := p.getStringParam("default_branch")
+	if err != nil {
+		return nil, err
 	}
 
-	return defaultBranch, err
+	defaultRange, _, err := p.getStringParam("default_range")
+	if err != nil {
+		return nil, err
+	}
+
+	branchRange, _, err := p.getStringParam("branch_range")
+	if err != nil {
+		return nil, err
+	}
+
+	onTags, found, err := p.getBoolParam("on_tags")
+	if err != nil {
+		return nil, err
+	}
+
+	return git.NewDiffSet(
+		defaultBranch,
+		defaultRange,
+		branchRange,
+		(found && onTags) || !found,
+	), nil
 }
 
 func (p *parser) ExcludedPathPatterns() ([]string, error) {
@@ -148,78 +142,6 @@ func (p *parser) TrackPipelineFile() (bool, error) {
 	}
 
 	return false, fmt.Errorf("unknown value type pipeline_file in change_in expression")
-}
-
-func (p *parser) OnTags() (bool, error) {
-	onTags, found, err := p.getBoolParam("on_tags")
-	if err != nil {
-		return false, err
-	}
-
-	if !found {
-		return true, nil
-	}
-
-	return onTags, err
-}
-
-func (p *parser) DefaultRange(defaultBranch string) (string, error) {
-	defaultRange, found, err := p.getStringParam("default_range")
-	if err != nil {
-		return "", err
-	}
-
-	if !found {
-		return p.fetchCommitRange(defaultBranch), nil
-	}
-
-	return defaultRange, err
-
-}
-
-func (p *parser) BranchRange(defaultBranch string) (string, bool, error) {
-	branchRange, found, err := p.getStringParam("branch_range")
-	if err != nil {
-		return "", false, err
-	}
-
-	if found && branchRange == "$SEMAPHORE_GIT_COMMIT_RANGE" {
-		branchRange = p.fetchCommitRange(defaultBranch)
-		return branchRange, true, nil
-	}
-
-	if found && branchRange == "$SEMAPHORE_GIT_SHA^...$SEMAPHORE_GIT_SHA" {
-		branchRange = strings.ReplaceAll(branchRange, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
-		return branchRange, true, nil
-	}
-
-	if !found {
-		branchRange = "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_GIT_SHA"
-	}
-
-	branchRange = strings.ReplaceAll(branchRange, "$SEMAPHORE_MERGE_BASE", defaultBranch)
-	branchRange = strings.ReplaceAll(branchRange, "$SEMAPHORE_GIT_SHA", environment.CurrentGitSha())
-
-	return branchRange, false, nil
-}
-
-func (p *parser) PullRequestRange() string {
-	pullRequestRange := "$SEMAPHORE_MERGE_BASE...$SEMAPHORE_BRANCH_HEAD"
-
-	pullRequestRange = strings.ReplaceAll(pullRequestRange, "$SEMAPHORE_MERGE_BASE", environment.CurrentBranch())
-	pullRequestRange = strings.ReplaceAll(pullRequestRange, "$SEMAPHORE_BRANCH_HEAD", environment.PullRequestBranch())
-
-	return pullRequestRange
-}
-
-func (p *parser) fetchCommitRange(defaultBranch string) string {
-	commitRange := environment.GitCommitRange()
-
-	if commitRange != "" {
-		return commitRange
-	}
-
-	return fmt.Sprintf("%s...%s", defaultBranch, environment.CurrentGitSha())
 }
 
 func (p *parser) getParam(key string) (interface{}, bool) {
