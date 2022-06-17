@@ -41,7 +41,7 @@ warningCode = 1
 [rule.call-to-gc]
 
 [rule.cognitive-complexity]
-  arguments = [7]
+  arguments = [8]
 
 [rule.constant-logical-expr]
 [rule.context-as-argument]
