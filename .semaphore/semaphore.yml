@@ -37,9 +37,11 @@ blocks:
           - git config --global user.name "Your Name"
           - unset SEMAPHORE_GIT_REF_TYPE
           - unset SEMAPHORE_GIT_BRANCH
+          - unset SEMAPHORE_GIT_PR_BRANCH
+          - unset SEMAPHORE_GIT_PR_SLUG
+          - unset SEMAPHORE_GIT_REPO_SLUG
           - unset SEMAPHORE_GIT_COMMIT_RANGE
           - unset SEMAPHORE_GIT_SHA
-          - unset SEMAPHORE_MERGE_BASE
           - unset SEMAPHORE_MERGE_BASE
 
       jobs:
@@ -62,6 +64,7 @@ blocks:
                 - test/e2e/change_in_multiple_paths.rb
                 - test/e2e/change_in_on_forked_prs.rb
                 - test/e2e/change_in_on_prs.rb
+                - test/e2e/change_in_on_non_master_prs.rb
                 - test/e2e/change_in_on_tags.rb
                 - test/e2e/change_in_performance.rb
                 - test/e2e/change_in_pipeline_file_tracking.rb
