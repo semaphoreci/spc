@@ -26,13 +26,16 @@ func (f *Function) Eval() (bool, error) {
 		return f.GitDiffSet.OnTags, nil
 	}
 
-	fetchNeeded, fetchTarget := f.GitDiffSet.IsGitFetchNeeded()
-	if fetchNeeded {
-		output, err := git.Fetch(fetchTarget)
-		err = f.parseFetchError(fetchTarget, output, err)
+	fetchNeeded, fetchTargets := f.GitDiffSet.IsGitFetchNeeded()
 
-		if err != nil {
-			return false, err
+	if fetchNeeded {
+		for _, fetchTarget := range fetchTargets {
+			output, err := git.Fetch(fetchTarget)
+			err = f.parseFetchError(fetchTarget, output, err)
+
+			if err != nil {
+				return false, err
+			}
 		}
 	}
 

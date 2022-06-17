@@ -27,11 +27,14 @@ var listDiffCmd = &cobra.Command{
 			return
 		}
 
-		fetchNeeded, fetchTarget := gitDiffSet.IsGitFetchNeeded()
+		fetchNeeded, fetchTargets := gitDiffSet.IsGitFetchNeeded()
+
 		if fetchNeeded {
-			output, err := git.Fetch(fetchTarget)
-			err = parseFetchError(fetchTarget, output, err)
-			check(err)
+			for _, fetchTarget := range fetchTargets {
+				output, err := git.Fetch(fetchTarget)
+				err = parseFetchError(fetchTarget, output, err)
+				check(err)
+			}
 		}
 
 		diffList, err := git.DiffList(gitDiffSet.CommitRange())

@@ -62,6 +62,7 @@ blocks:
                 - test/e2e/change_in_multiple_paths.rb
                 - test/e2e/change_in_on_forked_prs.rb
                 - test/e2e/change_in_on_prs.rb
+                - test/e2e/change_in_on_non_master_prs.rb
                 - test/e2e/change_in_on_tags.rb
                 - test/e2e/change_in_performance.rb
                 - test/e2e/change_in_pipeline_file_tracking.rb

@@ -67,21 +67,26 @@ func (d *DiffSet) IsEvaluationNeeded() bool {
 	return d.runningOnGitTag()
 }
 
-func (d *DiffSet) IsGitFetchNeeded() (bool, string) {
+func (d *DiffSet) IsGitFetchNeeded() (bool, []string) {
 	// We don't need to fetch any branch, we are evaluating the
 	// change in on the current branch.
 	if d.runningOnDefaultBranch() ||
 		d.runningOnForkedPullRequest() ||
 		d.isBaseCommitSha() {
-		return false, ""
+		return false, nil
 	}
 
+	fetchTargets := make([]string, 1)
+
 	commitRange := d.CommitRange()
+
+	fetchTargets[0] = commitRangeBase(commitRange)
+
 	if d.runningOnPullRequest() {
-		return true, commitRangeHead(commitRange)
-	} else {
-		return true, commitRangeBase(commitRange)
+		fetchTargets = append(fetchTargets, commitRangeHead(commitRange))
 	}
+
+	return true, fetchTargets
 }
 
 // commit range helpers
