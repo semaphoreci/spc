@@ -39,7 +39,7 @@ func Fetch(name string) (string, error) {
 		return output, nil
 	}
 
-	output, err := run("fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", name, name))
+	output, err := run("fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", name, name), "--update-head-ok")
 	if err != nil {
 		consolelogger.Infof("Git failed with %s\n", err.Error())
 		consolelogger.Info(output)
