@@ -16,7 +16,7 @@ global_job_config:
       - sudo mv when /usr/local/bin/when
       - sudo chmod +x /usr/local/bin/when
       - checkout
-      - go get ./...
+      - go get -d ./...
 
 blocks:
   - name: Lint
