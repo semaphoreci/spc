@@ -39,7 +39,7 @@ func Fetch(name string) (string, error) {
 		return output, nil
 	}
 
-	output, err := run("fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", name, name))
+	output, err := runRetry("fetch", "origin", fmt.Sprintf("+refs/heads/%s:refs/heads/%s", name, name))
 	if err != nil {
 		consolelogger.Infof("Git failed with %s\n", err.Error())
 		consolelogger.Info(output)
@@ -105,7 +105,7 @@ func unshallow(commitRange string) error {
 }
 
 func deepen(numberOfCommits int) error {
-	output, err := run("fetch", "origin", "--deepen", strconv.Itoa(numberOfCommits))
+	output, err := runRetry("fetch", "origin", "--deepen", strconv.Itoa(numberOfCommits))
 	if err != nil {
 		consolelogger.Infof("Git failed with %s\n", err.Error())
 		consolelogger.Info(output)
@@ -129,5 +129,13 @@ func run(args ...string) (string, error) {
 	consolelogger.Infof("Running git %s\n", strings.Join(args, " "))
 
 	output, err := exec.Command("git", args...).CombinedOutput()
+	return string(output), err
+}
+
+func runRetry(args ...string) (string, error) {
+	consolelogger.Infof("Running retry git %s\n", strings.Join(args, " "))
+
+	cmdArgs := append([]string{"git"}, args...)
+	output, err := exec.Command("retry", cmdArgs...).CombinedOutput()
 	return string(output), err
 }
