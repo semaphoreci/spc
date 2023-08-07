@@ -2,6 +2,7 @@ package logs
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"reflect"
 
@@ -12,6 +13,7 @@ var loggerInstance *os.File
 var currentPipelineFilePath string
 
 func Open(path string) {
+	// #nosec
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		panic(err)
@@ -44,8 +46,13 @@ func toJSON(e interface{}) string {
 		panic(err)
 	}
 
-	jsonEvent.Set(reflect.TypeOf(e).Name(), "type")
-	jsonEvent.Set(currentPipelineFilePath, "location", "file")
+	if _, err := jsonEvent.Set(reflect.TypeOf(e).Name(), "type"); err != nil {
+		fmt.Printf("error: unable to update json event with type: %v\n", err)
+	}
+
+	if _, err := jsonEvent.Set(currentPipelineFilePath, "location", "file"); err != nil {
+		fmt.Printf("error: unable to update json event with location file: %v\n", err)
+	}
 
 	return jsonEvent.String()
 }

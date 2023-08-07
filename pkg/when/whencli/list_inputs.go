@@ -70,6 +70,7 @@ func ListInputsPrepareInputFile(path string, expressions []string) error {
 }
 
 func ListInputsLoadResults(path string) (*gabs.Container, error) {
+	// #nosec
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err

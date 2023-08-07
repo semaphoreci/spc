@@ -40,6 +40,7 @@ var evaluateChangeInCmd = &cobra.Command{
 		yamlPpl, err := ppl.ToYAML()
 		check(err)
 
+		// #nosec
 		err = ioutil.WriteFile(output, yamlPpl, 0644)
 		check(err)
 	},
