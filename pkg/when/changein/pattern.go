@@ -4,7 +4,7 @@ import (
 	"path"
 	"strings"
 
-	doublestar "github.com/bmatcuk/doublestar/v2"
+	doublestar "github.com/bmatcuk/doublestar/v4"
 )
 
 func patternMatch(diffLine, pattern, workDir string) bool {

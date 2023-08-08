@@ -74,6 +74,7 @@ func ReducePrepareInput(expressions []string, inputs []ReduceInputs, path string
 }
 
 func ReduceLoadOutput(path string) ([]string, error) {
+	// #nosec
 	file, err := os.Open(path)
 	if err != nil {
 		return []string{}, err

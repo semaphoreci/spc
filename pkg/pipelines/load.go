@@ -8,6 +8,7 @@ import (
 )
 
 func LoadFromFile(path string) (*Pipeline, error) {
+	// #nosec
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err

@@ -2,13 +2,13 @@ version: v1.0
 name: Go
 agent:
   machine:
-    type: e1-standard-2
-    os_image: ubuntu1804
+    type: e2-standard-2
+    os_image: ubuntu2004
 
 global_job_config:
   prologue:
     commands:
-      - sem-version go 1.16
+      - sem-version go 1.18
       - export GO111MODULE=on
       - export GOPATH=~/go
       - 'export PATH=/home/semaphore/go/bin:$PATH'
@@ -19,13 +19,31 @@ global_job_config:
       - go get ./...
 
 blocks:
+  - name: "Security checks"
+    dependencies: []
+    task:
+      secrets:
+        - name: security-toolbox-shared-read-access
+      prologue:
+        commands:
+          - checkout
+          - mv ~/.ssh/security-toolbox ~/.ssh/id_rsa
+          - sudo chmod 600 ~/.ssh/id_rsa
+      jobs:
+        - name: Check dependencies
+          commands:
+            - make check.deps
+        - name: Check code
+          commands:
+            - make check.static
+
   - name: Lint
     dependencies: []
     task:
       jobs:
         - name: Lint
           commands:
-            - go get -u github.com/mgechev/revive
+            - go install github.com/mgechev/revive@latest
             - make lint
 
   - name: E2E
@@ -47,7 +65,7 @@ blocks:
       jobs:
         - name: go test
           commands:
-            - go get gotest.tools/gotestsum
+            - go install gotest.tools/gotestsum@latest
             - make test
 
         - name: e2e

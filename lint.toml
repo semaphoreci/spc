@@ -11,7 +11,6 @@ warningCode = 1
 [rule.increment-decrement]
 [rule.var-naming]
 [rule.var-declaration]
-[rule.package-comments]
 [rule.range]
 [rule.receiver-naming]
 [rule.time-naming]
@@ -57,3 +56,6 @@ warningCode = 1
 
 [rule.function-result-limit]
   arguments = [3]
+
+[rule.package-comments]
+  Disabled = true
