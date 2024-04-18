@@ -17,7 +17,7 @@ func n() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func (p *Pipeline) UpdateField(path []string, value string) error {
+func (p *Pipeline) UpdateField(path []string, value interface{}) error {
 	_, err := p.raw.Set(value, path...)
 
 	return err

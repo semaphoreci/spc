@@ -25,3 +25,9 @@ blocks:
       secrets:
         - name: ${{parameters.DEPLOY_ENV}}_deploy_key
         - name: ${{parameters.DEPLOY_ENV}}_aws_creds
+      jobs:
+        - name: Deploy to ${{parameters.DEPLOY_ENV}} on ${{parameters.SERVER}}
+          commands: ./deploy.sh $AWS_REGION
+          matrix:
+            - env_var:
+              values: "${{parameters.AWS_REGIONS | split \",\" | toJson }}" 

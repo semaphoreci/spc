@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
-	parameters "github.com/semaphoreci/spc/pkg/parameters"
+	templates "github.com/semaphoreci/spc/pkg/templates"
 )
 
 // revive:disable:add-constant
@@ -13,7 +13,7 @@ import (
 type parametersEvaluator struct {
 	pipeline *Pipeline
 
-	list []parameters.ParametersExpression
+	list []templates.Expression
 }
 
 func newParametersEvaluator(p *Pipeline) *parametersEvaluator {
@@ -45,6 +45,7 @@ func (e *parametersEvaluator) ExtractAll() {
 	e.ExtractFromQueue()
 	e.ExtractFromGlobalSecrets()
 	e.ExtractFromSecrets()
+	e.ExtractFromJobMatrices()
 }
 
 func (e *parametersEvaluator) ExtractPipelineName() {
@@ -82,6 +83,29 @@ func (e *parametersEvaluator) ExtractFromQueue() {
 	}
 }
 
+func (e *parametersEvaluator) ExtractFromJobMatrices() {
+	for blockIndex, block := range e.pipeline.Blocks() {
+		jobs := block.Search("task", "jobs").Children()
+
+		for jobIndex, job := range jobs {
+			matrixEnvVars := job.Search("matrix").Children()
+
+			for matrixEnvVarIndex := range matrixEnvVars {
+				e.tryExtractingFromPath([]string{
+					"blocks",
+					strconv.Itoa(blockIndex),
+					"task",
+					"jobs",
+					strconv.Itoa(jobIndex),
+					"matrix",
+					strconv.Itoa(matrixEnvVarIndex),
+					"values",
+				})
+			}
+		}
+	}
+}
+
 func (e *parametersEvaluator) tryExtractingFromPath(path []string) {
 	if !e.pipeline.PathExists(path) {
 		return
@@ -92,11 +116,11 @@ func (e *parametersEvaluator) tryExtractingFromPath(path []string) {
 		return
 	}
 
-	if !parameters.ContainsParametersExpression(value) {
+	if !templates.ContainsExpression(value) {
 		return
 	}
 
-	expression := parameters.ParametersExpression{
+	expression := templates.Expression{
 		Expression: value,
 		Path:       path,
 		YamlPath:   e.pipeline.yamlPath,
