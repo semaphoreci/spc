@@ -13,7 +13,7 @@ import (
 var compileCmd = &cobra.Command{
 	Use: "compile",
 
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string /*args*/) {
 		checkWhenInstalled()
 
 		input := fetchRequiredStringFlag(cmd, "input")
