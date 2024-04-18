@@ -1,6 +1,7 @@
 package pipelines
 
 // revive:disable:add-constant
+// revive:disable:line-length-limit
 
 import (
 	"fmt"

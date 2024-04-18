@@ -9,6 +9,9 @@ import (
 
 const Foo string = "Foo"
 
+// revive:disable:add-constant
+// revive:disable:line-length-limit
+
 func Test__Substitute(t *testing.T) {
 	os.Setenv("TEST_VAL_1", Foo)
 	os.Setenv("TEST_VAL_2", "Bar")
