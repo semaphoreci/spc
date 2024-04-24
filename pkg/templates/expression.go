@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"os"
 	"regexp"
@@ -16,11 +17,15 @@ import (
 
 // revive:disable:add-constant
 
-const expressionRegex = `\$(\{\{[^\}]+\}\})`
+const expressionRegex = `([$%])({{[^(\${})}]+}})`
 
 var templateFuncMap = template.FuncMap{
 	"split": func(sep, orig string) []string {
 		return strings.Split(orig, sep)
+	},
+	"toFloat": func(value string) float64 {
+		val, _ := strconv.ParseFloat(value, 64)
+		return val
 	},
 	"join": func(sep string, arr []string) string {
 		return strings.Join(arr, sep)
@@ -143,10 +148,8 @@ func (exp *Expression) substituteExpressions(envValues EnvVars) error {
 	allExpressions := expressionRegex.FindAllStringSubmatch(exp.Parsed, -1)
 
 	for _, matchGroup := range allExpressions {
-		consolelogger.Infof("Resolving the value for: %s\n", matchGroup[1])
-
-		expression := matchGroup[1]
-		expressionValue, err := applyTemplate(expression, envValues)
+		prefix, expression := matchGroup[1], matchGroup[2]
+		expressionValue, err := applyTemplate(prefix, expression, envValues)
 
 		if err != nil {
 			consolelogger.Infof("Unable to parse expression: %s\n", expression)
@@ -154,36 +157,47 @@ func (exp *Expression) substituteExpressions(envValues EnvVars) error {
 			return err
 		}
 
-		consolelogger.Infof("Value: %s\n", expressionValue)
 		consolelogger.EmptyLine()
+		consolelogger.Infof("Expression: %s\n", matchGroup[0])
+		consolelogger.Infof("Expression value: %s\n", expressionValue)
 
-		// check if expression value is string
-		if expressionValueAsString, ok := expressionValue.(string); ok {
-			consolelogger.Infof("Expression value is a string: %s\n", expressionValue)
-			exp.Value = strings.Replace(exp.Parsed, matchGroup[0], expressionValueAsString, 1)
-		}
-
-		// check if expression cover the whole expression
 		if matchGroup[0] == strings.TrimSpace(exp.Parsed) {
-			consolelogger.Infof("Expression value is not encapsulated in a string.\n")
-			consolelogger.Infof("Its value will be injected literally into YAML.\n")
-			consolelogger.Infof("Injected structure: %s\n", expressionValue)
+			consolelogger.Infof("Expression is used standalone (not encapsulated by a string).\n")
+			consolelogger.Infof("Its value will be injected verbatim in the YAML file.\n")
+
 			exp.Value = expressionValue
 			return nil
 		}
 
-		// otherwise, dump back to JSON and encapsulate
-		consolelogger.Infof("Expression value is not encapsulated in a string.\n")
-		consolelogger.Infof("Its value will be dumped formatted according with Go fmt.Sprintf function.\n")
-		consolelogger.Infof("Injected structure: %v\n", expressionValue)
-		exp.Value = strings.Replace(exp.Parsed, matchGroup[0], fmt.Sprintf("%v", expressionValue), 1)
+		if exprValueAsString, isString := expressionValue.(string); isString {
+			consolelogger.Infof("Expression produces a string as an.\n")
+			consolelogger.Infof("Its value will be injected verbatim in the YAML file.\n")
+
+			exp.Parsed = strings.Replace(exp.Parsed, matchGroup[0], exprValueAsString, 1)
+		} else {
+			consolelogger.Infof("Expression does not produce a string, but is not used standalone.\n")
+			consolelogger.Infof("Its value will be serialized with JSON and injected in the string.\n")
+
+			exprValueAsJson, err := json.Marshal(expressionValue)
+			if err != nil {
+				return err
+			}
+			exp.Parsed = strings.Replace(exp.Parsed, matchGroup[0], string(exprValueAsJson), 1)
+		}
 	}
 
+	exp.Value = exp.Parsed
 	return nil
 }
 
-func applyTemplate(expression string, envVars EnvVars) (interface{}, error) {
-	tmpl, err := template.New("expression").Funcs(templateFuncMap).Parse(expression)
+func applyTemplate(prefix, expression string, envVars EnvVars) (interface{}, error) {
+	if prefix == "%" {
+		trailingEndRegex := regexp.MustCompile(`\s*}}$`)
+		expression = trailingEndRegex.ReplaceAllString(expression, "| toJson }}")
+	}
+
+	tmpl := template.New("expression").Funcs(templateFuncMap)
+	tmpl, err := tmpl.Parse(expression)
 	if err != nil {
 		return nil, err
 	}
@@ -197,10 +211,15 @@ func applyTemplate(expression string, envVars EnvVars) (interface{}, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(buff.Bytes(), &output)
-	if err != nil {
-		return nil, err
+	if prefix == "%" {
+		err = json.Unmarshal(buff.Bytes(), &output)
+		if err != nil {
+			return nil, err
+		}
+
+		return output, nil
+
 	}
 
-	return output, nil
+	return buff.String(), nil
 }

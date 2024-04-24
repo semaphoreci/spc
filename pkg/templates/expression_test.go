@@ -72,32 +72,58 @@ func Test__Substitute(t *testing.T) {
 
 	// If the env var is not present, the env var name is used
 
+	exp.Expression = "${{ \"abc\" }}"
+	err = exp.Substitute()
+	assert.Nil(t, err)
+	assert.Equal(t, "abc", exp.Value)
+
 	exp.Expression = "Missing ${{parameters.THE_POINT}}"
 	err = exp.Substitute()
 	assert.Nil(t, err)
 	assert.Equal(t, "Missing THE_POINT", exp.Value)
 
-	exp.Expression = "${{ parameters.THE_POINT | split \"_\" | toJson }}"
+	exp.Expression = "%{{ parameters.THE_POINT | split \"_\" }}"
 	err = exp.Substitute()
 	assert.Nil(t, err)
 	assert.Equal(t, []interface{}{"THE", "POINT"}, exp.Value)
 
+	exp.Expression = "Missing %{{ parameters.THE_POINT | split \"_\" }}"
+	err = exp.Substitute()
+	assert.Nil(t, err)
+	assert.Equal(t, "Missing [\"THE\",\"POINT\"]", exp.Value)
+
 	exp.Expression = "${{ parameters.TEST_VAL_4 | split \",\" | join \".\" }}"
+	err = exp.Substitute()
+	assert.Nil(t, err)
+	assert.Equal(t, "9.11", exp.Value)
+
+	exp.Expression = "%{{ parameters.TEST_VAL_4 | split \",\" | join \".\" | toFloat }}"
 	err = exp.Substitute()
 	assert.Nil(t, err)
 	assert.Equal(t, 9.11, exp.Value)
 
-	exp.Expression = "${{ parameters.TEST_VAL_4 | split \",\" | join \"~\" | toString }}"
+	// 9~11
+	exp.Expression = "${{ parameters.TEST_VAL_4 | split \",\" | join \"~\" }}"
 	err = exp.Substitute()
 	assert.Nil(t, err)
 	assert.Equal(t, "9~11", exp.Value)
 
-	exp.Expression = "${{ parameters.TEST_VAL_4 | split \",\" | toJson }} is a heck of a list!"
+	exp.Expression = "%{{ parameters.TEST_VAL_4 | split \",\" }} is a heck of a list!"
+	err = exp.Substitute()
+	assert.Nil(t, err)
+	assert.Equal(t, "[\"9\",\"11\"] is a heck of a list!", exp.Value)
+
+	exp.Expression = "${{ parameters.TEST_VAL_4 | split \",\" }} is a heck of a list!"
 	err = exp.Substitute()
 	assert.Nil(t, err)
 	assert.Equal(t, "[9 11] is a heck of a list!", exp.Value)
 
-	exp.Expression = "${{ \"${{parameters.TEST_VAL_1}}, ${{parameters.TEST_VAL_2}}\" | split \",\" | toJson }}"
+	exp.Expression = "${{ \"${{parameters.TEST_VAL_1}}, ${{parameters.TEST_VAL_2}}\" | split \",\" }}"
+	err = exp.Substitute()
+	assert.Nil(t, err)
+	assert.Equal(t, "[Foo  Bar]", exp.Value)
+
+	exp.Expression = "%{{ \"${{parameters.TEST_VAL_1}}, ${{parameters.TEST_VAL_2}}\" | split \",\" }}"
 	err = exp.Substitute()
 	assert.Nil(t, err)
 	assert.Equal(t, []interface{}{"Foo", " Bar"}, exp.Value)

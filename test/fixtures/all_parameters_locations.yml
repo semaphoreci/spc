@@ -30,4 +30,4 @@ blocks:
           commands: ./deploy.sh $AWS_REGION
           matrix:
             - env_var:
-              values: "${{parameters.AWS_REGIONS | split \",\" | toJson }}" 
+              values: "%{{parameters.AWS_REGIONS | split \",\" }}"
