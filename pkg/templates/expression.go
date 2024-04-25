@@ -3,14 +3,13 @@ package templates
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"strconv"
 
 	"os"
 	"regexp"
 	"strings"
 	"text/template"
 
+	"github.com/42atomys/sprout"
 	"github.com/semaphoreci/spc/pkg/consolelogger"
 	"github.com/semaphoreci/spc/pkg/parameters"
 )
@@ -18,29 +17,6 @@ import (
 // revive:disable:add-constant
 
 const expressionRegex = `([$%])({{[^(\${})}]+}})`
-
-var templateFuncMap = template.FuncMap{
-	"split": func(sep, orig string) []string {
-		return strings.Split(orig, sep)
-	},
-	"toFloat": func(value string) float64 {
-		val, _ := strconv.ParseFloat(value, 64)
-		return val
-	},
-	"join": func(sep string, arr []string) string {
-		return strings.Join(arr, sep)
-	},
-	"toString": func(value interface{}) string {
-		return fmt.Sprintf("\"%v\"", value)
-	},
-	"toJson": func(value interface{}) string {
-		jsonValue, err := json.Marshal(value)
-		if err != nil {
-			return fmt.Sprintf("%v", value)
-		}
-		return string(jsonValue)
-	},
-}
 
 type Expression struct {
 	Expression string
@@ -196,8 +172,7 @@ func applyTemplate(prefix, expression string, envVars EnvVars) (interface{}, err
 		expression = trailingEndRegex.ReplaceAllString(expression, "| toJson }}")
 	}
 
-	tmpl := template.New("expression").Funcs(templateFuncMap)
-	tmpl, err := tmpl.Parse(expression)
+	tmpl, err := template.New("expression").Funcs(templateFuncMap()).Parse(expression)
 	if err != nil {
 		return nil, err
 	}
@@ -222,4 +197,58 @@ func applyTemplate(prefix, expression string, envVars EnvVars) (interface{}, err
 	}
 
 	return buff.String(), nil
+}
+
+func templateFuncMap() template.FuncMap {
+	dateFuncs := []string{
+		// date functions
+		"ago", "date", "dateModify", "dateInZone", "duration", "durationRound",
+		"mustDateModify", "mustToDate", "now", "toDate", "unixEpoch",
+		// default functions
+		"default", "empty", "coalesce", "all", "any", "compact", "mustCompact", "ternary",
+		"fromJson", "toJson", "toPrettyJson", "toRawJson", "deepCopy", "mustDeepCopy",
+		"mustFromJson", "mustToJson", "mustToPrettyJson", "mustToRawJson",
+		// encoding functions
+		"b64enc", "b64dec", "b32enc", "b32dec",
+		// data structure functions
+		"list", "dict", "get", "set", "unset", "chunk", "mustChunk",
+		"hasKey", "pluck", "keys", "pick", "omit", "values", "concat", "dig",
+		"merge", "mergeOverwrite", "mustMerge", "mustMergeOverwrite",
+		"append", "mustAppend", "prepend", "mustPrepend", "reverse", "mustReverse",
+		"first", "mustFirst", "rest", "mustRest", "last", "mustLast",
+		"initial", "mustInitial", "uniq", "mustUniq", "without", "mustWithout",
+		"has", "mustHas", "slice", "mustSlice",
+		// regex functions
+		"regexMatch", "mustRegexMatch", "regexFindAll",
+		"mustRegexFindAll", "regexFind", "mustRegexFind",
+		"regexReplaceAll", "mustRegexReplaceAll",
+		"regexReplaceAllLiteral", "mustRegexReplaceAllLiteral",
+		"regexSplit", "mustRegexSplit", "regexQuoteMeta",
+		// string functions
+		"ellipsis", "ellipsisBoth", "trunc", "trim", "upper", "lower",
+		"title", "untitle", "substr", "repeat", "join", "sortAlpha",
+		"trimAll", "trimSuffix", "trimPrefix", "nospace", "initials",
+		"randAlphaNum", "randAlpha", "randAscii", "randNumeric",
+		"swapcase", "shuffle", "snakecase", "camelcase", "kebabcase",
+		"wrap", "wrapWith", "contains", "hasPrefix", "hasSuffix",
+		"quote", "squote", "cat", "indent", "nindent", "replace",
+		"plural", "sha1sum", "sha256sum", "adler32sum", "toString",
+		"int64", "int", "float64", "seq", "toDecimal", "until", "untilStep",
+		"split", "splitList", "splitn", "toStrings",
+		// arithmetic functions
+		"add1", "add", "sub", "div", "mod", "mul", "randInt",
+		"add1f", "addf", "subf", "divf", "mulf",
+		"max", "min", "maxf", "minf", "ceil", "floor", "round",
+	}
+
+	genericFuncMap := sprout.GenericFuncMap()
+	funcMap := make(template.FuncMap, len(dateFuncs))
+
+	for _, dateFunc := range dateFuncs {
+		if genericFuncMap[dateFunc] != nil {
+			funcMap[dateFunc] = genericFuncMap[dateFunc]
+		}
+	}
+
+	return funcMap
 }

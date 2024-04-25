@@ -74,7 +74,7 @@ func Test__ParametersEvaluatorExtractAll(t *testing.T) {
 			Value:      nil,
 		},
 		{
-			Expression: "%{{parameters.AWS_REGIONS | split \",\" }}",
+			Expression: "%{{parameters.AWS_REGIONS | splitList \",\" }}",
 			Path:       []string{"blocks", "1", "task", "jobs", "0", "matrix", "0", "values"},
 			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
 			Value:      nil,
