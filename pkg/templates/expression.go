@@ -11,12 +11,11 @@ import (
 
 	"github.com/42atomys/sprout"
 	"github.com/semaphoreci/spc/pkg/consolelogger"
-	"github.com/semaphoreci/spc/pkg/parameters"
 )
 
 // revive:disable:add-constant
 
-const expressionRegex = `([$%])({{[^(\${})}]+}})`
+const expressionRegex = `([$%])({{[^(}})]+}})`
 
 type Expression struct {
 	Expression string
@@ -35,11 +34,6 @@ func ContainsExpression(value string) bool {
 
 func (exp *Expression) Substitute() error {
 	exp.Parsed = strings.TrimSpace(exp.Expression)
-
-	err := exp.substitutePlainParameters()
-	if err != nil {
-		return err
-	}
 
 	if !ContainsExpression(exp.Parsed) {
 		// complex expression were not found
@@ -66,27 +60,6 @@ func (exp *Expression) Substitute() error {
 
 	consolelogger.Infof("Value: %s\n", exp.Value)
 
-	return nil
-}
-
-func (exp *Expression) substitutePlainParameters() error {
-	if !parameters.ContainsParametersExpression(exp.Parsed) {
-		return nil
-	}
-
-	parametersExpression := parameters.ParametersExpression{
-		Expression: exp.Parsed,
-		Path:       exp.Path,
-		YamlPath:   exp.YamlPath,
-		Value:      "",
-	}
-
-	err := parametersExpression.Substitute()
-	if err != nil {
-		return err
-	}
-
-	exp.Parsed = parametersExpression.Value
 	return nil
 }
 
@@ -202,22 +175,19 @@ func applyTemplate(prefix, expression string, envVars EnvVars) (interface{}, err
 func templateFuncMap() template.FuncMap {
 	dateFuncs := []string{
 		// date functions
-		"ago", "date", "dateModify", "dateInZone", "duration", "durationRound",
-		"mustDateModify", "mustToDate", "now", "toDate", "unixEpoch",
+		// "ago", "date", "dateModify", "dateInZone", "duration", "durationRound",
+		// "mustDateModify", "mustToDate", "now", "toDate", "unixEpoch",
 		// default functions
-		"default", "empty", "coalesce", "all", "any", "compact", "mustCompact", "ternary",
-		"fromJson", "toJson", "toPrettyJson", "toRawJson", "deepCopy", "mustDeepCopy",
-		"mustFromJson", "mustToJson", "mustToPrettyJson", "mustToRawJson",
+		"default", "empty", "coalesce", "all", "any", "compact", "ternary",
+		"fromJson", "toJson", "toPrettyJson", "toRawJson", "deepCopy",
+
 		// encoding functions
 		"b64enc", "b64dec", "b32enc", "b32dec",
 		// data structure functions
 		"list", "dict", "get", "set", "unset", "chunk", "mustChunk",
 		"hasKey", "pluck", "keys", "pick", "omit", "values", "concat", "dig",
-		"merge", "mergeOverwrite", "mustMerge", "mustMergeOverwrite",
-		"append", "mustAppend", "prepend", "mustPrepend", "reverse", "mustReverse",
-		"first", "mustFirst", "rest", "mustRest", "last", "mustLast",
-		"initial", "mustInitial", "uniq", "mustUniq", "without", "mustWithout",
-		"has", "mustHas", "slice", "mustSlice",
+		"merge", "mergeOverwrite", "append", "prepend", "reverse",
+		"first", "rest", "last", "initial", "uniq", "without", "has", "slice",
 		// regex functions
 		"regexMatch", "mustRegexMatch", "regexFindAll",
 		"mustRegexFindAll", "regexFind", "mustRegexFind",

@@ -97,6 +97,11 @@ func Test__Substitute(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "9.11", exp.Value)
 
+	exp.Expression = "%{{ parameters.TEST_VAL_4 | splitList \",\" | join \".\"  }}"
+	err = exp.Substitute()
+	assert.Nil(t, err)
+	assert.Equal(t, "9.11", exp.Value)
+
 	exp.Expression = "%{{ parameters.TEST_VAL_4 | splitList \",\" | join \".\" | float64 }}"
 	err = exp.Substitute()
 	assert.Nil(t, err)
