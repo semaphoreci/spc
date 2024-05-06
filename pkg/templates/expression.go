@@ -171,7 +171,9 @@ func applyTemplate(prefix, expression string, envVars EnvVars) (interface{}, err
 	}
 
 	if prefix == "%" {
-		err = json.Unmarshal(buff.Bytes(), &output)
+		decoder := json.NewDecoder(&buff)
+		decoder.UseNumber()
+		err = decoder.Decode(&output)
 		if err != nil {
 			return nil, err
 		}

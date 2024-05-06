@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -105,7 +106,7 @@ func Test__Substitute(t *testing.T) {
 	exp.Expression = "%{{ parameters.TEST_VAL_4 | splitList \",\" | join \".\" | float64 }}"
 	err = exp.Substitute()
 	assert.Nil(t, err)
-	assert.Equal(t, 9.11, exp.Value)
+	assert.Equal(t, json.Number("9.11"), exp.Value)
 
 	// 9~11
 	exp.Expression = "${{ parameters.TEST_VAL_4 | splitList \",\" | join \"~\" }}"
