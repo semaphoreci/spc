@@ -174,26 +174,19 @@ func applyTemplate(prefix, expression string, envVars EnvVars) (interface{}, err
 
 func templateFuncMap() template.FuncMap {
 	dateFuncs := []string{
-		// date functions
-		// "ago", "date", "dateModify", "dateInZone", "duration", "durationRound",
-		// "mustDateModify", "mustToDate", "now", "toDate", "unixEpoch",
 		// default functions
 		"default", "empty", "coalesce", "all", "any", "compact", "ternary",
 		"fromJson", "toJson", "toPrettyJson", "toRawJson", "deepCopy",
-
 		// encoding functions
 		"b64enc", "b64dec", "b32enc", "b32dec",
 		// data structure functions
-		"list", "dict", "get", "set", "unset", "chunk", "mustChunk",
+		"list", "dict", "get", "set", "unset", "chunk",
 		"hasKey", "pluck", "keys", "pick", "omit", "values", "concat", "dig",
 		"merge", "mergeOverwrite", "append", "prepend", "reverse",
 		"first", "rest", "last", "initial", "uniq", "without", "has", "slice",
 		// regex functions
-		"regexMatch", "mustRegexMatch", "regexFindAll",
-		"mustRegexFindAll", "regexFind", "mustRegexFind",
-		"regexReplaceAll", "mustRegexReplaceAll",
-		"regexReplaceAllLiteral", "mustRegexReplaceAllLiteral",
-		"regexSplit", "mustRegexSplit", "regexQuoteMeta",
+		"regexMatch", "regexFindAll", "regexFind", "regexReplaceAll",
+		"regexReplaceAllLiteral", "regexSplit", "regexQuoteMeta",
 		// string functions
 		"ellipsis", "ellipsisBoth", "trunc", "trim", "upper", "lower",
 		"title", "untitle", "substr", "repeat", "join", "sortAlpha",
