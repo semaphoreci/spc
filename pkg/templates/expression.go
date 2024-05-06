@@ -115,13 +115,13 @@ func (exp *Expression) substituteExpressions(envValues EnvVars) error {
 			return err
 		}
 
-		consolelogger.EmptyLine()
-		consolelogger.Infof("Expression: %s\n", matchGroup[0])
-		consolelogger.Infof("Expression value: %s\n", expressionValue)
+		consolelogger.Infof("Partial expression: %s\n", matchGroup[0])
+		consolelogger.Infof("Partial expression value: %s\n", expressionValue)
 
 		if matchGroup[0] == strings.TrimSpace(exp.Parsed) {
 			consolelogger.Infof("Expression is used standalone (not encapsulated by a string).\n")
 			consolelogger.Infof("Its value will be injected verbatim in the YAML file.\n")
+			consolelogger.EmptyLine()
 
 			exp.Value = expressionValue
 			return nil
@@ -130,11 +130,13 @@ func (exp *Expression) substituteExpressions(envValues EnvVars) error {
 		if exprValueAsString, isString := expressionValue.(string); isString {
 			consolelogger.Infof("Expression produces a string as an.\n")
 			consolelogger.Infof("Its value will be injected verbatim in the YAML file.\n")
+			consolelogger.EmptyLine()
 
 			exp.Parsed = strings.Replace(exp.Parsed, matchGroup[0], exprValueAsString, 1)
 		} else {
 			consolelogger.Infof("Expression does not produce a string, but is not used standalone.\n")
 			consolelogger.Infof("Its value will be serialized with JSON and injected in the string.\n")
+			consolelogger.EmptyLine()
 
 			exprValueAsJson, err := json.Marshal(expressionValue)
 			if err != nil {
@@ -151,7 +153,7 @@ func (exp *Expression) substituteExpressions(envValues EnvVars) error {
 func applyTemplate(prefix, expression string, envVars EnvVars) (interface{}, error) {
 	if prefix == "%" {
 		trailingEndRegex := regexp.MustCompile(`\s*}}$`)
-		expression = trailingEndRegex.ReplaceAllString(expression, "| toJson }}")
+		expression = trailingEndRegex.ReplaceAllString(expression, " | toJson }}")
 	}
 
 	tmpl, err := template.New("expression").Funcs(templateFuncMap()).Parse(expression)
