@@ -3,6 +3,7 @@ package templates
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 
 	"os"
 	"regexp"
@@ -15,7 +16,7 @@ import (
 
 // revive:disable:add-constant
 
-const expressionRegex = `([$%])({{[^(}})]+}})`
+const expressionRegex = `([$%])({{([^(}})]+)}})`
 
 type Expression struct {
 	Expression string
@@ -32,6 +33,18 @@ func ContainsExpression(value string) bool {
 	return regex.MatchString(value)
 }
 
+func ContainsNextedExpressions(value string) bool {
+	regex := regexp.MustCompile(expressionRegex)
+	matches := regex.FindAllStringSubmatch(value, -1)
+
+	for _, matchGroup := range matches {
+		if regex.MatchString(matchGroup[3]) {
+			return true
+		}
+	}
+	return false
+}
+
 func (exp *Expression) Substitute() error {
 	exp.Parsed = strings.TrimSpace(exp.Expression)
 
@@ -42,23 +55,19 @@ func (exp *Expression) Substitute() error {
 		return nil
 	}
 
-	consolelogger.EmptyLine()
-	consolelogger.Infof("Complex expression found: %s\n", exp.Parsed)
+	if ContainsNextedExpressions(exp.Parsed) {
+		return errors.New("nested expressions are not supported")
+	}
 
 	envValues, err := exp.traverseParameters()
 	if err != nil {
 		return err
 	}
 
-	templateString := strings.Replace(exp.Parsed, "${{", "{{", -1)
-	consolelogger.Infof("Resolving template: %s\n", templateString)
-
 	err = exp.substituteExpressions(envValues)
 	if err != nil {
 		return err
 	}
-
-	consolelogger.Infof("Value: %s\n", exp.Value)
 
 	return nil
 }

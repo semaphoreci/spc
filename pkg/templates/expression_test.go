@@ -123,13 +123,20 @@ func Test__Substitute(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "[9 11] is a heck of a list!", exp.Value)
 
-	exp.Expression = "${{ \"${{parameters.TEST_VAL_1}}, ${{parameters.TEST_VAL_2}}\" | splitList \",\" }}"
+	exp.Expression = "${{ \"${{,${{\" | splitList \",\" | join \" \" }} is a heck of a list!"
 	err = exp.Substitute()
 	assert.Nil(t, err)
-	assert.Equal(t, "[Foo  Bar]", exp.Value)
+	assert.Equal(t, "${{ ${{ is a heck of a list!", exp.Value)
+
+	exp.Expression = "${{ \"${{,${{\" | splitList \",\" | join \"}}\" }} is a heck of a list!"
+	err = exp.Substitute()
+	assert.Error(t, err, "nested expressions are not supported")
+
+	exp.Expression = "${{ \"${{parameters.TEST_VAL_1}}, ${{parameters.TEST_VAL_2}}\" | splitList \",\" }}"
+	err = exp.Substitute()
+	assert.Error(t, err, "nested expressions are not supported")
 
 	exp.Expression = "%{{ \"${{parameters.TEST_VAL_1}}, ${{parameters.TEST_VAL_2}}\" | splitList \",\" }}"
 	err = exp.Substitute()
-	assert.Nil(t, err)
-	assert.Equal(t, []interface{}{"Foo", " Bar"}, exp.Value)
+	assert.Error(t, err, "nested expressions are not supported")
 }
