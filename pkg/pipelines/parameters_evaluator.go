@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/Jeffail/gabs/v2"
 	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
 	templates "github.com/semaphoreci/spc/pkg/templates"
 )
@@ -43,36 +44,16 @@ func (e *parametersEvaluator) Run() error {
 func (e *parametersEvaluator) ExtractAll() {
 	e.ExtractPipelineName()
 	e.ExtractFromQueue()
-	e.ExtractFromGlobalSecrets()
 	e.ExtractFromSecrets()
+	e.ExtractFromBlockNames()
+	e.ExtractFromJobNames()
+	e.ExtractFromAgents()
 	e.ExtractFromJobMatrices()
+	e.ExtractFromParallelisms()
 }
 
 func (e *parametersEvaluator) ExtractPipelineName() {
 	e.tryExtractingFromPath([]string{"name"})
-}
-
-func (e *parametersEvaluator) ExtractFromSecrets() {
-	for blockIndex, block := range e.pipeline.Blocks() {
-		secrets := block.Search("task", "secrets").Children()
-
-		for secretIndex := range secrets {
-			e.tryExtractingFromPath([]string{
-				"blocks",
-				strconv.Itoa(blockIndex),
-				"task",
-				"secrets",
-				strconv.Itoa(secretIndex),
-				"name",
-			})
-		}
-	}
-}
-
-func (e *parametersEvaluator) ExtractFromGlobalSecrets() {
-	for index := range e.pipeline.GlobalSecrets() {
-		e.tryExtractingFromPath([]string{"global_job_config", "secrets", strconv.Itoa(index), "name"})
-	}
 }
 
 func (e *parametersEvaluator) ExtractFromQueue() {
@@ -83,30 +64,168 @@ func (e *parametersEvaluator) ExtractFromQueue() {
 	}
 }
 
-func (e *parametersEvaluator) ExtractFromJobMatrices() {
+func (e *parametersEvaluator) ExtractFromSecrets() {
+	e.ExtractFromGlobalSecrets()
+	e.ExtractFromBlockSecrets()
+	e.ExtractFromAfterPipelineSecrets()
+}
+
+func (e *parametersEvaluator) ExtractFromGlobalSecrets() {
+	e.extractFromSecretsAt(e.pipeline.GlobalJobConfig(), []string{"global_job_config"})
+}
+
+func (e *parametersEvaluator) ExtractFromBlockSecrets() {
 	for blockIndex, block := range e.pipeline.Blocks() {
-		jobs := block.Search("task", "jobs").Children()
+		e.extractFromSecretsAt(block.Search("task"), []string{"blocks", strconv.Itoa(blockIndex), "task"})
+	}
+}
 
-		for jobIndex, job := range jobs {
-			matrixEnvVars := job.Search("matrix").Children()
+func (e *parametersEvaluator) ExtractFromContainerSecrets() {
+	for blockIndex := range e.pipeline.Blocks() {
+		e.tryExtractingFromPath([]string{"blocks", strconv.Itoa(blockIndex), "name"})
+	}
+}
 
-			for matrixEnvVarIndex := range matrixEnvVars {
-				e.tryExtractingFromPath([]string{
-					"blocks",
-					strconv.Itoa(blockIndex),
-					"task",
-					"jobs",
-					strconv.Itoa(jobIndex),
-					"matrix",
-					strconv.Itoa(matrixEnvVarIndex),
-					"values",
-				})
-			}
+func (e *parametersEvaluator) ExtractFromAfterPipelineSecrets() {
+	e.extractFromSecretsAt(e.pipeline.AfterPipelineTask(), []string{"after_pipeline", "task"})
+}
+
+func (e *parametersEvaluator) ExtractFromJobMatrices() {
+	e.ExtractFromBlockJobMatrices()
+	e.ExtractFromAfterPipelineJobMatrices()
+}
+
+func (e *parametersEvaluator) ExtractFromBlockJobMatrices() {
+	for blockIndex, block := range e.pipeline.Blocks() {
+		blockTaskPath := []string{"blocks", strconv.Itoa(blockIndex), "task"}
+
+		for jobIndex, job := range block.Search("task", "jobs").Children() {
+			jobPath := concatPaths(blockTaskPath, []string{"jobs", strconv.Itoa(jobIndex)})
+			e.extractFromJobMatricesAt(job, jobPath)
 		}
 	}
 }
 
-func (e *parametersEvaluator) tryExtractingFromPath(path []string) {
+func (e *parametersEvaluator) ExtractFromAfterPipelineJobMatrices() {
+	afterPipelineTask := e.pipeline.AfterPipelineTask()
+
+	for jobIndex, job := range afterPipelineTask.Search("jobs").Children() {
+		jobPath := []string{"after_pipeline", "task", "jobs", strconv.Itoa(jobIndex)}
+		e.extractFromJobMatricesAt(job, jobPath)
+	}
+}
+
+func (e *parametersEvaluator) ExtractFromParallelisms() {
+	e.ExtractFromBlockJobParallelisms()
+	e.ExtractFromAfterPipelineParallelisms()
+}
+
+func (e *parametersEvaluator) ExtractFromBlockJobParallelisms() {
+	for blockIndex, block := range e.pipeline.Blocks() {
+		blockTaskPath := []string{"blocks", strconv.Itoa(blockIndex), "task"}
+
+		for jobIndex := range block.Search("task", "jobs").Children() {
+			jobPath := concatPaths(blockTaskPath, []string{"jobs", strconv.Itoa(jobIndex)})
+			e.tryExtractingFromPath(jobPath, []string{"parallelism"})
+		}
+	}
+}
+
+func (e *parametersEvaluator) ExtractFromAfterPipelineParallelisms() {
+	afterPipelineTask := e.pipeline.AfterPipelineTask()
+
+	for jobIndex := range afterPipelineTask.Search("jobs").Children() {
+		jobPath := []string{"after_pipeline", "task", "jobs", strconv.Itoa(jobIndex)}
+		e.tryExtractingFromPath(jobPath, []string{"parallelism"})
+	}
+}
+
+func (e *parametersEvaluator) ExtractFromAgents() {
+	e.ExtractFromTopLevelAgent()
+	e.ExtractFromBlockAgents()
+	e.ExtractFromAfterPipelineAgents()
+}
+
+func (e *parametersEvaluator) ExtractFromTopLevelAgent() {
+	e.extractFromAgentAt(e.pipeline.Agent(), []string{"agent"})
+}
+
+func (e *parametersEvaluator) ExtractFromBlockAgents() {
+	for blockIndex, block := range e.pipeline.Blocks() {
+		agent := block.Search("task", "agent")
+		agentPath := []string{"blocks", strconv.Itoa(blockIndex), "task", "agent"}
+		e.extractFromAgentAt(agent, agentPath)
+	}
+}
+
+func (e *parametersEvaluator) ExtractFromAfterPipelineAgents() {
+	afterPipelineTask := e.pipeline.AfterPipelineTask()
+	if afterPipelineTask == nil {
+		return
+	}
+
+	e.extractFromAgentAt(afterPipelineTask, []string{"after_pipeline", "task"})
+}
+
+func (e *parametersEvaluator) ExtractFromBlockNames() {
+	for blockIndex := range e.pipeline.Blocks() {
+		e.tryExtractingFromPath([]string{"blocks", strconv.Itoa(blockIndex), "name"})
+	}
+}
+
+func (e *parametersEvaluator) ExtractFromJobNames() {
+	e.ExtractFromBlockJobNames()
+	e.ExtractFromAfterPipelineJobNames()
+}
+
+func (e *parametersEvaluator) ExtractFromBlockJobNames() {
+	for blockIndex, block := range e.pipeline.Blocks() {
+		blockTaskPath := []string{"blocks", strconv.Itoa(blockIndex), "task"}
+		for jobIndex := range block.Search("task", "jobs").Children() {
+			e.tryExtractingFromPath(blockTaskPath, []string{"jobs", strconv.Itoa(jobIndex), "name"})
+		}
+	}
+}
+
+func (e *parametersEvaluator) ExtractFromAfterPipelineJobNames() {
+	afterPipelineTask := e.pipeline.AfterPipelineTask()
+
+	for jobIndex := range afterPipelineTask.Search("jobs").Children() {
+		e.tryExtractingFromPath([]string{"after_pipeline", "task", "jobs", strconv.Itoa(jobIndex), "name"})
+	}
+}
+
+func (e *parametersEvaluator) extractFromAgentAt(agent *gabs.Container, agentPath []string) {
+	e.tryExtractingFromPath(agentPath, []string{"machine", "type"})
+	e.tryExtractingFromPath(agentPath, []string{"machine", "os_image"})
+
+	for containerIndex, container := range agent.Search("containers").Children() {
+		containerPath := concatPaths(agentPath, []string{"containers", strconv.Itoa(containerIndex)})
+		e.extractFromContainerAt(container, containerPath)
+	}
+}
+
+func (e *parametersEvaluator) extractFromContainerAt(container *gabs.Container, containerPath []string) {
+	e.tryExtractingFromPath(containerPath, []string{"name"})
+	e.tryExtractingFromPath(containerPath, []string{"image"})
+	e.extractFromSecretsAt(container, containerPath)
+}
+
+func (e *parametersEvaluator) extractFromSecretsAt(parent *gabs.Container, parentPath []string) {
+	for secretIndex := range parent.Search("secrets").Children() {
+		e.tryExtractingFromPath(parentPath, []string{"secrets", strconv.Itoa(secretIndex), "name"})
+	}
+}
+
+func (e *parametersEvaluator) extractFromJobMatricesAt(parent *gabs.Container, parentPath []string) {
+	for matrixIndex := range parent.Search("matrix").Children() {
+		e.tryExtractingFromPath(parentPath, []string{"matrix", strconv.Itoa(matrixIndex), "env_var"})
+		e.tryExtractingFromPath(parentPath, []string{"matrix", strconv.Itoa(matrixIndex), "values"})
+	}
+}
+
+func (e *parametersEvaluator) tryExtractingFromPath(paths ...[]string) {
+	path := concatPaths(paths...)
 	if !e.pipeline.PathExists(path) {
 		return
 	}
@@ -174,4 +293,17 @@ func (e *parametersEvaluator) updatePipeline() error {
 	}
 
 	return nil
+}
+
+func concatPaths(paths ...[]string) []string {
+	if len(paths) == 0 {
+		return []string{}
+	}
+
+	path := make([]string, 0, len(paths[0]))
+	for _, p := range paths {
+		path = append(path, p...)
+	}
+
+	return path
 }

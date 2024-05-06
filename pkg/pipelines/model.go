@@ -2,7 +2,6 @@ package pipelines
 
 import (
 	"encoding/json"
-	"time"
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/ghodss/yaml"
@@ -11,10 +10,6 @@ import (
 type Pipeline struct {
 	raw      *gabs.Container
 	yamlPath string
-}
-
-func n() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
 func (p *Pipeline) UpdateField(path []string, value interface{}) error {
@@ -43,12 +38,24 @@ func (p *Pipeline) PathExists(path []string) bool {
 	return p.raw.Exists(path...)
 }
 
+func (p *Pipeline) Agent() *gabs.Container {
+	return p.raw.Search("agent")
+}
+
+func (p *Pipeline) GlobalJobConfig() *gabs.Container {
+	return p.raw.Search("global_job_config")
+}
+
 func (p *Pipeline) GlobalPriorityRules() []*gabs.Container {
 	return p.raw.Search("global_job_config", "priority").Children()
 }
 
 func (p *Pipeline) GlobalSecrets() []*gabs.Container {
 	return p.raw.Search("global_job_config", "secrets").Children()
+}
+
+func (p *Pipeline) AfterPipelineTask() *gabs.Container {
+	return p.raw.Search("after_pipeline", "task")
 }
 
 func (p *Pipeline) QueueRules() []*gabs.Container {
