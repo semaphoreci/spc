@@ -106,7 +106,7 @@ func (exp *Expression) substituteExpressions(envValues EnvVars) error {
 	allExpressions := expressionRegex.FindAllStringSubmatch(exp.Parsed, -1)
 
 	for _, matchGroup := range allExpressions {
-		prefix, expression := matchGroup[1], matchGroup[2]
+		regexMatch, prefix, expression := matchGroup[0], matchGroup[1], matchGroup[2]
 		expressionValue, err := applyTemplate(prefix, expression, envValues)
 
 		if err != nil {
@@ -118,35 +118,53 @@ func (exp *Expression) substituteExpressions(envValues EnvVars) error {
 		consolelogger.Infof("Partial expression: %s\n", matchGroup[0])
 		consolelogger.Infof("Partial expression value: %s\n", expressionValue)
 
-		if matchGroup[0] == strings.TrimSpace(exp.Parsed) {
-			consolelogger.Infof("Expression is used standalone (not encapsulated by a string).\n")
-			consolelogger.Infof("Its value will be injected verbatim in the YAML file.\n")
-			consolelogger.EmptyLine()
-
-			exp.Value = expressionValue
-			return nil
+		if exp.fullyMatchesRegex(regexMatch) {
+			return exp.assignJSONObjectToValue(expressionValue)
 		}
 
-		if exprValueAsString, isString := expressionValue.(string); isString {
-			consolelogger.Infof("Expression produces a string as an.\n")
-			consolelogger.Infof("Its value will be injected verbatim in the YAML file.\n")
-			consolelogger.EmptyLine()
-
-			exp.Parsed = strings.Replace(exp.Parsed, matchGroup[0], exprValueAsString, 1)
-		} else {
-			consolelogger.Infof("Expression does not produce a string, but is not used standalone.\n")
-			consolelogger.Infof("Its value will be serialized with JSON and injected in the string.\n")
-			consolelogger.EmptyLine()
-
-			exprValueAsJson, err := json.Marshal(expressionValue)
-			if err != nil {
-				return err
-			}
-			exp.Parsed = strings.Replace(exp.Parsed, matchGroup[0], string(exprValueAsJson), 1)
+		err = exp.replaceValueInParsedString(expressionValue, regexMatch)
+		if err != nil {
+			return err
 		}
 	}
 
 	exp.Value = exp.Parsed
+	return nil
+}
+
+func (exp *Expression) fullyMatchesRegex(regexMatch string) bool {
+	return strings.TrimSpace(exp.Parsed) == regexMatch
+}
+
+func (exp *Expression) assignJSONObjectToValue(expressionValue interface{}) error {
+	consolelogger.Infof("Expression is used standalone (not encapsulated by a string).\n")
+	consolelogger.Infof("Its value will be injected verbatim in the YAML file.\n")
+	consolelogger.EmptyLine()
+
+	exp.Value = expressionValue
+	return nil
+}
+
+func (exp *Expression) replaceValueInParsedString(expressionValue interface{}, regexMatch string) error {
+	if exprValueAsString, isString := expressionValue.(string); isString {
+		consolelogger.Infof("Expression produces a string as an.\n")
+		consolelogger.Infof("Its value will be injected verbatim in the YAML file.\n")
+		consolelogger.EmptyLine()
+
+		exp.Parsed = strings.Replace(exp.Parsed, regexMatch, exprValueAsString, 1)
+		return nil
+	}
+
+	consolelogger.Infof("Expression does not produce a string, but is not used standalone.\n")
+	consolelogger.Infof("Its value will be serialized with JSON and injected in the string.\n")
+	consolelogger.EmptyLine()
+
+	exprValueAsJSON, err := json.Marshal(expressionValue)
+	if err != nil {
+		return err
+	}
+
+	exp.Parsed = strings.Replace(exp.Parsed, regexMatch, string(exprValueAsJSON), 1)
 	return nil
 }
 
