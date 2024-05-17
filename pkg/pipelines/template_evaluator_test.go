@@ -13,11 +13,12 @@ import (
 	assert "github.com/stretchr/testify/assert"
 )
 
-func Test__ParametersEvaluatorExtractAll(t *testing.T) {
-	pipeline, err := LoadFromFile("../../test/fixtures/all_parameters_locations.yml")
+func Test__TemplateEvaluatorExtractAll(t *testing.T) {
+	pipeline, err := LoadFromFile("../../test/fixtures/all_template_locations.yml")
+	yamlPath := "../../test/fixtures/all_template_locations.yml"
 	assert.Nil(t, err)
 
-	e := newParametersEvaluator(pipeline)
+	e := newTemplateEvaluator(pipeline)
 	e.ExtractAll()
 
 	for _, e1 := range e.list {
@@ -28,139 +29,139 @@ func Test__ParametersEvaluatorExtractAll(t *testing.T) {
 		{
 			Expression: "Deploy to ${{parameters.DEPLOY_ENV}} on ${{parameters.SERVER}}",
 			Path:       []string{"name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_deployment_queue",
 			Path:       []string{"queue", "0", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.MISSING}}_queue",
 			Path:       []string{"queue", "1", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_deploy_key",
 			Path:       []string{"global_job_config", "secrets", "0", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_dockerhub",
 			Path:       []string{"blocks", "1", "task", "secrets", "0", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_ecr",
 			Path:       []string{"blocks", "1", "task", "secrets", "1", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_deploy_key",
 			Path:       []string{"blocks", "2", "task", "secrets", "0", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_aws_creds",
 			Path:       []string{"blocks", "2", "task", "secrets", "1", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_slack_token",
 			Path:       []string{"after_pipeline", "task", "secrets", "0", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "Deploy image to ${{parameters.DEPLOY_ENV}}",
 			Path:       []string{"blocks", "2", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "Deploy to ${{parameters.DEPLOY_ENV}} on ${{parameters.SERVER}}",
 			Path:       []string{"blocks", "2", "task", "jobs", "0", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "Notify on Slack: %{{parameters.SLACK_CHANNELS | splitList \",\"}}",
 			Path:       []string{"after_pipeline", "task", "jobs", "0", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "Ping ${{parameters.DEPLOY_ENV}} from %{{parameters.PARALLELISM}} jobs",
 			Path:       []string{"after_pipeline", "task", "jobs", "1", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.MACHINE_TYPE}}",
 			Path:       []string{"agent", "machine", "type"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.OS_IMAGE}}",
 			Path:       []string{"agent", "machine", "os_image"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.MACHINE_TYPE}}",
 			Path:       []string{"blocks", "0", "task", "agent", "machine", "type"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_test_container",
 			Path:       []string{"blocks", "0", "task", "agent", "containers", "0", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_test_image",
 			Path:       []string{"blocks", "0", "task", "agent", "containers", "0", "image"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "${{parameters.DEPLOY_ENV}}_api_key",
 			Path:       []string{"blocks", "0", "task", "agent", "containers", "0", "secrets", "0", "name"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "%{{parameters.AWS_REGIONS | splitList \",\"}}",
 			Path:       []string{"blocks", "2", "task", "jobs", "0", "matrix", "0", "values"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "%{{parameters.SLACK_CHANNELS | splitList \",\" }}",
 			Path:       []string{"after_pipeline", "task", "jobs", "0", "matrix", "0", "values"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "%{{parameters.PARALLELISM | mul 2}}",
 			Path:       []string{"blocks", "0", "task", "jobs", "0", "parallelism"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 		{
 			Expression: "%{{parameters.PARALLELISM | int64 }}",
 			Path:       []string{"after_pipeline", "task", "jobs", "1", "parallelism"},
-			YamlPath:   "../../test/fixtures/all_parameters_locations.yml",
+			YamlPath:   yamlPath,
 			Value:      nil,
 		},
 	}
@@ -174,10 +175,10 @@ func Test__ParametersEvaluatorExtractAll(t *testing.T) {
 }
 
 func Test__Run(t *testing.T) {
-	pipeline, err := LoadFromFile("../../test/fixtures/all_parameters_locations.yml")
+	pipeline, err := LoadFromFile("../../test/fixtures/all_template_locations.yml")
 	assert.Nil(t, err)
 
-	e := newParametersEvaluator(pipeline)
+	e := newTemplateEvaluator(pipeline)
 
 	os.Setenv("DEPLOY_ENV", "prod")
 	os.Setenv("SERVER", "server_1")
@@ -219,7 +220,7 @@ func Test__Run(t *testing.T) {
 
 }
 
-func assertValueOnPath(t *testing.T, e *parametersEvaluator, path []string, value interface{}) {
+func assertValueOnPath(t *testing.T, e *templateEvaluator, path []string, value interface{}) {
 	field := e.pipeline.raw.Search(path...).Data()
 	assert.Equal(t, value, field)
 }
