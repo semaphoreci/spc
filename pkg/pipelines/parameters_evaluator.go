@@ -80,12 +80,6 @@ func (e *parametersEvaluator) ExtractFromBlockSecrets() {
 	}
 }
 
-func (e *parametersEvaluator) ExtractFromContainerSecrets() {
-	for blockIndex := range e.pipeline.Blocks() {
-		e.tryExtractingFromPath([]string{"blocks", strconv.Itoa(blockIndex), "name"})
-	}
-}
-
 func (e *parametersEvaluator) ExtractFromAfterPipelineSecrets() {
 	e.extractFromSecretsAt(e.pipeline.AfterPipelineTask(), []string{"after_pipeline", "task"})
 }
