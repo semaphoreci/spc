@@ -13,7 +13,8 @@ version: v1.0
 name: "Deploy to ${{parameters.SERVICE}} to ${{parameters.DEPLOY_ENV}}"
 agent:
   machine:
-    type: e1-standard-2
+    type: ${{ parameters.MACHINE_TYPE }}
+    os_image: ${{ parameters.OS_IMAGE | splitList \",\" | join \"\" }}
 
 fail_fast:
   cancel:
@@ -46,6 +47,15 @@ queue:
     when: true
 
 blocks:
+  - name: Run tests
+    task:
+      jobs:
+        - name: Test
+          commands:
+            - make test
+          matrix:
+            - env_var: "INTEGRATION_TEST"
+              values: "%{{ \\"true,false\\" | splitList \\",\\" }}"
   - name: Build and push image
     skip:
       when: "branch = 'master' and change_in('/lib')"
@@ -55,6 +65,7 @@ blocks:
         - name: ${{parameters.DEPLOY_ENV}}_ecr
       jobs:
         - name: Build & Push
+          parallelism: "%{{ parameters.PARALLELISM | int64 }}"
           priority:
             - value: 1
               when: "branch = 'master' and change_in('/lib')"
@@ -97,6 +108,9 @@ repo = origin.clone_local_copy(branch: "dev")
 repo.run(%{
   export SERVICE=web_server
   export DEPLOY_ENV=prod
+  export MACHINE_TYPE=e2-standard-2
+  export OS_IMAGE=ubuntu,2204
+  export PARALLELISM=2
 
   #{spc} compile \
      --input .semaphore/semaphore.yml \
@@ -109,7 +123,8 @@ version: v1.0
 name: "Deploy to web_server to prod"
 agent:
   machine:
-    type: e1-standard-2
+    type: e2-standard-2
+    os_image: ubuntu2204
 
 fail_fast:
   cancel:
@@ -142,6 +157,16 @@ queue:
     when: true
 
 blocks:
+  - name: Run tests
+    task:
+      jobs:
+        - name: Test
+          commands:
+            - make test
+          matrix: 
+            - env_var: INTEGRATION_TEST
+              values: ["true", "false"]
+
   - name: Build and push image
     skip:
       when: "(branch = 'master') and true"
@@ -151,6 +176,7 @@ blocks:
         - name: prod_ecr
       jobs:
         - name: Build & Push
+          parallelism: 2
           priority:
             - value: 1
               when: "(branch = 'master') and true"
