@@ -147,7 +147,7 @@ func (exp *Expression) assignJSONObjectToValue(expressionValue interface{}) erro
 
 func (exp *Expression) replaceValueInParsedString(expressionValue interface{}, regexMatch string) error {
 	if exprValueAsString, isString := expressionValue.(string); isString {
-		consolelogger.Infof("Expression produces a string as an.\n")
+		consolelogger.Infof("Expression produces a string as a result of an expression.\n")
 		consolelogger.Infof("Its value will be injected verbatim in the YAML file.\n")
 		consolelogger.EmptyLine()
 
