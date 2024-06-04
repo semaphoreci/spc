@@ -13,7 +13,7 @@ import (
 var listDiffCmd = &cobra.Command{
 	Use: "list-diff",
 
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string /*args*/) {
 		consolelogger.Enabled = false
 
 		defaultBranch := fetchOptionalStringFlag(cmd, "default-branch")

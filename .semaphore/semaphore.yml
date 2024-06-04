@@ -8,7 +8,7 @@ agent:
 global_job_config:
   prologue:
     commands:
-      - sem-version go 1.20
+      - sem-version go 1.21
       - export GO111MODULE=on
       - export GOPATH=~/go
       - 'export PATH=/home/semaphore/go/bin:$PATH'

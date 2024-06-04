@@ -13,14 +13,14 @@ import (
 var compileCmd = &cobra.Command{
 	Use: "compile",
 
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string /*args*/) {
 		checkWhenInstalled()
 
 		input := fetchRequiredStringFlag(cmd, "input")
 		output := fetchRequiredStringFlag(cmd, "output")
 		logsPath := fetchRequiredStringFlag(cmd, "logs")
 
-		fmt.Printf("Evaluating parameters expressions in %s.\n\n", input)
+		fmt.Printf("Evaluating template expressions in %s.\n\n", input)
 
 		logs.Open(logsPath)
 		logs.SetCurrentPipelineFilePath(input)
@@ -28,7 +28,7 @@ var compileCmd = &cobra.Command{
 		ppl, err := pipelines.LoadFromFile(input)
 		check(err)
 
-		err = ppl.EvaluateParameters()
+		err = ppl.EvaluateTemplates()
 		check(err)
 
 		fmt.Printf("Evaluating change_in expressions in %s.\n\n", input)

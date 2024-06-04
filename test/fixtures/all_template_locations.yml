@@ -1,0 +1,69 @@
+version: v1.0
+
+name: "Deploy to ${{parameters.DEPLOY_ENV}} on ${{parameters.SERVER}}"
+
+agent:
+  machine:
+    type: "${{parameters.MACHINE_TYPE}}"
+    os_image: "${{parameters.OS_IMAGE}}"
+
+global_job_config:
+  secrets:
+    - name: "${{parameters.DEPLOY_ENV}}_deploy_key"
+    - name: "github_key"
+
+queue:
+  - name: "${{parameters.DEPLOY_ENV}}_deployment_queue"
+  - name: "${{parameters.MISSING}}_queue"
+  - name: "default_queue"
+
+blocks:
+  - name: Run tests
+    task:
+      agent:
+        machine:
+          type: "${{parameters.MACHINE_TYPE}}"
+        containers: 
+          - name: "${{parameters.DEPLOY_ENV}}_test_container"
+            image: "${{parameters.DEPLOY_ENV}}_test_image"
+            secrets:
+              - name: ${{parameters.DEPLOY_ENV}}_api_key
+      jobs:
+        - name: Run tests
+          commands:
+            - echo "Running tests"
+          parallelism: "%{{parameters.PARALLELISM | mul 2}}"
+
+  - name: Build and push image
+    task:
+      secrets:
+        - name: ${{parameters.DEPLOY_ENV}}_dockerhub
+        - name: ${{parameters.DEPLOY_ENV}}_ecr
+
+  - name: Deploy image to ${{parameters.DEPLOY_ENV}}
+    task:
+      secrets:
+        - name: ${{parameters.DEPLOY_ENV}}_deploy_key
+        - name: ${{parameters.DEPLOY_ENV}}_aws_creds
+      jobs:
+        - name: Deploy to ${{parameters.DEPLOY_ENV}} on ${{parameters.SERVER}}
+          commands: ./deploy.sh $AWS_REGION
+          matrix:
+            - env_var: AWS_REGION
+              values: "%{{parameters.AWS_REGIONS | splitList \",\"}}"
+
+after_pipeline:
+  task:
+    secrets:
+      - name: ${{parameters.DEPLOY_ENV}}_slack_token
+    jobs:
+      - name: "Notify on Slack: %{{parameters.SLACK_CHANNELS | splitList \",\"}}"
+        commands:
+          - echo "Notifying Slack"
+        matrix:
+          - env_var: SLACK_CHANNEL
+            values: "%{{parameters.SLACK_CHANNELS | splitList \",\" }}"
+      - name: Ping ${{parameters.DEPLOY_ENV}} from %{{parameters.PARALLELISM}} jobs
+        commands:
+          - echo "Pinging environment"
+        parallelism: "%{{parameters.PARALLELISM | int64 }}"
