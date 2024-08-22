@@ -3,6 +3,7 @@ module github.com/semaphoreci/spc
 go 1.21
 
 require (
+	github.com/42atomys/sprout v0.2.0
 	github.com/Jeffail/gabs/v2 v2.7.0
 	github.com/bmatcuk/doublestar/v4 v4.6.0
 	github.com/ghodss/yaml v1.0.0
@@ -12,7 +13,6 @@ require (
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
-	github.com/42atomys/sprout v0.2.0 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/bitfield/gotestdox v0.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -1,7 +1,7 @@
 # rubocop:disable all
 
 #
-# This test verifies that copiler can process all possible locations for both the
+# This test verifies that compiler can process all possible locations for both the
 # parameters and changs in the same yaml file.
 #
 
@@ -53,6 +53,7 @@ blocks:
         - name: Test
           commands:
             - make test
+            - echo "Template evaluation should not work here ${{parameters.DEPLOY_ENV}}"
           matrix:
             - env_var: "INTEGRATION_TEST"
               values: "%{{ \\"true,false\\" | splitList \\",\\" }}"
@@ -87,8 +88,15 @@ blocks:
 
 promotions:
   - name: Performance tests
+    pipeline_file: perf_test.yml
     auto_promote:
       when: "branch = 'master' and change_in('/lib')"
+  - name: Smoke tests on ${{parameters.DEPLOY_ENV}} env
+    pipeline_file: ${{parameters.DEPLOY_ENV}}_smoke_test.yml
+    parameters:
+      env_vars:
+        - name: ${{parameters.DEPLOY_ENV | upper}}_SERVICE_ID
+          default_value: ${{parameters.DEPLOY_ENV}}_${{parameters.SERVICE}}
 }
 
 origin = TestRepoForChangeIn.setup()
@@ -163,6 +171,7 @@ blocks:
         - name: Test
           commands:
             - make test
+            - echo "Template evaluation should not work here ${{parameters.DEPLOY_ENV}}"
           matrix: 
             - env_var: INTEGRATION_TEST
               values: ["true", "false"]
@@ -198,6 +207,13 @@ blocks:
 
 promotions:
   - name: Performance tests
+    pipeline_file: perf_test.yml
     auto_promote:
       when: "(branch = 'master') and true"
+  - name: Smoke tests on prod env
+    pipeline_file: prod_smoke_test.yml
+    parameters:
+      env_vars:
+        - name: PROD_SERVICE_ID
+          default_value: prod_web_server
 }))
