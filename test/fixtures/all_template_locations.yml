@@ -32,6 +32,7 @@ blocks:
         - name: Run tests
           commands:
             - echo "Running tests"
+            - echo "Template expressions are not evaluated here ${{parameters.SERVER}}"
           parallelism: "%{{parameters.PARALLELISM | mul 2}}"
 
   - name: Build and push image
@@ -66,4 +67,14 @@ after_pipeline:
       - name: Ping ${{parameters.DEPLOY_ENV}} from %{{parameters.PARALLELISM}} jobs
         commands:
           - echo "Pinging environment"
+          - echo "Template expressions are not evaluated here ${{parameters.SERVER}}"
         parallelism: "%{{parameters.PARALLELISM | int64 }}"
+
+promotions:
+  - name: Promotion to ${{parameters.DEPLOY_ENV}}
+    pipeline_file: ${{parameters.DEPLOY_ENV}}_deployment.yml
+    deployment_target: ${{parameters.DEPLOY_ENV}}_deployment_target
+    parameters:
+      env_vars:
+        - name: "${{parameters.DEPLOY_ENV | upper}}_SERVER_ID"
+          default_value: ${{parameters.SERVER}}

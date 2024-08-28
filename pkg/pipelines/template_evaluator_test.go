@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"reflect"
 
 	templates "github.com/semaphoreci/spc/pkg/templates"
 	assert "github.com/stretchr/testify/assert"
@@ -164,14 +165,55 @@ func Test__TemplateEvaluatorExtractAll(t *testing.T) {
 			YamlPath:   yamlPath,
 			Value:      nil,
 		},
+		{
+			Expression: "Promotion to ${{parameters.DEPLOY_ENV}}",
+			Path:       []string{"promotions", "0", "name"},
+			YamlPath:   yamlPath,
+			Value:      nil,
+		},
+		{
+			Expression: "${{parameters.DEPLOY_ENV}}_deployment.yml",
+			Path:       []string{"promotions", "0", "pipeline_file"},
+			YamlPath:   yamlPath,
+			Value:      nil,
+		},
+		{
+			Expression: "${{parameters.DEPLOY_ENV}}_deployment_target",
+			Path:       []string{"promotions", "0", "deployment_target"},
+			YamlPath:   yamlPath,
+			Value:      nil,
+		},
+		{
+			Expression: "${{parameters.DEPLOY_ENV | upper}}_SERVER_ID",
+			Path:       []string{"promotions", "0", "parameters", "env_vars", "0", "name"},
+			YamlPath:   yamlPath,
+			Value:      nil,
+		},
+		{
+			Expression: "${{parameters.SERVER}}",
+			Path:       []string{"promotions", "0", "parameters", "env_vars", "0", "default_value"},
+			YamlPath:   yamlPath,
+			Value:      nil,
+		},
 	}
 
 	assert.Equal(t, len(expectedExpressions), len(e.list))
-	for i, e1 := range e.list {
-		assert.Equal(t, expectedExpressions[i].Expression, e1.Expression)
-		assert.Equal(t, expectedExpressions[i].Path, e1.Path)
-		assert.Equal(t, expectedExpressions[i].YamlPath, e1.YamlPath)
+	for _, e1 := range e.list {
+		expectedExpr := findExpression(e1, expectedExpressions)
+
+		assert.Equal(t, expectedExpr.Expression, e1.Expression)
+		assert.Equal(t, expectedExpr.Path, e1.Path)
+		assert.Equal(t, expectedExpr.YamlPath, e1.YamlPath)
 	}
+}
+
+func findExpression(expr templates.Expression, expectedList []templates.Expression) templates.Expression {
+	for _, e := range expectedList {
+		if reflect.DeepEqual(e.Path, expr.Path) {
+			return e
+		}
+	}
+	return templates.Expression{}
 }
 
 func Test__Run(t *testing.T) {
@@ -217,6 +259,16 @@ func Test__Run(t *testing.T) {
 	assertValueOnPath(t, e, []string{"after_pipeline", "task", "jobs", "0", "matrix", "0", "values"}, []interface{}{"#engineering", "#general"})
 	assertValueOnPath(t, e, []string{"after_pipeline", "task", "jobs", "1", "name"}, "Ping prod from 2 jobs")
 	assertValueOnPath(t, e, []string{"after_pipeline", "task", "jobs", "1", "parallelism"}, json.Number("2"))
+	assertValueOnPath(t, e, []string{"promotions", "0", "name"}, "Promotion to prod")
+	assertValueOnPath(t, e, []string{"promotions", "0", "pipeline_file"}, "prod_deployment.yml")
+	assertValueOnPath(t, e, []string{"promotions", "0", "deployment_target"}, "prod_deployment_target")
+	assertValueOnPath(t, e, []string{"promotions", "0", "parameters", "env_vars", "0", "name"}, "PROD_SERVER_ID")
+	assertValueOnPath(t, e, []string{"promotions", "0", "parameters", "env_vars", "0", "default_value"}, "server_1")
+
+	// template expressions are not evaluated in block and after_pipeline job's commands
+	expectedString := "echo \"Template expressions are not evaluated here ${{parameters.SERVER}}\""
+	assertValueOnPath(t, e, []string{"blocks", "0", "task", "jobs", "0", "commands", "1"}, expectedString)
+	assertValueOnPath(t, e, []string{"after_pipeline", "task", "jobs", "1", "commands", "1"}, expectedString)
 
 }
 
