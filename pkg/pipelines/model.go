@@ -26,6 +26,10 @@ func (p *Pipeline) EvaluateTemplates() error {
 	return newTemplateEvaluator(p).Run()
 }
 
+func (p *Pipeline) ExtractCommandsFromCommandsFiles() error {
+	return newCommandsExtractor(p).Run()
+}
+
 func (p *Pipeline) Blocks() []*gabs.Container {
 	return p.raw.Search("blocks").Children()
 }
