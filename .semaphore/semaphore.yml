@@ -104,6 +104,7 @@ blocks:
                 - test/e2e/list_diff_with_default_branch.rb
                 - test/e2e/when_conditions_without_change_in.rb
                 - test/e2e/parameters_and_change_in.rb
+                - test/e2e/cmd_files_all_possible_locations.rb
 
           commands:
             - make build
