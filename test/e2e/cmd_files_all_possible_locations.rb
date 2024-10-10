@@ -56,11 +56,7 @@ after_pipeline:
         commands_file: "valid_commands_file.txt"
 }
 
-commands_file = %{
-echo 1
-echo 12
-echo 123
-}
+commands_file = %{echo 1\necho 12\necho 123}
 
 origin = TestRepoForChangeIn.setup()
 

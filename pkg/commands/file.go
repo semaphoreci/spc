@@ -19,7 +19,7 @@ func (f *File) Extract() error {
 	absoluteFilePath := filepath.Join(filepath.Dir(f.YamlPath), f.FilePath)
 
 	// Open the file
-	file, err := os.Open(absoluteFilePath)
+	file, err := os.Open(filepath.Clean((absoluteFilePath)))
 	if err != nil {
 		return fmt.Errorf("failed to open the commands_file at %s, error: %w", absoluteFilePath, err)
 	}
@@ -39,8 +39,8 @@ func (f *File) Extract() error {
 	
 	// If no commands were read, return an error indicating that the file is empty
 	if len(f.Commands) == 0 {
-		return fmt.Errorf("the commands_file at location %s is empty.", absoluteFilePath)
+		return fmt.Errorf("the commands_file at location %s is empty", absoluteFilePath)
 	}
-	
+
 	return nil
 }

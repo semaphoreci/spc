@@ -118,31 +118,44 @@ func (e *commandsExtractor) extractCommands() error {
 
 func (e *commandsExtractor) updatePipeline() error {
 	for _, item  := range e.files {
-		
-		cmdFilePath := concatPaths(item.ParentPath, []string{"commands_file"})
 
-		err := e.pipeline.raw.Delete(cmdFilePath...)
+		err := e.deleteCommandsFileField(item)
 		
 		if err != nil {
 			return err
 		}
 
-		cmdPath := concatPaths(item.ParentPath, []string{"commands"})
-
-		_, err = e.pipeline.raw.Array(cmdPath...)
+		err = e.addCommands(item)
 
 		if err != nil {
 			return err
-		}
-		
-		for _, command := range item.Commands{
-			e.pipeline.raw.ArrayAppend(command, cmdPath...)
-
-			if err != nil {
-				return err
-			}
 		}
 	}
 
+	return nil
+}
+
+func (e *commandsExtractor) deleteCommandsFileField(item commands.File) error {
+	cmdFilePath := concatPaths(item.ParentPath, []string{"commands_file"})
+
+	return e.pipeline.raw.Delete(cmdFilePath...)
+}
+
+func (e *commandsExtractor) addCommands(item commands.File) error {
+	cmdPath := concatPaths(item.ParentPath, []string{"commands"})
+
+	_, err := e.pipeline.raw.Array(cmdPath...)
+
+	if err != nil {
+		return err
+	}
+	
+	for _, command := range item.Commands{
+		err = e.pipeline.raw.ArrayAppend(command, cmdPath...)
+
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

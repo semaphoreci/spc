@@ -9,6 +9,8 @@ import (
 	commands "github.com/semaphoreci/spc/pkg/commands"
 )
 
+// revive:disable:add-constant
+
 func Test__findAll(t *testing.T) {
 	yamlPath := "../../test/fixtures/all_commands_file_locations.yml"
 	pipeline, err := LoadFromFile(yamlPath)

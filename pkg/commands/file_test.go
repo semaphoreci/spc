@@ -27,7 +27,7 @@ func Test__Extract(t *testing.T) {
 
 	assert.Error(t, err)
 
-	expectedErrorMessage = "the commands_file at location ../../test/fixtures/empty_file.txt is empty."
+	expectedErrorMessage = "the commands_file at location ../../test/fixtures/empty_file.txt is empty"
 	assert.Contains(t, err.Error(), expectedErrorMessage)
 
 	// Commands are read successfully from the valid file.
