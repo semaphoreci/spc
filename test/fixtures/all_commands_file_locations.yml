@@ -1,0 +1,50 @@
+version: v1.0
+
+name: "Tests"
+
+agent:
+  machine:
+    type: "e1-standard-2"
+    os_image: "ubuntu2004"
+
+global_job_config:
+  prologue:
+    commands_file: "valid_commands_file.txt"
+  epilogue:
+    always:
+      commands_file: "valid_commands_file.txt"
+    on_pass:
+      commands_file: "valid_commands_file.txt"
+    on_fail:
+      commands_file: "valid_commands_file.txt"
+
+blocks:
+  - name: Run tests
+    task:
+      prologue:
+        commands_file: "valid_commands_file.txt"
+      epilogue:
+        always:
+          commands_file: "valid_commands_file.txt"
+        on_pass:
+          commands_file: "valid_commands_file.txt"
+        on_fail:
+          commands_file: "valid_commands_file.txt"
+      jobs:
+        - name: Run tests
+          commands_file: "valid_commands_file.txt"
+
+after_pipeline:
+  task:
+    prologue:
+      commands_file: "valid_commands_file.txt"
+    epilogue:
+      always:
+        commands_file: "valid_commands_file.txt"
+      on_pass:
+        commands_file: "valid_commands_file.txt"
+      on_fail:
+        commands_file: "valid_commands_file.txt"
+    jobs:
+      - name: "Notify on Slack"
+        commands_file: "valid_commands_file.txt"

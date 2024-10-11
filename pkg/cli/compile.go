@@ -20,14 +20,19 @@ var compileCmd = &cobra.Command{
 		output := fetchRequiredStringFlag(cmd, "output")
 		logsPath := fetchRequiredStringFlag(cmd, "logs")
 
-		fmt.Printf("Evaluating template expressions in %s.\n\n", input)
-
+		fmt.Printf("Extracting commands from commands_files in %s.\n\n", input)
+		
 		logs.Open(logsPath)
 		logs.SetCurrentPipelineFilePath(input)
-
+		
 		ppl, err := pipelines.LoadFromFile(input)
 		check(err)
 
+		err = ppl.ExtractCommandsFromCommandsFiles()
+		check(err)
+
+		fmt.Printf("Evaluating template expressions in %s.\n\n", input)
+		
 		err = ppl.EvaluateTemplates()
 		check(err)
 
