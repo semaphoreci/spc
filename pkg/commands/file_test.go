@@ -18,7 +18,7 @@ func Test__Extract(t *testing.T) {
 
 	assert.Error(t, err)
 
-	expectedErrorMessage := "failed to open the commands_file at ../../test/fixtures/non_existing_file.txt"
+	expectedErrorMessage := "failed to open the commands_file at"
 	assert.Contains(t, err.Error(), expectedErrorMessage)
 
 	// If commands file is empty, it retruns the error
@@ -27,15 +27,23 @@ func Test__Extract(t *testing.T) {
 
 	assert.Error(t, err)
 
-	expectedErrorMessage = "the commands_file at location ../../test/fixtures/empty_file.txt is empty"
+	expectedErrorMessage = "empty_file.txt is empty"
 	assert.Contains(t, err.Error(), expectedErrorMessage)
 
-	// Commands are read successfully from the valid file.
+	// Commands are read successfully from the valid file with relative path.
 	file.FilePath = "valid_commands_file.txt"
 	err = file.Extract()
 	
 	assert.Nil(t, err)
 
 	expectedCommands := []string{"echo 1", "echo 12", "echo 123"}
+	assert.Equal(t, file.Commands, expectedCommands)
+
+	// Commands are read successfully from the valid file with absolute path.
+	file.FilePath = "/../../test/fixtures/valid_commands_file.txt"
+	file.Commands = []string{}
+	err = file.Extract()
+	
+	assert.Nil(t, err)
 	assert.Equal(t, file.Commands, expectedCommands)
 }

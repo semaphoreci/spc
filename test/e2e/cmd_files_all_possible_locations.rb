@@ -17,7 +17,7 @@ agent:
     os_image: "ubuntu2004"
 global_job_config:
   prologue:
-    commands_file: "valid_commands_file.txt"
+    commands_file: "/.semaphore/valid_commands_file.txt"
   epilogue:
     always:
       commands_file: "valid_commands_file.txt"
@@ -36,7 +36,7 @@ blocks:
         on_pass:
           commands_file: "valid_commands_file.txt"
         on_fail:
-          commands_file: "valid_commands_file.txt"
+          commands_file: "/.semaphore/valid_commands_file.txt"
       jobs:
         - name: Run tests
           commands_file: "valid_commands_file.txt"
