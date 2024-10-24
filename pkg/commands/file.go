@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type File struct {
@@ -15,8 +16,11 @@ type File struct {
 }
 
 func (f *File) Extract() error {
-	// Resolve FilePath relative to YamlPath
-	absoluteFilePath := filepath.Join(filepath.Dir(f.YamlPath), f.FilePath)
+	// Get the full path to the commands file in the reposiotry
+	absoluteFilePath, err := f.getAbsoluteFilePath()
+	if err != nil {
+		return fmt.Errorf("failed to resolved the file path for file %s, error: %w", absoluteFilePath, err)
+	}
 
 	// Open the file
 	file, err := os.Open(filepath.Clean((absoluteFilePath)))
@@ -43,4 +47,23 @@ func (f *File) Extract() error {
 	}
 
 	return nil
+}
+
+func (f *File) getAbsoluteFilePath() (string, error) {
+	// Get the path to git repository root on filesystem
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	// If file path starts with '/' it is an absolute path from the root of git repository
+	if strings.HasPrefix(f.FilePath, "/") {
+		// Join the git repository root with the file path
+		return filepath.Join(workingDir, f.FilePath), nil
+	} else {
+		// Else, join the git repository root with the directory path for YML file
+		ymlDirPath := filepath.Join(workingDir, filepath.Dir(f.YamlPath))
+		// and then File path is relative to that YML directory path
+		return filepath.Join(ymlDirPath, f.FilePath), nil
+	}
 }
