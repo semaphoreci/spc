@@ -50,7 +50,7 @@ var evaluateChangeInCmd = &cobra.Command{
 
 func checkWhenInstalled() {
 	if !when.IsInstalled() {
-		fmt.Println("Error: Con't find the 'when' expression parser binary")
+		fmt.Println("Error: Can't find the 'when' expression parser binary")
 		fmt.Println()
 		fmt.Println("Is it installed and available in $PATH?")
 
