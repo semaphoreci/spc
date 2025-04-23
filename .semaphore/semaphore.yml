@@ -12,8 +12,8 @@ global_job_config:
       - export GO111MODULE=on
       - export GOPATH=~/go
       - 'export PATH=/home/semaphore/go/bin:$PATH'
-      - curl -LO https://github.com/renderedtext/when/releases/download/v0.0.3-alpha/when
-      - sudo mv when /usr/local/bin/when
+      - curl -LO https://github.com/renderedtext/when/releases/download/v1.2.1/when_otp_25
+      - sudo mv when_otp_25 /usr/local/bin/when
       - sudo chmod +x /usr/local/bin/when
       - checkout
       - go get ./...
