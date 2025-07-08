@@ -16,7 +16,7 @@ type File struct {
 }
 
 func (f *File) Extract() error {
-	// Get the full path to the commands file in the reposiotry
+	// Get the full path to the commands file in the repository
 	absoluteFilePath, err := f.getAbsoluteFilePath()
 	if err != nil {
 		return fmt.Errorf("failed to resolved the file path for file %s, error: %w", absoluteFilePath, err)

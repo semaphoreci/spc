@@ -2,7 +2,7 @@
 
 #
 # This test verifies that compiler can process all possible locations for both the
-# parameters and changs in the same yaml file.
+# parameters and changes in the same yaml file.
 #
 
 require_relative "../e2e"

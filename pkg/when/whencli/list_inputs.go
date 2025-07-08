@@ -30,7 +30,7 @@ func ListInputs(expressions []string) ([]ListInputsResult, error) {
 
 	output, err := exec.Command("when", "list-inputs", "--input", inputPath, "--output", outputPath).CombinedOutput()
 	if err != nil {
-		return res, fmt.Errorf("unprecessable when expressions %s", string(output))
+		return res, fmt.Errorf("unprocessable when expressions %s", string(output))
 	}
 
 	results, err := ListInputsLoadResults(outputPath)
