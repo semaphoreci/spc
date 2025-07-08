@@ -120,18 +120,18 @@ func (e *whenEvaluator) parse() error {
 		expressions = append(expressions, e.Expression)
 	}
 
-	requirments, err := whencli.ListInputs(expressions)
+	requirements, err := whencli.ListInputs(expressions)
 	if err != nil {
 		return err
 	}
 
-	err = e.verifyParsed(requirments)
+	err = e.verifyParsed(requirements)
 	if err != nil {
 		return err
 	}
 
 	for index := range e.list {
-		e.list[index].Requirments = requirments[index].Inputs
+		e.list[index].Requirements = requirements[index].Inputs
 	}
 
 	return nil
@@ -151,10 +151,10 @@ func (e *whenEvaluator) displayFound() {
 	}
 }
 
-func (e *whenEvaluator) verifyParsed(requirments []whencli.ListInputsResult) error {
+func (e *whenEvaluator) verifyParsed(requirements []whencli.ListInputsResult) error {
 	var err error
 
-	for index, r := range requirments {
+	for index, r := range requirements {
 		if r.Error != "" {
 			loc := logs.Location{
 				Path: e.list[index].Path,
