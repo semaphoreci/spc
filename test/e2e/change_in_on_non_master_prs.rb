@@ -10,7 +10,7 @@
 # - we need to fetch both the target and the PR branch
 #
 # This test simulates this state by creating repo with two non-master branches,
-# merging them and reseting HEAD of target branch back by one so merge commit
+# merging them and resetting HEAD of target branch back by one so merge commit
 # becomes a detached head when it is checked out and then deleting the target
 # branch.
 #

@@ -7,7 +7,7 @@ import (
 )
 
 func Test__Extract(t *testing.T) {
-	// If commands file does not exist, it retruns the error
+	// If commands file does not exist, it returns the error
 	file := File{
 		FilePath:   "non_existing_file.txt",
 		ParentPath: []string{},
@@ -21,7 +21,7 @@ func Test__Extract(t *testing.T) {
 	expectedErrorMessage := "failed to open the commands_file at"
 	assert.Contains(t, err.Error(), expectedErrorMessage)
 
-	// If commands file is empty, it retruns the error
+	// If commands file is empty, it returns the error
 	file.FilePath = "empty_file.txt"
 	err = file.Extract()
 

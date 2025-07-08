@@ -89,7 +89,7 @@ const InitialDeepenBy = 100
 
 func unshallow(commitRange string) error {
 	for i := 0; i < MaxUnshallowIterations; i++ {
-		if canResolveCommitRnage(commitRange) {
+		if canResolveCommitRange(commitRange) {
 			return nil
 		}
 
@@ -116,7 +116,7 @@ func deepen(numberOfCommits int) error {
 	return err
 }
 
-func canResolveCommitRnage(commitRange string) bool {
+func canResolveCommitRange(commitRange string) bool {
 	output, err := run("diff", "--shortstat", commitRange)
 	if err != nil {
 		consolelogger.Info(output)

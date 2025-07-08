@@ -13,7 +13,7 @@
 # after the source branch diverged.
 #
 # This test simulates this state by creating repo with two branches, merging
-# them and reseting HEAD of target branch back by one so merge commit becomes
+# them and resetting HEAD of target branch back by one so merge commit becomes
 # a detached head when it is checked out.
 #
 
