@@ -12,8 +12,11 @@ global_job_config:
       - export GO111MODULE=on
       - export GOPATH=~/go
       - 'export PATH=/home/semaphore/go/bin:$PATH'
-      - curl -LO https://github.com/renderedtext/when/releases/download/v1.2.1/when_otp_25
-      - sudo mv when_otp_25 /usr/local/bin/when
+      - export ERLANG_VERSION=$(erl -eval 'erlang:display(erlang:system_info(otp_release)), halt().' -noshell | tail -n1 | tr -d '"\r')
+      - 'echo "ERLANG_VERSION: ${ERLANG_VERSION}"'
+      - export WHEN_VERSION=v1.3.0
+      - curl -LO https://github.com/renderedtext/when/releases/download/${WHEN_VERSION}/when_otp_${ERLANG_VERSION}
+      - sudo mv when_otp_${ERLANG_VERSION} /usr/local/bin/when
       - sudo chmod +x /usr/local/bin/when
       - checkout
       - go get ./...
