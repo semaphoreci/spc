@@ -38,6 +38,11 @@ func (p *parser) parse() (*Function, error) {
 		return nil, err
 	}
 
+	includedPaths, err := p.IncludedPathPatterns()
+	if err != nil {
+		return nil, err
+	}
+
 	track, err := p.TrackPipelineFile()
 	if err != nil {
 		return nil, err
@@ -60,6 +65,7 @@ func (p *parser) parse() (*Function, error) {
 
 		PathPatterns:         paths,
 		ExcludedPathPatterns: excludedPaths,
+		IncludedPathPatterns: includedPaths,
 		TrackPipelineFile:    track,
 		GitDiffSet:           rangeSettings,
 	}, nil
@@ -118,6 +124,20 @@ func (p *parser) ExcludedPathPatterns() ([]string, error) {
 	result, ok := p.castToStringArray(excludedPaths)
 	if !ok {
 		return []string{}, fmt.Errorf("uprocessable exclude path parameter in change in expression")
+	}
+
+	return result, nil
+}
+
+func (p *parser) IncludedPathPatterns() ([]string, error) {
+	includedPaths, found := p.getParam("include")
+	if !found {
+		return []string{}, nil
+	}
+
+	result, ok := p.castToStringArray(includedPaths)
+	if !ok {
+		return []string{}, fmt.Errorf("uprocessable include path parameter in change in expression")
 	}
 
 	return result, nil

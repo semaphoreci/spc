@@ -16,6 +16,7 @@ type Function struct {
 
 	PathPatterns         []string
 	ExcludedPathPatterns []string
+	IncludedPathPatterns []string
 	TrackPipelineFile    bool
 	GitDiffSet           *git.DiffSet
 }
@@ -74,14 +75,22 @@ func (f *Function) HasMatchesInDiffList(diffList []string) bool {
 }
 
 func (f *Function) IsPatternMatchWith(diffLine string) bool {
+	// Check if the line is excluded
 	if _, ok := f.IsDiffLineExcluded(diffLine); ok {
 		return false
 	}
 
+	// Check if the line is included (if include patterns are specified)
+	if _, ok := f.IsDiffLineIncluded(diffLine); !ok {
+		return false
+	}
+
+	// Check if this matches the pipeline file
 	if _, ok := f.IsPipelineFileMatched(diffLine); ok {
 		return true
 	}
 
+	// Check if the line matches any of the main path patterns
 	if _, ok := f.IsPatternMacthed(diffLine); ok {
 		return true
 	}
@@ -91,6 +100,21 @@ func (f *Function) IsPatternMatchWith(diffLine string) bool {
 
 func (f *Function) IsDiffLineExcluded(diffLine string) (string, bool) {
 	for _, pathPattern := range f.ExcludedPathPatterns {
+		if patternMatch(diffLine, pathPattern, f.Workdir) {
+			return pathPattern, true
+		}
+	}
+
+	return "", false
+}
+
+func (f *Function) IsDiffLineIncluded(diffLine string) (string, bool) {
+	// If no include patterns are defined, everything is included
+	if len(f.IncludedPathPatterns) == 0 {
+		return "", true
+	}
+
+	for _, pathPattern := range f.IncludedPathPatterns {
 		if patternMatch(diffLine, pathPattern, f.Workdir) {
 			return pathPattern, true
 		}
