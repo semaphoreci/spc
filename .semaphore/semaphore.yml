@@ -76,6 +76,8 @@ blocks:
                 - test/e2e/change_in_branch_range.rb
                 - test/e2e/change_in_default_range.rb
                 - test/e2e/change_in_excluded_paths.rb
+                - test/e2e/change_in_included_paths.rb
+                - test/e2e/change_in_combined_include_exclude.rb
                 - test/e2e/change_in_glob.rb
                 - test/e2e/change_in_invalid_when.rb
                 - test/e2e/change_in_missing_branch.rb
