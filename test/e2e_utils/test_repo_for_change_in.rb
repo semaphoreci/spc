@@ -89,12 +89,14 @@ class TestRepoForChangeIn
 
   def clone_local_copy(options = {})
     clone_path = "/tmp/test-repo"
+    branch = options[:branch] || "master"
+    depth = options.fetch(:depth, 10)
+    single_branch = options[:single_branch] ? "--single-branch" : ""
+    depth_flag = depth ? "--depth #{depth}" : ""
 
     system "rm -rf #{clone_path}"
-    system "git clone file:///#{@path} --depth 10 --branch #{options[:branch]} #{clone_path}"
+    system "git clone file:///#{@path} #{depth_flag} #{single_branch} --branch #{branch} #{clone_path}"
 
-    repo = TestRepoForChangeIn.new(clone_path)
-
-    repo
+    TestRepoForChangeIn.new(clone_path)
   end
 end
