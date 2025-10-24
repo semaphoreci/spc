@@ -125,23 +125,34 @@ func needsMergeBase(commitRange string) bool {
 }
 
 func mergeBaseAvailable(commitRange string) bool {
-	output, err := run("rev-parse", commitRange)
+	base, head, ok := splitThreeDotRange(commitRange)
+	if !ok {
+		return false
+	}
+
+	output, err := run("merge-base", base, head)
 	if err != nil {
 		consolelogger.Info(output)
 		return false
 	}
 
-	return containsMergeBaseMarker(output)
+	return strings.TrimSpace(output) != ""
 }
 
-func containsMergeBaseMarker(revParseOutput string) bool {
-	for _, line := range strings.Split(strings.TrimSpace(revParseOutput), "\n") {
-		if strings.HasPrefix(line, "^") {
-			return true
-		}
+func splitThreeDotRange(commitRange string) (string, string, bool) {
+	parts := strings.Split(commitRange, threeDots)
+	if len(parts) != 2 {
+		return "", "", false
 	}
 
-	return false
+	base := strings.TrimSpace(parts[0])
+	head := strings.TrimSpace(parts[1])
+
+	if base == "" || head == "" {
+		return "", "", false
+	}
+
+	return base, head, true
 }
 
 func diffIsResolvable(commitRange string) bool {

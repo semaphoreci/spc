@@ -29,19 +29,22 @@ origin.commit!("Bootstrap")
 origin.add_file("lib/base.txt", "base")
 origin.commit!("Base change on master")
 
-origin.create_branch("enterprise")
+commits_to_cherry_pick = 200
 
-origin.switch_branch("master")
-origin.add_file("lib/upstream.txt", "upstream change")
-origin.commit!("Upstream change on master")
+origin.run("git branch enterprise")
+
+commits_to_cherry_pick.times do |index|
+  origin.add_file("lib/master_history_#{index}.txt", "master #{index}")
+  origin.commit!("Master history #{index}")
+end
 
 origin.switch_branch("enterprise")
-origin.add_file("lib/upstream.txt", "upstream change")
-origin.commit!("Cherry-picked upstream change on enterprise")
-
+origin.run("git cherry-pick master~#{commits_to_cherry_pick}..master")
 origin.run("git merge master --strategy ours --no-edit")
 
 repo = origin.clone_local_copy(branch: "enterprise", depth: 1, single_branch: true)
+
+repo.run("git checkout --detach")
 
 repo.run(%{
   export SEMAPHORE_GIT_SHA=$(git rev-parse HEAD)
