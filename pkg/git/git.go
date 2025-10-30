@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"math"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -125,10 +126,7 @@ func needsMergeBase(commitRange string) bool {
 }
 
 func mergeBaseAvailable(commitRange string) bool {
-	base, head, ok := splitThreeDotRange(commitRange)
-	if !ok {
-		return false
-	}
+	base, head := splitThreeDotRange(commitRange)
 
 	output, err := run("merge-base", base, head)
 	if err != nil {
@@ -139,20 +137,26 @@ func mergeBaseAvailable(commitRange string) bool {
 	return strings.TrimSpace(output) != ""
 }
 
-func splitThreeDotRange(commitRange string) (string, string, bool) {
+func splitThreeDotRange(commitRange string) (string, string) {
+	baseSha := defaultBaseSha()
+
 	parts := strings.Split(commitRange, threeDots)
 	if len(parts) != 2 {
-		return "", "", false
+		return baseSha, baseSha
 	}
 
 	base := strings.TrimSpace(parts[0])
 	head := strings.TrimSpace(parts[1])
 
-	if base == "" || head == "" {
-		return "", "", false
+	if base == "" {
+		base = baseSha
 	}
 
-	return base, head, true
+	if head == "" {
+		head = baseSha
+	}
+
+	return base, head
 }
 
 func diffIsResolvable(commitRange string) bool {
@@ -169,4 +173,13 @@ func run(args ...string) (string, error) {
 
 	output, err := exec.Command("git", args...).CombinedOutput()
 	return string(output), err
+}
+
+func defaultBaseSha() string {
+	sha := strings.TrimSpace(os.Getenv("SEMAPHORE_GIT_SHA"))
+	if sha != "" {
+		return sha
+	}
+
+	return "HEAD"
 }
