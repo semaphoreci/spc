@@ -24,8 +24,8 @@ require 'yaml'
 #   change_in('/client')
 #
 # But for the backend, it is trickier. We want the block to run if there are any
-# changes in the repository, except if those changes are comming from the client
-# directory. To codify this exlusion, the exclude list can be used:
+# changes in the repository, except if those changes are coming from the client
+# directory. To codify this exclusion, the exclude list can be used:
 #
 #   change_in('/', {exclude: ['/client']})
 #

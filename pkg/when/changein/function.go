@@ -82,7 +82,7 @@ func (f *Function) IsPatternMatchWith(diffLine string) bool {
 		return true
 	}
 
-	if _, ok := f.IsPatternMacthed(diffLine); ok {
+	if _, ok := f.IsPatternMatched(diffLine); ok {
 		return true
 	}
 
@@ -99,7 +99,7 @@ func (f *Function) IsDiffLineExcluded(diffLine string) (string, bool) {
 	return "", false
 }
 
-func (f *Function) IsPatternMacthed(diffLine string) (string, bool) {
+func (f *Function) IsPatternMatched(diffLine string) (string, bool) {
 	for _, pathPattern := range f.PathPatterns {
 		if patternMatch(diffLine, pathPattern, f.Workdir) {
 			return pathPattern, true

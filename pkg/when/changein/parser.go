@@ -74,7 +74,7 @@ func (p *parser) PathPatterns() ([]string, error) {
 
 	result, ok := p.castToStringArray(firstArg.Data())
 	if !ok {
-		return []string{}, fmt.Errorf("uprocessable path parameter in change in expression")
+		return []string{}, fmt.Errorf("unprocessable path parameter in change in expression")
 	}
 
 	return result, nil
@@ -117,7 +117,7 @@ func (p *parser) ExcludedPathPatterns() ([]string, error) {
 
 	result, ok := p.castToStringArray(excludedPaths)
 	if !ok {
-		return []string{}, fmt.Errorf("uprocessable exclude path parameter in change in expression")
+		return []string{}, fmt.Errorf("unprocessable exclude path parameter in change in expression")
 	}
 
 	return result, nil
