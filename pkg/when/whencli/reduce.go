@@ -3,12 +3,14 @@ package whencli
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 
 	gabs "github.com/Jeffail/gabs/v2"
 )
+
+const ownerReadWritePerm = 0600
 
 type ReduceInputs struct {
 	Keywords  map[string]interface{} `json:"keywords"`
@@ -65,7 +67,7 @@ func ReducePrepareInput(expressions []string, inputs []ReduceInputs, path string
 		return err
 	}
 
-	err = ioutil.WriteFile(path, []byte(j), os.ModePerm)
+	err = os.WriteFile(path, []byte(j), ownerReadWritePerm)
 	if err != nil {
 		return err
 	}
@@ -81,7 +83,7 @@ func ReduceLoadOutput(path string) ([]string, error) {
 	}
 	defer file.Close()
 
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		return []string{}, err
 	}
