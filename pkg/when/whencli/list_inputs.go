@@ -3,7 +3,8 @@ package whencli
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+
+	"io"
 	"os"
 	"os/exec"
 
@@ -61,7 +62,7 @@ func ListInputsPrepareInputFile(path string, expressions []string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(path, []byte(j), os.ModePerm)
+	err = os.WriteFile(path, []byte(j), ownerReadWritePerm)
 	if err != nil {
 		return err
 	}
@@ -77,7 +78,7 @@ func ListInputsLoadResults(path string) (*gabs.Container, error) {
 	}
 	defer file.Close()
 
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
