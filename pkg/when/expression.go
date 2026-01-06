@@ -11,20 +11,20 @@ type WhenExpression struct {
 	Expression   string
 	Path         []string
 	YamlPath     string
-	Requirments  *gabs.Container
+	Requirements  *gabs.Container
 	ReduceInputs whencli.ReduceInputs
 }
 
 func (w *WhenExpression) Eval() error {
-	for _, requirment := range w.ListChangeInFunctions(w.Requirments) {
-		result, err := w.EvalFunction(requirment)
+	for _, requirement := range w.ListChangeInFunctions(w.Requirements) {
+		result, err := w.EvalFunction(requirement)
 		if err != nil {
 			return err
 		}
 
 		input := map[string]interface{}{}
-		input["name"] = w.functionName(requirment)
-		input["params"] = w.functionParams(requirment)
+		input["name"] = w.functionName(requirement)
+		input["params"] = w.functionParams(requirement)
 		input["result"] = result
 
 		w.ReduceInputs.Keywords = map[string]interface{}{}
@@ -34,10 +34,10 @@ func (w *WhenExpression) Eval() error {
 	return nil
 }
 
-func (w *WhenExpression) ListChangeInFunctions(requirments *gabs.Container) []*gabs.Container {
+func (w *WhenExpression) ListChangeInFunctions(requirements *gabs.Container) []*gabs.Container {
 	result := []*gabs.Container{}
 
-	for _, input := range requirments.Children() {
+	for _, input := range requirements.Children() {
 		if w.IsChangeInFunction(input) {
 			result = append(result, input)
 		}
