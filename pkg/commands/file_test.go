@@ -9,6 +9,11 @@ import (
 	assert "github.com/stretchr/testify/assert"
 )
 
+const (
+	testDirPerm  = 0o755
+	testFilePerm = 0o644
+)
+
 func Test__Extract(t *testing.T) {
 	// If commands file does not exist, it returns the error
 	file := File{
@@ -74,9 +79,9 @@ func Test__ExtractFromGitWhenMissingFromWorkingTree(t *testing.T) {
 
 	// The commands_file lives outside the pipeline directory.
 	scriptsDir := filepath.Join(repoDir, "scripts")
-	assert.NoError(t, os.MkdirAll(scriptsDir, 0o755))
+	assert.NoError(t, os.MkdirAll(scriptsDir, testDirPerm))
 	scriptPath := filepath.Join(scriptsDir, "build.sh")
-	assert.NoError(t, os.WriteFile(scriptPath, []byte("echo a\necho b\necho c\n"), 0o644))
+	assert.NoError(t, os.WriteFile(scriptPath, []byte("echo a\necho b\necho c\n"), testFilePerm))
 
 	runGit("add", ".")
 	runGit("commit", "-q", "-m", "init")
