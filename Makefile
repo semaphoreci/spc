@@ -1,6 +1,6 @@
 .PHONY: build test
 
-SECURITY_TOOLBOX_BRANCH ?= master
+SECURITY_TOOLBOX_BRANCH?=main
 MONOREPO_TMP_DIR?=/tmp/monorepo
 SECURITY_TOOLBOX_TMP_DIR?=$(MONOREPO_TMP_DIR)/security-toolbox
 
@@ -14,16 +14,37 @@ check.prepare:
 		git checkout main && cd -
 
 check.static: check.prepare
-	docker run -it -v $$(pwd):/app \
+	docker run -it \
+		-v $$(pwd):/app \
 		-v $(SECURITY_TOOLBOX_TMP_DIR):$(SECURITY_TOOLBOX_TMP_DIR) \
-		registry.semaphoreci.com/ruby:2.7 \
-		bash -c 'cd /app && $(SECURITY_TOOLBOX_TMP_DIR)/code --language go -d'
+		-w /app \
+		-e HOST_UID=$$(id -u) \
+		-e HOST_GID=$$(id -g) \
+		registry.semaphoreci.com/ruby:3 \
+		bash -c '$(SECURITY_TOOLBOX_TMP_DIR)/code --language go -d'
 
 check.deps: check.prepare
-	docker run -it -v $$(pwd):/app \
+	docker run -it \
+		-v $$(pwd):/app \
 		-v $(SECURITY_TOOLBOX_TMP_DIR):$(SECURITY_TOOLBOX_TMP_DIR) \
-		registry.semaphoreci.com/ruby:2.7 \
-		bash -c 'cd /app && $(SECURITY_TOOLBOX_TMP_DIR)/dependencies --language go -d'
+		-w /app \
+		-e HOST_UID=$$(id -u) \
+		-e HOST_GID=$$(id -g) \
+		-e TRIVY_DB_REPOSITORY \
+		-e TRIVY_JAVA_DB_REPOSITORY \
+		registry.semaphoreci.com/ruby:3 \
+		bash -c '$(SECURITY_TOOLBOX_TMP_DIR)/dependencies --language go -d; EXIT_CODE=$$?; chown -R "$$HOST_UID:$$HOST_GID" /app/out 2>/dev/null || true; exit $$EXIT_CODE'
+
+check.generate-report: check.prepare
+ifeq ($(CI),)
+	docker run -it \
+		-v $$(pwd):/app \
+		-v $(SECURITY_TOOLBOX_TMP_DIR):$(SECURITY_TOOLBOX_TMP_DIR) \
+		registry.semaphoreci.com/ruby:3 \
+		bash -c 'cd /app && $(SECURITY_TOOLBOX_TMP_DIR)/report --service-name "[$(CHECK_TYPE)] spc"'
+else
+	$(SECURITY_TOOLBOX_TMP_DIR)/report --service-name "[$(CHECK_TYPE)] spc"
+endif
 
 
 lint:

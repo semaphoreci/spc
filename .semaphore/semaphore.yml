@@ -25,6 +25,14 @@ blocks:
       prologue:
         commands:
           - checkout
+      epilogue:
+        always:
+          commands:
+            - 'if [ -f out/dependency-scan-junit.xml ]; then test-results --name "Dependency scan" --suite-prefix "[$SEMAPHORE_BLOCK_NAME]" publish out/dependency-scan-junit.xml; fi'
+            - 'if [ -f out/gosec-junit.xml ]; then test-results --name "Security scan" --suite-prefix "[$SEMAPHORE_BLOCK_NAME]" publish out/gosec-junit.xml; fi'
+            - 'if [ -f out/dependency-scan-trivy.json ]; then CHECK_TYPE=deps make check.generate-report; fi'
+            - 'if [ -f out/security-export.json ]; then artifact push workflow out/security-export.json -d scans/$SEMAPHORE_JOB_ID.json; fi'
+            - test-results gen-pipeline-report
       jobs:
         - name: Check dependencies
           commands:
