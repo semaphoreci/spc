@@ -70,7 +70,7 @@ func Diff(commitRange string) ([]string, string, error) {
 func DiffList(commitRange string) ([]string, error) {
 	err := unshallow(commitRange)
 	if err != nil {
-		return []string{}, nil
+		return []string{}, err
 	}
 
 	list, _, err := Diff(commitRange)
@@ -84,7 +84,16 @@ func DiffList(commitRange string) ([]string, error) {
 const MaxUnshallowIterations = 10
 const InitialDeepenBy = 100
 
+// Deepening the clone can fail transiently, most notably when a concurrent git
+// process rewrites .git/shallow while the fetch is in flight. Such a fetch
+// usually applies before git aborts, so a failed deepen is retried instead of
+// abandoning the commit range. Consecutive failures are capped so that a
+// genuinely unreachable remote fails fast instead of retrying ten times.
+const MaxConsecutiveDeepenFailures = 3
+
 func unshallow(commitRange string) error {
+	consecutiveFailures := 0
+
 	for i := 0; i < MaxUnshallowIterations; i++ {
 		if canResolveCommitRange(commitRange) {
 			return nil
@@ -93,9 +102,21 @@ func unshallow(commitRange string) error {
 		deepenBy := InitialDeepenBy * int(math.Exp2(float64(i)))
 
 		err := deepen(deepenBy)
-		if err != nil {
-			return err
+		if err == nil {
+			consecutiveFailures = 0
+			continue
 		}
+
+		consecutiveFailures++
+		if consecutiveFailures >= MaxConsecutiveDeepenFailures {
+			return fmt.Errorf("failed to deepen the git clone while resolving commit range %s: %w", commitRange, err)
+		}
+
+		consolelogger.Infof(
+			"Deepening the clone failed, retrying (%d/%d)\n",
+			consecutiveFailures,
+			MaxConsecutiveDeepenFailures,
+		)
 	}
 
 	return fmt.Errorf("commit range %s is not resolvable", commitRange)

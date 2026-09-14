@@ -41,7 +41,7 @@ func (f *Function) Eval() (bool, error) {
 
 	diffList, err := git.DiffList(f.GitDiffSet.CommitRange())
 	if err != nil {
-		return false, err
+		return false, f.gitDiffError(err)
 	}
 
 	consolelogger.EmptyLine()
@@ -117,6 +117,23 @@ func (f *Function) IsPipelineFileMatched(diffLine string) (string, bool) {
 
 func (f *Function) absoluteYAMLPath() string {
 	return "/" + f.YamlPath
+}
+
+// gitDiffError reports a failure to resolve the commit range as a structured
+// error. Without it the condition would be silently resolved, which hides a
+// broken git state behind a plain 'false' result.
+func (f *Function) gitDiffError(err error) error {
+	msg := fmt.Sprintf(
+		"Failed to resolve the git diff for commit range '%s': %s",
+		f.GitDiffSet.CommitRange(),
+		err.Error(),
+	)
+
+	gitErr := logs.ErrorChangeInGitFailure{Message: msg, Location: f.Location}
+
+	logs.Log(gitErr)
+
+	return &gitErr
 }
 
 func (f *Function) parseFetchError(fetchTarget string, output string, err error) error {

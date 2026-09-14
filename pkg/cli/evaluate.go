@@ -73,6 +73,10 @@ func check(err error) {
 		os.Exit(1)
 	}
 
+	if _, ok := err.(*logs.ErrorChangeInGitFailure); ok {
+		os.Exit(1)
+	}
+
 	panic(err)
 }
 

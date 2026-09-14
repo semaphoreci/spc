@@ -79,6 +79,7 @@ blocks:
                 - test/e2e/change_in_all_possible_locations.rb
                 - test/e2e/change_in_branch_range.rb
                 - test/e2e/change_in_default_range.rb
+                - test/e2e/change_in_deepen_failure.rb
                 - test/e2e/change_in_excluded_paths.rb
                 - test/e2e/change_in_glob.rb
                 - test/e2e/change_in_invalid_when.rb

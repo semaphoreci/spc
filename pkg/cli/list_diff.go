@@ -37,13 +37,29 @@ var listDiffCmd = &cobra.Command{
 			}
 		}
 
-		diffList, err := git.DiffList(gitDiffSet.CommitRange())
-		check(err)
+		commitRange := gitDiffSet.CommitRange()
+
+		diffList, err := git.DiffList(commitRange)
+		check(parseDiffError(commitRange, err))
 
 		for _, file := range diffList {
 			fmt.Println(file)
 		}
 	},
+}
+
+func parseDiffError(commitRange string, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	msg := fmt.Sprintf(
+		"Failed to resolve the git diff for commit range '%s': %s",
+		commitRange,
+		err.Error(),
+	)
+
+	return &logs.ErrorChangeInGitFailure{Message: msg}
 }
 
 func parseFetchError(fetchTarget string, output string, err error) error {
