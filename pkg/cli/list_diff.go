@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/semaphoreci/spc/pkg/consolelogger"
@@ -37,13 +39,43 @@ var listDiffCmd = &cobra.Command{
 			}
 		}
 
-		diffList, err := git.DiffList(gitDiffSet.CommitRange())
-		check(err)
+		commitRange := gitDiffSet.CommitRange()
+
+		diffList, err := git.DiffList(commitRange)
+		check(parseDiffError(commitRange, err))
 
 		for _, file := range diffList {
 			fmt.Println(file)
 		}
 	},
+}
+
+// parseDiffError mirrors how change_in treats the two failure modes. A commit
+// range with no merge base keeps listing nothing, as it always has, but says
+// so on stderr rather than leaving the caller with silent empty output. A git
+// command failure is reported and exits non-zero.
+func parseDiffError(commitRange string, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, git.ErrRangeUnresolvable) {
+		fmt.Fprintf(
+			os.Stderr,
+			"warning: no merge base found for commit range '%s', listing no files\n",
+			commitRange,
+		)
+
+		return nil
+	}
+
+	msg := fmt.Sprintf(
+		"Failed to resolve the git diff for commit range '%s': %s",
+		commitRange,
+		err.Error(),
+	)
+
+	return &logs.ErrorInitializationFailed{Message: msg}
 }
 
 func parseFetchError(fetchTarget string, output string, err error) error {
