@@ -163,8 +163,12 @@ assert_eq(errors.size, 1)
 
 assert_eq(errors[0], {
   "type" => "ErrorInitializationFailed",
+  # git's own diagnostic has to reach this message. Without it every cause -
+  # the shallow file race, a refused connection, a missing repository -
+  # arrives as a bare "exit status 128".
   "message" => "Failed to resolve the git diff for commit range 'master...feature': " \
-               "failed to deepen the git clone while resolving commit range master...feature: exit status 128",
+               "failed to deepen the git clone while resolving commit range master...feature: " \
+               "fatal: shallow file has changed since we read it: exit status 128",
   "location" => {
     "file" => ".semaphore/semaphore.yml",
     "path" => ["blocks", "0", "run", "when"]

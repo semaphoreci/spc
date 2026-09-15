@@ -162,17 +162,20 @@ func (f *Function) gitFailureError(err error) error {
 	return &gitErr
 }
 
-// warnRangeUnresolvable reports a commit range that has no merge base at all.
-// No git command failed, and deepening the clone further cannot help, so the
-// condition resolves to false as it always has. The warning is what makes the
-// situation visible, because the alternative - failing the compilation -
-// would take down every pipeline in a repository that is in this state,
-// including blocks that use no change_in at all.
+// warnRangeUnresolvable reports a commit range whose two ends genuinely have
+// no common ancestor, with the whole history in hand. No git command failed
+// and deepening cannot help, so the condition resolves to false as it always
+// has. The warning is what makes the situation visible, because the
+// alternative - failing the compilation - would take down every pipeline in a
+// repository in this state, including blocks that use no change_in at all.
+//
+// A clone that merely ran out of deepen budget never reaches here: that
+// answer is inconclusive and is reported as a failure instead.
 func (f *Function) warnRangeUnresolvable() {
 	consolelogger.EmptyLine()
 	consolelogger.Infof("WARNING: no merge base found for commit range '%s'.\n", f.GitDiffSet.CommitRange())
-	consolelogger.Infof("WARNING: the branches share no history, the base branch was recreated,\n")
-	consolelogger.Infof("WARNING: or the merge base is older than this clone can reach.\n")
+	consolelogger.Infof("WARNING: the full history is available and the two branches share no\n")
+	consolelogger.Infof("WARNING: commit, so the base branch was most likely recreated.\n")
 	consolelogger.Infof("WARNING: resolving this change_in to false.\n")
 }
 

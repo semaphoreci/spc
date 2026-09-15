@@ -23,12 +23,20 @@ agent:
     type: e1-standard-2
 
 blocks:
-  - name: Gated
+  - name: GatedOne
     run:
       when: "change_in('/lib')"
     task:
       jobs:
-        - name: Gated
+        - name: GatedOne
+          commands:
+            - echo "gated"
+  - name: GatedTwo
+    run:
+      when: "change_in('/lib')"
+    task:
+      jobs:
+        - name: GatedTwo
           commands:
             - echo "gated"
   - name: Ungated
@@ -87,12 +95,20 @@ agent:
     type: e1-standard-2
 
 blocks:
-  - name: Gated
+  - name: GatedOne
     run:
       when: "false"
     task:
       jobs:
-        - name: Gated
+        - name: GatedOne
+          commands:
+            - echo "gated"
+  - name: GatedTwo
+    run:
+      when: "false"
+    task:
+      jobs:
+        - name: GatedTwo
           commands:
             - echo "gated"
   - name: Ungated
@@ -111,3 +127,11 @@ output = File.read('/tmp/stdout.txt')
 
 assert(output.include?("WARNING: no merge base found for commit range 'master...feature'"))
 assert(output.include?("WARNING: resolving this change_in to false."))
+
+#
+# The verdict is reached once and reused. Both gated blocks evaluate the same
+# range, but only the first one pays for the round of deepen fetches.
+#
+deepens = output.scan(/Running git fetch origin --deepen/).size
+
+assert_eq(deepens, 10)
