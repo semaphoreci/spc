@@ -2,6 +2,7 @@
 
 require_relative "../e2e"
 require 'yaml'
+require 'json'
 
 #
 # Resolving a commit range in a shallow clone requires deepening it first.
@@ -134,7 +135,44 @@ blocks:
 }))
 
 #
-# A deepen that keeps failing is reported, instead of resolving to an empty diff.
+# A deepen that keeps failing fails the compilation, and reports a structured
+# error the workflow page knows how to render. The exact shape matters: it is
+# read by plumber and dispatched on by front.
+#
+repo = shallow_clone(origin)
+install_git_shim(fail_attempts: 100, apply_deepen: false)
+
+system "rm -f /tmp/output.yml /tmp/logs.jsonl"
+
+repo.run(%{
+  #{semaphore_env}
+
+  #{spc} compile \
+    --input .semaphore/semaphore.yml \
+    --output /tmp/output.yml \
+    --logs /tmp/logs.jsonl
+}, fail: false)
+
+assert_eq($?.exitstatus, 1)
+
+# No compiled pipeline is produced, so the whole workflow fails to initialize.
+assert_eq(File.exist?('/tmp/output.yml'), false)
+
+errors = File.read('/tmp/logs.jsonl').lines.map { |l| JSON.parse(l) }
+assert_eq(errors.size, 1)
+
+assert_eq(errors[0], {
+  "type" => "ErrorInitializationFailed",
+  "message" => "Failed to resolve the git diff for commit range 'master...feature': " \
+               "failed to deepen the git clone while resolving commit range master...feature: exit status 128",
+  "location" => {
+    "file" => ".semaphore/semaphore.yml",
+    "path" => ["blocks", "0", "run", "when"]
+  }
+})
+
+#
+# The same failure through list-diff exits non-zero rather than printing nothing.
 #
 repo = shallow_clone(origin)
 install_git_shim(fail_attempts: 100, apply_deepen: false)

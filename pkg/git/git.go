@@ -1,12 +1,14 @@
 package git
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	consolelogger "github.com/semaphoreci/spc/pkg/consolelogger"
 )
@@ -91,6 +93,17 @@ const InitialDeepenBy = 100
 // genuinely unreachable remote fails fast instead of retrying ten times.
 const MaxConsecutiveDeepenFailures = 3
 
+// Retries wait before trying again, so that a competing git process holding
+// the shallow file has time to finish. Waiting grows with each failure.
+const DeepenRetryBackoff = 500 * time.Millisecond
+
+// ErrRangeUnresolvable reports that no git command failed, but the commit
+// range still has no merge base: the branches share no history, the base
+// branch was recreated, or the merge base lies beyond the deepen budget.
+// Deepening cannot fix any of those, so this is kept distinct from a genuine
+// git failure, which callers treat far more severely.
+var ErrRangeUnresolvable = errors.New("commit range is not resolvable")
+
 func unshallow(commitRange string) error {
 	consecutiveFailures := 0
 
@@ -99,9 +112,7 @@ func unshallow(commitRange string) error {
 			return nil
 		}
 
-		deepenBy := InitialDeepenBy * int(math.Exp2(float64(i)))
-
-		err := deepen(deepenBy)
+		err := deepen(InitialDeepenBy * int(math.Exp2(float64(i))))
 		if err == nil {
 			consecutiveFailures = 0
 			continue
@@ -112,14 +123,23 @@ func unshallow(commitRange string) error {
 			return fmt.Errorf("failed to deepen the git clone while resolving commit range %s: %w", commitRange, err)
 		}
 
-		consolelogger.Infof(
-			"Deepening the clone failed, retrying (%d/%d)\n",
-			consecutiveFailures,
-			MaxConsecutiveDeepenFailures,
-		)
+		waitBeforeRetry(consecutiveFailures)
 	}
 
-	return fmt.Errorf("commit range %s is not resolvable", commitRange)
+	return fmt.Errorf("%w: %s", ErrRangeUnresolvable, commitRange)
+}
+
+func waitBeforeRetry(consecutiveFailures int) {
+	backoff := DeepenRetryBackoff * time.Duration(consecutiveFailures)
+
+	consolelogger.Infof(
+		"Deepening the clone failed, retrying in %s (%d/%d)\n",
+		backoff,
+		consecutiveFailures,
+		MaxConsecutiveDeepenFailures,
+	)
+
+	time.Sleep(backoff)
 }
 
 func deepen(numberOfCommits int) error {

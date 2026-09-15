@@ -94,6 +94,7 @@ blocks:
                 - test/e2e/change_in_relative_paths.rb
                 - test/e2e/change_in_semaphore_commit_range.rb
                 - test/e2e/change_in_simple.rb
+                - test/e2e/change_in_unresolvable_range.rb
                 - test/e2e/change_in_with_default_branch.rb
                 - test/e2e/change_in_shallow_merge_commit.rb
                 - test/e2e/change_in_java_vs_javascript_clash.rb

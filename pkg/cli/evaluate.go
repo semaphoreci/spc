@@ -73,7 +73,7 @@ func check(err error) {
 		os.Exit(1)
 	}
 
-	if _, ok := err.(*logs.ErrorChangeInGitFailure); ok {
+	if _, ok := err.(*logs.ErrorInitializationFailed); ok {
 		os.Exit(1)
 	}
 

@@ -25,11 +25,11 @@ func (e *ErrorInvalidWhenExpression) Error() string {
 	return e.Message
 }
 
-type ErrorChangeInGitFailure struct {
+type ErrorInitializationFailed struct {
 	Message  string   `json:"message"`
 	Location Location `json:"location"`
 }
 
-func (e *ErrorChangeInGitFailure) Error() string {
+func (e *ErrorInitializationFailed) Error() string {
 	return e.Message
 }
