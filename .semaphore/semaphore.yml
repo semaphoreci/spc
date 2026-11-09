@@ -87,6 +87,7 @@ blocks:
                 - test/e2e/change_in_multiple_paths.rb
                 - test/e2e/change_in_on_forked_prs.rb
                 - test/e2e/change_in_on_prs.rb
+                - test/e2e/change_in_on_prs_with_commit_range.rb
                 - test/e2e/change_in_on_non_master_prs.rb
                 - test/e2e/change_in_on_tags.rb
                 - test/e2e/change_in_performance.rb

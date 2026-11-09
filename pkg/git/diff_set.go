@@ -69,10 +69,12 @@ func (d *DiffSet) IsEvaluationNeeded() bool {
 
 func (d *DiffSet) IsGitFetchNeeded() (bool, []string) {
 	// We don't need to fetch any branch, we are evaluating the
-	// change in on the current branch.
+	// change in on the current branch. A pull request ignores branch_range
+	// and diffs the target branch against the PR branch, so both still
+	// need fetching even when branch_range names a base commit.
 	if d.runningOnDefaultBranch() ||
 		d.runningOnForkedPullRequest() ||
-		d.isBaseCommitSha() {
+		(!d.runningOnPullRequest() && d.isBaseCommitSha()) {
 		return false, nil
 	}
 
