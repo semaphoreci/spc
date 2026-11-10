@@ -8,9 +8,8 @@ agent:
 global_job_config:
   prologue:
     commands:
-      - sem-version go 1.21
+      - sem-version go 1.25
       - export GO111MODULE=on
-      - export GOTOOLCHAIN=local
       - export GOPATH=~/go
       - 'export PATH=/home/semaphore/go/bin:$PATH'
       - curl -LO https://github.com/renderedtext/when/releases/download/v1.2.1/when_otp_25
