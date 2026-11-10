@@ -19,6 +19,7 @@ const testCommitRange = "master...feature"
 // open.
 const sentinelFileMode = 0o600
 const pathEnvVar = "PATH"
+const gitFatalExitCode = 128
 
 // The tests below exercise the deepening loop against a real shallow clone,
 // with a git shim on PATH that makes 'git fetch --deepen' fail the way a
@@ -128,7 +129,7 @@ func TestDiffListFailsWhenMergeBaseFailsOnACompleteClone(t *testing.T) {
 
 	installGitShim(t, gitShim{
 		failSubcommand: "merge-base",
-		failExitCode:   128,
+		failExitCode:   gitFatalExitCode,
 		failMessage:    "fatal: bad object HEAD",
 		recordTo:       invocations,
 	})
@@ -170,7 +171,7 @@ func TestDiffListKeepsDeepeningWhenMergeBaseFailsOnAShallowClone(t *testing.T) {
 
 	installGitShim(t, gitShim{
 		failSubcommand: "merge-base",
-		failExitCode:   128,
+		failExitCode:   gitFatalExitCode,
 		failMessage:    "fatal: Not a valid commit name deadbeef",
 		recordTo:       invocations,
 	})
