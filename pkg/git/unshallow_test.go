@@ -18,6 +18,8 @@ const testCommitRange = "master...feature"
 // sentinelFileMode is the mode of the marker file that holds a failure window
 // open.
 const sentinelFileMode = 0o600
+const pathEnvVar = "PATH"
+const gitFatalExitCode = 128
 
 // The tests below exercise the deepening loop against a real shallow clone,
 // with a git shim on PATH that makes 'git fetch --deepen' fail the way a
@@ -127,7 +129,7 @@ func TestDiffListFailsWhenMergeBaseFailsOnACompleteClone(t *testing.T) {
 
 	installGitShim(t, gitShim{
 		failSubcommand: "merge-base",
-		failExitCode:   128,
+		failExitCode:   gitFatalExitCode,
 		failMessage:    "fatal: bad object HEAD",
 		recordTo:       invocations,
 	})
@@ -169,7 +171,7 @@ func TestDiffListKeepsDeepeningWhenMergeBaseFailsOnAShallowClone(t *testing.T) {
 
 	installGitShim(t, gitShim{
 		failSubcommand: "merge-base",
-		failExitCode:   128,
+		failExitCode:   gitFatalExitCode,
 		failMessage:    "fatal: Not a valid commit name deadbeef",
 		recordTo:       invocations,
 	})
@@ -474,7 +476,7 @@ exec %[4]q "$@"
 		t.Fatalf("failed to write the git shim: %v", err)
 	}
 
-	t.Setenv("PATH", shimDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv(pathEnvVar, shimDir+string(os.PathListSeparator)+os.Getenv(pathEnvVar))
 	resetMemoizedGitState()
 }
 
@@ -511,11 +513,11 @@ exec %q "$@"
 `, recordTo, gitPath)
 
 	// #nosec G306 -- the shim has to be executable
-	if err := os.WriteFile(filepath.Join(shimDir, "git"), []byte(body), sentinelFileMode|0o111); err != nil {
+	if err := os.WriteFile(filepath.Join(shimDir, "git"), []byte(body), shimFileMode); err != nil {
 		t.Fatalf("failed to write the recording shim: %v", err)
 	}
 
-	t.Setenv("PATH", shimDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv(pathEnvVar, shimDir+string(os.PathListSeparator)+os.Getenv(pathEnvVar))
 }
 
 func readFile(t *testing.T, path string) string {

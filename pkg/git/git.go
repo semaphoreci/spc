@@ -371,7 +371,7 @@ func diffIsResolvable(commitRange string) (bool, error) {
 func run(args ...string) (string, error) {
 	consolelogger.Infof("Running git %s\n", strings.Join(args, " "))
 
-	output, err := exec.Command("git", args...).CombinedOutput()
+	output, err := exec.Command("git", args...).CombinedOutput() // #nosec G204 -- first arg is always the literal "git"
 	return string(output), err
 }
 
