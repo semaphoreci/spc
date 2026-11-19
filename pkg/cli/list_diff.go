@@ -41,13 +41,36 @@ var listDiffCmd = &cobra.Command{
 
 		commitRange := gitDiffSet.CommitRange()
 
-		diffList, err := git.DiffList(commitRange)
+		diffList, err := listDiff(gitDiffSet, commitRange)
 		check(parseDiffError(commitRange, err))
 
 		for _, file := range diffList {
 			fmt.Println(file)
 		}
 	},
+}
+
+// listDiff resolves the range the same way change_in does: the push's own
+// range end to end, any other range through its merge base.
+func listDiff(diffSet *git.DiffSet, commitRange string) ([]string, error) {
+	if !diffSet.UsesPushRange() {
+		return git.DiffList(commitRange)
+	}
+
+	diff, err := git.PushRangeDiffList(commitRange)
+	if err != nil {
+		return nil, err
+	}
+
+	if !diff.BaseAvailable {
+		fmt.Fprintf(
+			os.Stderr,
+			"warning: the previous commit of commit range '%s' is not available, listing every file\n",
+			commitRange,
+		)
+	}
+
+	return diff.Files, nil
 }
 
 // parseDiffError mirrors how change_in treats the two failure modes. A commit

@@ -18,6 +18,10 @@ type DiffSet struct {
 	DefaultRange  string
 	BranchRange   string
 	OnTags        bool
+
+	// Whether DefaultRange is the range of the push itself, taken from
+	// SEMAPHORE_GIT_COMMIT_RANGE, rather than one the pipeline set.
+	defaultRangeFromPush bool
 }
 
 func NewDiffSet(
@@ -35,16 +39,31 @@ func NewDiffSet(
 		defaultBranch = implicitDefaultBranch
 	}
 
+	defaultRangeFromPush := false
+
 	if defaultRange == "" {
 		defaultRange = fetchCommitRange(defaultBranch)
+		defaultRangeFromPush = env.GitCommitRange() != ""
 	}
 
 	return &DiffSet{
-		DefaultBranch: defaultBranch,
-		DefaultRange:  defaultRange,
-		BranchRange:   branchRange,
-		OnTags:        onTags,
+		DefaultBranch:        defaultBranch,
+		DefaultRange:         defaultRange,
+		BranchRange:          branchRange,
+		OnTags:               onTags,
+		defaultRangeFromPush: defaultRangeFromPush,
 	}
+}
+
+// UsesPushRange reports whether CommitRange is the push's own range: the
+// commit the branch pointed to before the push and the one it points to now.
+// Such a range is compared end to end rather than through a merge base.
+func (d *DiffSet) UsesPushRange() bool {
+	if !d.defaultRangeFromPush || d.runningOnPullRequest() {
+		return false
+	}
+
+	return d.runningOnDefaultBranch() || d.BranchRange == "$SEMAPHORE_GIT_COMMIT_RANGE"
 }
 
 func (d *DiffSet) CommitRange() string {

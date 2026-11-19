@@ -81,6 +81,7 @@ blocks:
                 - test/e2e/change_in_default_range.rb
                 - test/e2e/change_in_deepen_failure.rb
                 - test/e2e/change_in_excluded_paths.rb
+                - test/e2e/change_in_force_push.rb
                 - test/e2e/change_in_glob.rb
                 - test/e2e/change_in_invalid_when.rb
                 - test/e2e/change_in_missing_branch.rb
@@ -103,6 +104,7 @@ blocks:
                 - test/e2e/change_in_large_commit_diff_on_default_branch.rb
                 - test/e2e/list_diff_branch_range.rb
                 - test/e2e/list_diff_default_range.rb
+                - test/e2e/list_diff_force_push.rb
                 - test/e2e/list_diff_missing_branch.rb
                 - test/e2e/list_diff_on_forked_prs.rb
                 - test/e2e/list_diff_on_prs.rb

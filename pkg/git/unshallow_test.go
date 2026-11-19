@@ -570,6 +570,7 @@ func resetMemoizedGitState() {
 	fetchedBranches = map[string]string{}
 	evaluatedDiffs = map[string][]string{}
 	unresolvableRanges = map[string]bool{}
+	evaluatedPushRanges = map[string]PushRangeDiff{}
 }
 
 // withDeepenBudget shrinks how many times the clone may be deepened, so that

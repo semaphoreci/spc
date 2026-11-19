@@ -95,3 +95,104 @@ func TestIsGitFetchNeeded(t *testing.T) {
 		})
 	}
 }
+
+const (
+	testPushRange         = "abc...def"
+	testPushRangeVariable = "$SEMAPHORE_GIT_COMMIT_RANGE"
+	testFeatureBranch     = "feature"
+	testRepoSlug          = "org/repo"
+	testPRSlugEnvVar      = "SEMAPHORE_GIT_PR_SLUG"
+)
+
+func TestUsesPushRange(t *testing.T) {
+	cases := []struct {
+		name         string
+		refType      string
+		branch       string
+		prSlug       string
+		commitRange  string
+		defaultRange string
+		branchRange  string
+		expected     bool
+	}{
+		{
+			name:        "default branch with the push range",
+			refType:     env.GitRefTypeBranch,
+			branch:      testDefaultBranch,
+			commitRange: testPushRange,
+			expected:    true,
+		},
+		{
+			name:         "default branch with a range set in the pipeline",
+			refType:      env.GitRefTypeBranch,
+			branch:       testDefaultBranch,
+			commitRange:  testPushRange,
+			defaultRange: "HEAD~1..HEAD",
+			expected:     false,
+		},
+		{
+			name:     "default branch without a push range",
+			refType:  env.GitRefTypeBranch,
+			branch:   testDefaultBranch,
+			expected: false,
+		},
+		{
+			name:        "other branch measured by the push range",
+			refType:     env.GitRefTypeBranch,
+			branch:      testFeatureBranch,
+			commitRange: testPushRange,
+			branchRange: testPushRangeVariable,
+			expected:    true,
+		},
+		{
+			name:         "other branch measured by a range set in the pipeline",
+			refType:      env.GitRefTypeBranch,
+			branch:       testFeatureBranch,
+			commitRange:  testPushRange,
+			defaultRange: "HEAD~1..HEAD",
+			branchRange:  testPushRangeVariable,
+			expected:     false,
+		},
+		{
+			name:        "other branch measured against the default branch",
+			refType:     env.GitRefTypeBranch,
+			branch:      testFeatureBranch,
+			commitRange: testPushRange,
+			expected:    false,
+		},
+		{
+			name:        "pull request",
+			refType:     env.GitRefTypePullRequest,
+			branch:      testDefaultBranch,
+			commitRange: testPushRange,
+			expected:    false,
+		},
+		{
+			name:        "forked pull request",
+			refType:     env.GitRefTypePullRequest,
+			branch:      testDefaultBranch,
+			prSlug:      "fork/repo",
+			commitRange: testPushRange,
+			expected:    false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("SEMAPHORE_GIT_REF_TYPE", tc.refType)
+			t.Setenv("SEMAPHORE_GIT_BRANCH", tc.branch)
+			t.Setenv("SEMAPHORE_GIT_PR_BRANCH", testPRBranch)
+			t.Setenv("SEMAPHORE_GIT_REPO_SLUG", testRepoSlug)
+			t.Setenv(testPRSlugEnvVar, testRepoSlug)
+			if tc.prSlug != "" {
+				t.Setenv(testPRSlugEnvVar, tc.prSlug)
+			}
+			t.Setenv("SEMAPHORE_GIT_SHA", fallbackSha)
+			t.Setenv("SEMAPHORE_GIT_COMMIT_RANGE", tc.commitRange)
+
+			diffSet := NewDiffSet(testDefaultBranch, tc.defaultRange, tc.branchRange, false)
+
+			assert.Equal(t, tc.expected, diffSet.UsesPushRange())
+		})
+	}
+}

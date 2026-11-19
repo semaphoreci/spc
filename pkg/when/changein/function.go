@@ -31,7 +31,7 @@ func (f *Function) Eval() (bool, error) {
 		return false, err
 	}
 
-	diffList, err := git.DiffList(f.GitDiffSet.CommitRange())
+	diffList, err := f.diffList()
 	if err != nil {
 		return f.resolveDiffListError(err)
 	}
@@ -62,6 +62,36 @@ func (f *Function) fetchRequiredBranches() error {
 	}
 
 	return nil
+}
+
+// diffList lists the changed files. The push's own range is compared end to
+// end; any other range is compared through its merge base.
+func (f *Function) diffList() ([]string, error) {
+	commitRange := f.GitDiffSet.CommitRange()
+
+	if !f.GitDiffSet.UsesPushRange() {
+		return git.DiffList(commitRange)
+	}
+
+	diff, err := git.PushRangeDiffList(commitRange)
+	if err != nil {
+		return nil, err
+	}
+
+	if !diff.BaseAvailable {
+		f.warnPushBaseUnavailable()
+	}
+
+	return diff.Files, nil
+}
+
+// warnPushBaseUnavailable explains a result based on every file in the new
+// commit, which is what happens when the previous commit cannot be obtained.
+func (f *Function) warnPushBaseUnavailable() {
+	consolelogger.EmptyLine()
+	consolelogger.Infof("WARNING: the commit the branch pointed to before the push is not available.\n")
+	consolelogger.Infof("WARNING: commit range '%s'.\n", f.GitDiffSet.CommitRange())
+	consolelogger.Infof("WARNING: treating every file in the new commit as changed.\n")
 }
 
 // resolveDiffListError separates the two ways resolving a commit range can go
